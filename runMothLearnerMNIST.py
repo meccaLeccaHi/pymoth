@@ -28,12 +28,14 @@ import numpy as np
 
 # Experiment details
 from support_functions.setMNISTExpParams import setMNISTExperimentParams
+from support_functions.genDS_MNIST import generateDownsampledMNISTSet
+from MNIST_all.MNIST_read import MNIST_read
 
 ## USER ENTRIES (Edit parameters below):
 
-useExistingConnectionMatrices = 0  
-# if = 1, load 'matrixParamsFilename', which includes filled-in connection matrices
-# if = 0, generate new moth from template in specifyModelParamsMnist_fn.m
+useExistingConnectionMatrices = False  
+# if True, load 'matrixParamsFilename', which includes filled-in connection matrices
+# if False, generate new moth from template in specifyModelParamsMnist_fn.py
 
 matrixParamsFilename = 'sampleMothModelParams' # dict with all info, including connection matrices, of a particular moth.
 
@@ -47,14 +49,14 @@ trPerClass =  3 # the number of training samples per class
 numSniffs = 2 # number of exposures each training sample 
 
 ## Flags to show various images:
-showAverageImages = 0 # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'   
+showAverageImages = False # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'   
 showThumbnailsUsed =  10 #  N means show N experiment inputs from each class. 0 means don't show any. 
 showENPlots = [1, 1] # 1 to plot, 0 to ignore
 # arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN. 
 # arg2 refers to EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image).
 
 # To save results if wished:
-saveAllNeuralTimecourses = 0 # 0 -> save only EN (ie readout) timecourses.  Caution: 1 -> very high memory demands, hinders longer runs. 
+saveAllNeuralTimecourses = False # 0 -> save only EN (ie readout) timecourses.  Caution: 1 -> very high memory demands, hinders longer runs. 
 resultsFilename = 'results'  # will get the run number appended to it.
 saveResultsDataFolder = [] # String. If non-empty, 'resultsFilename' will be saved here.
 saveResultsImageFolder = [] # StrtempArraying. If non-empty, images will be saved here (if showENPlots also non-zero).
@@ -66,60 +68,61 @@ saveResultsImageFolder = [] # StrtempArraying. If non-empty, images will be save
 classLabels = list(range(10))  # For MNIST. '0' is labeled as 10
 valPerClass = 15  # number of digits used in validation sets and in baseline sets
 
-## make a vector of the classes of the training samples, randomly mixed:
+# make a vector of the classes of the training samples, randomly mixed:
 trClasses = np.repeat( classLabels, trPerClass )
 trClasses = np.random.permutation( trClasses )
-## repeat these inputs if taking multiple sniffs of each training sample:
+# repeat these inputs if taking multiple sniffs of each training sample:
 trClasses = np.tile( trClasses, [1, numSniffs] ) 
 
-## Experiment details for 10 digit training:
-#experimentFn = @setMnistExperimentParams_fn                 
+# Experiment details for 10 digit training:
+experimentFn = setMNISTExperimentParams # @setMnistExperimentParams_fn                
 
-##-----------------------------------
+#-----------------------------------------------
 
-### Load and preprocess the dataset.
+## Load and preprocess the dataset.
 
-## The dataset:
-## Because the moth brain architecture, as evolved, only handles ~60 features, we need to
-## create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features.
-## We do this by cropping and downsampling the MNIST thumbnails, then selecting a subset of the 
-## remaining pixels.
-## This results in a cruder dataset (set various view flags to see thumbnails).
-## However, it is sufficient for testing the moth brain's learning ability. Other ML methods need  
-## to be tested on this same cruder dataset to make useful comparisons.
+# The dataset:
+# Because the moth brain architecture, as evolved, only handles ~60 features, we need to
+# create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features.
+# We do this by cropping and downsampling the MNIST thumbnails, then selecting a subset of the 
+# remaining pixels.
+# This results in a cruder dataset (set various view flags to see thumbnails).
+# However, it is sufficient for testing the moth brain's learning ability. Other ML methods need  
+# to be tested on this same cruder dataset to make useful comparisons.
 
-## Define train and control pools for the experiment, and determine the receptive field.
-## This is done first because the receptive field determines the number of AL units, which
-##      must be updated in modelParams before 'initializeMatrixParams_fn' runs.experimentFn
-## This dataset will be used for each simulation in numRuns. Each
-##      simulation draws a new set of samples from this set.
+# Define train and control pools for the experiment, and determine the receptive field.
+# This is done first because the receptive field determines the number of AL units, which
+#      must be updated in modelParams before 'initializeMatrixParams_fn' runs.experimentFn
+# This dataset will be used for each simulation in numRuns. Each
+#      simulation draws a new set of samples from this set.
 
-## Parameters:
-## Parameters required for the dataset generation function are attached to a struct preP.
-## 1. The images used. This includes pools for mean-subtraction, baseline, train, and val. 
-##     This is NOT the number of training samples per class. That is trPerClass, defined above. 
+# Parameters:
+# Parameters required for the dataset generation function are attached to a dictionary: 'preP'.
+# 1. The images used. This includes pools for mean-subtraction, baseline, train, and val. 
+#     This is NOT the number of training samples per class. That is trPerClass, defined above. 
 
-## specify pools of indices from which to draw baseline, train, val sets.
-#indPoolForBaseline = 1:100
-#indPoolForTrain = 101:300 
-#indPoolForPostTrain =  301:400
+# Specify pools of indices from which to draw baseline, train, val sets.
+indPoolForBaseline = list(range(100)) # 1:100
+indPoolForTrain = list(range(100,300)) # 101:300
+indPoolForPostTrain = list(range(300,400)) # 301:400
 
-## Population preprocessing pools of indices:
-#preP.indsToAverageGeneral = 551:1000
-#preP.indsToCalculateReceptiveField = 551:1000
-#preP.maxInd = max( [ preP.indsToCalculateReceptiveField,  indPoolForTrain ] )   # we'll throw out unused samples.
+# Population preprocessing pools of indices:
+preP = dict()
+preP['indsToAverageGeneral'] = list(range(550,1000)) # 551:1000
+preP['indsToCalculateReceptiveField'] = list(range(550,1000)) # 551:1000
+preP['maxInd'] = max( [ preP['indsToCalculateReceptiveField'] + indPoolForTrain ] ) # we'll throw out unused samples.
 
 ## 2. Pre-processing parameters for the thumbnails:
-#preP.downsampleRate = 2
-#preP.crop = 2
-#preP.numFeatures =  85  # number of pixels in the receptive field
-#preP.pixelSum = 6
-#preP.showAverageImages = showAverageImages 
-#preP.downsampleMethod = 1 # 0 means sum square patches of pixels. 1 means use bicubic interpolation.
+preP['downsampleRate'] = 2
+preP['crop'] = 2
+preP['numFeatures'] =  85  # number of pixels in the receptive field
+preP['pixelSum'] = 6
+preP['showAverageImages'] = showAverageImages # boolean 
+preP['downsampleMethod'] = 1 # 0 means sum square patches of pixels. 1 means use bicubic interpolation.
 
-#preP.classLabels = classLabels # append
-#preP.useExistingConnectionMatrices = useExistingConnectionMatrices # append
-#preP.matrixParamsFilename = matrixParamsFilename
+preP['classLabels'] = classLabels # append
+preP['useExistingConnectionMatrices'] = useExistingConnectionMatrices # boolean
+preP['matrixParamsFilename'] = matrixParamsFilename
 
 ## generate the data array:
 # [ fA, activePixelInds, lengthOfSide ] = generateDownsampledMnistSet_fn(preP) # argin = preprocessingParams

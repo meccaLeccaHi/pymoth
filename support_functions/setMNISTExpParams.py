@@ -1,23 +1,23 @@
 def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 
-	#This function defines parameters of a time-evolution experiment: overall timing, stim timing and
-	#strength, octo timing and strength, lowpass window parameter, etc.
-	#It does book-keeping to allow analysis of the SDE time-stepped evolution of the neural firing rates.
-	#Inputs:
+	# This function defines parameters of a time-evolution experiment: overall timing, stim timing and
+	# strength, octo timing and strength, lowpass window parameter, etc.
+	# It does book-keeping to allow analysis of the SDE time-stepped evolution of the neural firing rates.
+	# Inputs:
 	#	1. trClasses: vector of indices giving the classes of the training digits in order. 
 	#		The first entry must be nonzero. Unused entries can be filled with -1s if wished.
-	#	2. classLabels: a list of labels, eg 1:10 for mnist
-	#	3. valPerClass: how many digits of each class to use for baseline and post-train
-	#Output:
+	# 	2. classLabels: a list of labels, eg 1:10 for mnist
+	# 	3. valPerClass: how many digits of each class to use for baseline and post-train
+	# Output:
 	#	1. expParams: struct with experiment info.
-	#----------------------------------------------------------------
-	#Order of time periods:
-	#    1. no event period: allow system to settle to a steady state spontaneous FR baseline
-	#    2. baseline period: deliver a group of digits for each class
-	#    3. no event buffer 
-	#    5. training period:  deliver digits + octopamine + allow hebbian updates 
-	#    6. no event buffer 
-	#    7. post-training period: deliver a group of digits for each class
+	# ----------------------------------------------------------------
+	# Order of time periods:
+	#	1. no event period: allow system to settle to a steady state spontaneous FR baseline
+	#   2. baseline period: deliver a group of digits for each class
+	#	3. no event buffer 
+	#	4. training period:  deliver digits + octopamine + allow hebbian updates 
+	#	5. no event buffer 
+	#	6. post-training period: deliver a group of digits for each class
 
 	stimMag = 20 # stim magnitudes as passed into AL (See original version in smartAsABug codebase)
 	stimLength = 0.22
@@ -35,7 +35,7 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	startTime = 30
 	gap = 10
 
-	return expParams
+	return range(nC)
 
 #	for i in range(nC):
 	#		baselineTimes = [ baselineTimes, startTime : step : startTime + (valPerClass - 1)*step  ]# vector of timepoints, one digit applied every 'step' seconds
