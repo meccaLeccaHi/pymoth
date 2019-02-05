@@ -1,14 +1,24 @@
-#% makes the following dictionary, called mnist
-#%    train_images: [28x28x60000 uint8]
-#%     test_images: [28x28x10000 uint8]
-#%    train_labels: [60000x1 uint8]
-#%     test_labels: [10000x1 uint8]
-#% Remember to convert to double before processing
+# makes the following dictionary, called mnist
+#    train_images: np.array[28x28x60000]
+#     test_images: np.array[28x28x10000]
+#    train_labels: np.array[60000x1]
+#     test_labels: np.array[10000x1]
 
-#[train_images, train_labels, test_images, test_labels] = mnistRead();
+import os
+import numpy as np
+from MNIST_read import MNIST_read
 
-#mnist.train_images = train_images;
-#mnist.test_images = test_images;
-#mnist.train_labels = train_labels;
-#mnist.test_labels = test_labels;
-#save('mnistALL.mat','mnist')
+[train_imgs, train_lbls, test_imgs, test_lbls] = MNIST_read();
+
+im_dir = 'MNIST_all'
+
+mnist = {
+			'train_images':train_imgs,
+			'test_images':test_imgs,
+			'train_labels':train_lbls,
+			'test_labels':test_lbls,
+		}
+		
+np.save(os.path.join('.',im_dir,'MNIST_all.npy'),mnist)
+
+

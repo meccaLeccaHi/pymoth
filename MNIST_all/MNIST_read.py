@@ -20,13 +20,13 @@ def MNIST_read():
 
 	im_dir = 'MNIST_all'
 	raw_dir = 'raw'
-
+	file_list = ['train_images.npy','train_labels.npy','test_images.npy','test_labels.npy']
 	# Check if all processed files exist
-	fileTest = all([not os.path.isfile(os.path.join(im_dir,fn)) for fn in ['train.npy','test.npy']])
+	missingFileTest = any(
+			[not os.path.isfile(os.path.join('.',im_dir,raw_dir,fn)) for fn in file_list])
 
-	if fileTest:
-		np.load('train.npy')
-	else:
+	if missingFileTest:
+
 		import wget
 		import gzip
 		import struct
@@ -40,85 +40,45 @@ def MNIST_read():
 				'labels':'http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz'}
 		}
 
-		# Check for raw (compressed) image files		
+		# Define function to process (via numpy) image files
+		def extract_images(gz_file):
+			with gzip.open(os.path.join('.',im_dir,raw_dir,gz_file)) as f:
+				zero, data_type, dims = struct.unpack('>HBB', f.read(4))
+				shape = tuple(struct.unpack('>I', f.read(4))[0] for d in range(dims))
+				images = np.fromstring(f.read(), dtype=np.uint8).reshape(shape)
+			print(f'Image array shape: {shape}')
+			return images
+		# Define function to process (via numpy) image label files
+		def extract_labels(gz_file):
+			with gzip.open(os.path.join('.',im_dir,raw_dir,gz_file)) as f:
+				f.read(8)
+				labels = np.frombuffer(f.read(), dtype=np.uint8).astype(np.int64)
+			print(f'Image label array shape: {labels.shape}')
+			return labels
+
+		# Loop each exp. set [training and test]		
 		for set_label, urls in image_urls.items():
-			# Check for images
+			# Check for raw (compressed) images
 			if not os.path.isfile(os.path.join('.',im_dir,raw_dir,set_label+'_images.gz')):
 				print(f'Downloading {set_label} images')
 				wget.download(urls['images'],(os.path.join('.',im_dir,raw_dir,set_label+'_images.gz')))
-			# Check for labels
+			# Check for raw (compressed) labels
 			if not os.path.isfile(os.path.join('.',im_dir,raw_dir,set_label+'_labels.gz')):
 				print(f'Downloading {set_label} labels')
 				wget.download(urls['labels'],(os.path.join('.',im_dir,raw_dir,set_label+'_labels.gz')))
 
-			# Create processed (numpy) image files
-			def read_img(filename):
-				with gzip.open(filename) as f:
-					zero, data_type, dims = struct.unpack('>HBB', f.read(4))
-					shape = tuple(struct.unpack('>I', f.read(4))[0] for d in range(dims))
-					return np.fromstring(f.read(), dtype=np.uint8).reshape(shape)
-			# See reference here: gist.github.com/tylerneylon/ce60e8a06e7506ac45788443f7269e40
-
-#			def read_lbl(filename):
-#				with gzip.open(filename) as f:
-#					zero, data_type, dims = struct.unpack('>HBB', f.read(4))
-#					shape = tuple(struct.unpack('>I', f.read(4))[0] for d in range(dims))
-#					return np.fromstring(f.read(), dtype=np.uint8).reshape(shape)
-
 			print(f'Reading {set_label} images')
-			image_data = read_img(os.path.join('.',im_dir,raw_dir,set_label+'_images.gz'))
-			print(f'Saving {set_label} images')
-			np.save(os.path.join('.',im_dir,set_label+'.npy'),image_data)
+			images = extract_images(set_label+'_images.gz')
+			print(f'Reading {set_label} labels')
+			labels = extract_labels(set_label+'_labels.gz')
+			print(f'Saving {set_label} images and labels')
+			np.save(os.path.join('.',im_dir,raw_dir,set_label+'_images.npy'),images)		
+			np.save(os.path.join('.',im_dir,raw_dir,set_label+'_labels.npy'),labels)
+	
+	train_imgs = np.load(os.path.join('.',im_dir,raw_dir,'train_images.npy'))
+	train_lbls = np.load(os.path.join('.',im_dir,raw_dir,'train_labels.npy'))
+	test_imgs = np.load(os.path.join('.',im_dir,raw_dir,'test_images.npy'))
+	test_lbls = np.load(os.path.join('.',im_dir,raw_dir,'test_labels.npy'))
 
-	#return images (after they've been loaded)
-
-		
-	#fid = fopen('train-images-idx3-ubyte','r','ieee-be');  big endian
-	#A = fread(fid,4,'uint32');
-	#num_images = A(2);
-	#mdim = A(3);
-	#ndim = A(4);
-
-	#train_images = fread(fid,mdim*ndim*num_images,'uint8=>uint8');
-	#train_images = reshape(train_images,[mdim, ndim,num_images]);
-	#train_images = permute(train_images, [2 1 3]); 
-
-	#fclose(fid);
-
-
-	#fid = fopen('train-labels-idx1-ubyte','r','ieee-be');
-	#A = fread(fid,2,'uint32');
-	#num_images = A(2);
-
-	#train_labels = fread(fid,num_images,'uint8=>uint8');
-
-	#fclose(fid);
-
-
-	# Test
-
-	#fid = fopen('t10k-images-idx3-ubyte','r','ieee-be');
-	#A = fread(fid,4,'uint32');
-	#num_images = A(2);
-	#mdim = A(3);
-	#ndim = A(4);
-
-	#test_images = fread(fid,mdim*ndim*num_images,'uint8=>uint8');
-	#test_images = reshape(test_images,[mdim, ndim,num_images]);
-	#test_images = permute(test_images, [2 1 3]); 
-
-	#fclose(fid);
-
-	# Testing labels:
-	#fid = fopen('t10k-labels-idx1-ubyte','r','ieee-be');
-	#A = fread(fid,2,'uint32');
-	#num_images = A(2);
-
-	#test_labels = fread(fid,num_images,'uint8=>uint8');
-
-	#fclose(fid);
-
-
-
-	# return [train_images, train_labels, test_images, test_labels]
+	return train_imgs, train_lbls, test_imgs, test_lbls
 
