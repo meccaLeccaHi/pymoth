@@ -1,48 +1,54 @@
 def generateDownsampledMNISTSet( preP ):
-
-	# Loads the MNIST dataset (from Yann LeCun's website), 
+	# Loads the MNIST dataset (from Yann LeCun's website),
 	# then applies various preprocessing steps to reduce the number of pixels (each pixel will
-	# be a feature). 
-	# The 'receptive field' step destroys spatial relationships, so to reconstruct a 
+	# be a feature).
+	# The 'receptive field' step destroys spatial relationships, so to reconstruct a
 	# 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices can be embedded in a
 	# 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
 	# Modify the path for the MNIST data file as needed.
 	#
-	# Inputs: 
+	# Inputs:
 	#   1. preP = preprocessingParams = dictionary with keys corresponding to relevant variables
 	#
 	# Outputs:
-	#   1. featureArray = n x m x 10 array. n = #active pixels, m = #digits from each class that 
+	#   1. featureArray = n x m x 10 array. n = #active pixels, m = #digits from each class that
 	#	will be used. The 3rd dimension gives the class, 1:10   where 10 = '0'.
 	#   2. activePixelInds: list of pixel indices to allow re-embedding into empty thumbnail for viewing.
 	#   3. lengthOfSide: allows reconstruction of thumbnails given from the  feature vectors.
 	#------------------------------------------------------------------
 	# Preprocessing includes:
-	#   1. Load MNIST set.  
-	#   2. cropping and downsampling 
+	#   1. Load MNIST set.generateDownsampledMnistSet_fn
+	#   2. cropping and downsampling
 	#   3. mean-subtract, make non-negative, normalize pixel sums
 	#   4. select active pixels (receptive field)
 
 	import os
 	import numpy as np
+	from support_functions.extractFA import extractMNISTFeatureArray
+	from support_functions.vec_images import cropDownsampleVectorizeImageStack
 
 	im_dir = 'MNIST_all'
 
 	# 1. extract mnist:
-	mnist = np.load(os.path.join(imdir,'MNIST_all.npy') 
+	mnist = np.load(os.path.join(im_dir,'MNIST_all.npy')).item()
 
-	# loads dictionary 'mnist' with keys:value pairs = 
+	# loads dictionary 'mnist' with keys:value pairs =
 	#              .training_images, .test_images, .training_labels, .test_labels (ie the original data from PMTK3)
 	#              AND parsed by class. These fields are used to assemble the imageArray:
-	#              .trI_* = train_images of class *; 
-	#              .teI_* = test_images of class *; 
-	#              .trL_* = train_labels of class *; 
+	#              .trI_* = train_images of class *;
+	#              .teI_* = test_images of class *;
+	#              .trL_* = train_labels of class *;
 	#              .teL_* = test_labels of class *;
 
-	# extract the required images and classes. 
-	#imageIndices = 1 : preP.maxInd;
-	#[imageArray] = extractMnistFeatureArray_fn( mnist, preP.classLabels, imageIndices, 'train');
-	#   imageArray = h x w x numberImages x numberClasses 4-D array. the classes are ordered 1 to 10 (10 = '0')
+	# extract the required images and classes
+	imageIndices = range(preP['maxInd'])
+	imageArray = extractMNISTFeatureArray(mnist, preP['classLabels'], imageIndices, 'train')
+	# imageArray = numberImages x h x w x numberClasses 4-D array. class order: 1 to 10 (10 = '0')
+
+	# crop, downsample, and vectorize the average images and the image stacks
+	for c in range(imageArray.shape[-1]):
+		featureMatrix = cropDownsampleVectorizeImageStack(imageArray[...,c], preP['crop'], preP['downsampleRate'], preP['downsampleMethod'])
+		print('this feature matrix shape:',featureMatrix.shape)
 
 	# crop, downsample, and vectorize the average images and the image stacks:
 	#for c = 1:size(imageArray,4)
@@ -63,14 +69,14 @@ def generateDownsampledMNISTSet( preP ):
 	#                                                                                        1 : length(preP.indsToAverageGeneral) );
 	#    overallAve = overallAve + classAvesRaw(:,c);
 	#end
-	#overallAve = overallAve / size(featureArray,3); 
+	#overallAve = overallAve / size(featureArray,3);
 
 	# b. Subtract this overallAve image from all images:
 	#featureArray = featureArray - repmat( overallAve, [1, size(featureArray,2), size(featureArray,3) ] );
 	#featureArray = max( featureArray, 0 );  kill negative pixel values
 
-	# c. Normalize each image so the pixels sum to the same amount:         
-	#fSums = sum(featureArray,1);
+	# c. Normalize each image so the pixels sum to the same amount:
+	#fSums = sum(featurpreP['maxInd']eArray,1);
 	#fNorm = preP.pixelSum*featureArray./repmat(fSums, [size(featureArray,1), 1, 1 ] );
 	#featureArray = fNorm;
 	# featureArray now consists of mean-subtracted, non-negative,
@@ -80,7 +86,7 @@ def generateDownsampledMNISTSet( preP ):
 
 	# d. Define a Receptive Field, ie the active pixels:
 	# Reduce the number of features by getting rid of less-active pixels.
-	# If we are using an existing moth then activePixelInds is already defined, so 
+	# If we are using an existing moth then activePixelInds is already defined, so
 	# we need to load the modelParams to get the number of features (since this is defined by the AL architecture):
 	#if preP.useExistingConnectionMatrices
 	#    load( preP.matrixParamsFilename );     loads 'modelParams'
@@ -88,4 +94,4 @@ def generateDownsampledMNISTSet( preP ):
 	#end
 	#activePixelInds = selectActivePixels_fn( featureArray( :, preP.indsToCalculateReceptiveField, : ),...
 	#                                                                                  preP.numFeatures, preP.showAverageImages );
-	#featureArray = featureArray(activePixelInds,:,:);    Project onto the active pixels 
+	#featureArray = featureArray(activePixelInds,:,:);    Project onto the active pixels

@@ -18,7 +18,5 @@ mnist = {
 			'train_labels':train_lbls,
 			'test_labels':test_lbls,
 		}
-		
-np.save(os.path.join('.',im_dir,'MNIST_all.npy'),mnist)
 
-
+np.save(os.path.join('.',im_dir,'MNIST_all.npy'), mnist)
