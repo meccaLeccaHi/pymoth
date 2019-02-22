@@ -26,7 +26,7 @@ def generateDownsampledMNISTSet( preP ):
 	import numpy as np
 	from support_functions.extractFA import extractMNISTFeatureArray
 	from support_functions.vec_images import cropDownsampleVectorizeImageStack
-
+	from support_functions.aveImStack import averageImageStack
 	im_dir = 'MNIST_all'
 
 	# 1. extract mnist:
@@ -41,35 +41,49 @@ def generateDownsampledMNISTSet( preP ):
 	#              .teL_* = test_labels of class *;
 
 	# extract the required images and classes
-	imageIndices = range(preP['maxInd'])
+	imageIndices = range(preP['maxInd']+1)
 	imageArray = extractMNISTFeatureArray(mnist, preP['classLabels'], imageIndices, 'train')
 	# imageArray = numberImages x h x w x numberClasses 4-D array. class order: 1 to 10 (10 = '0')
 
+	z,h,w,label_len = imageArray.shape
+	# DEV NOTE: This is hard code now :( - fix this during refactor
+	new_length = 144
+
+	featureArray = np.zeros((new_length, z, label_len)) # pre-allocate
+	fa_shape = featureArray.shape
+	print('this featureArray shape:', fa_shape)
+
 	# crop, downsample, and vectorize the average images and the image stacks
-	for c in range(imageArray.shape[-1]):
-		featureMatrix = cropDownsampleVectorizeImageStack(imageArray[...,c], preP['crop'], preP['downsampleRate'], preP['downsampleMethod'])
-		print('this feature matrix shape:',featureMatrix.shape)
+	for c in range(label_len):
+		# featureMatrix : [a x numImages] array,
+		# 	where a = number of pixels in the cropped and downsampled images
+		featureMatrix = cropDownsampleVectorizeImageStack(imageArray[...,c],
+		 	preP['crop'], preP['downsampleRate'], preP['downsampleMethod'])
+		featureArray[...,c] = featureMatrix
 
-	# crop, downsample, and vectorize the average images and the image stacks:
-	#for c = 1:size(imageArray,4)
-	#    thisStack = imageArray(:,:,:,c);
-	#    thisFeatureMatrix = cropDownsampleVectorizeImageStack_fn(thisStack, preP.crop, preP.downsampleRate, preP.downsampleMethod );
-	#    featureArray(:,:,c) = thisFeatureMatrix;
-	#end
+	del imageArray   # to save memory
 
-	#clear imageArray   to save memory
+	# subtract a mean image from all feature vectors, then make values non-negative
 
-	# Subtract a mean image from all feature vectors, then make values non-negative:
-
+	# DEV NOTE: The following loop could be collapsed into the loop above
 	# a. Make an overall average feature vector, using the samples specified in 'indsToAverage'
-	#overallAve = zeros(size(featureArray,1),1);   initialize col vector
-	#classAvesRaw = zeros(size(featureArray,1), size(featureArray,3));
-	#for c = 1:size(featureArray,3)
-	#    classAvesRaw(:,c) = averageImageStack_fn(featureArray( : , preP.indsToAverageGeneral, c), ...
-	#                                                                                        1 : length(preP.indsToAverageGeneral) );
-	#    overallAve = overallAve + classAvesRaw(:,c);
-	#end
-	#overallAve = overallAve / size(featureArray,3);
+	overallAve = np.zeros((new_length, )) # pre-allocate col vector
+	classAvesRaw = np.zeros((new_length, label_len))
+	for c in range(label_len):
+		classAvesRaw[:,c] = averageImageStack(featureArray[:, preP['indsToAverageGeneral'], c],
+			list(range(len(preP['indsToAverageGeneral']))) )
+		overallAve += classAvesRaw[:,c]
+
+	print(overallAve.shape)
+	print(z,h,w,label_len)
+
+	print('foo')
+	foo = np.array([np.tile(overallAve, (1,z)) for i in range(label_len)])
+	([np.tile(overallAve, (m,n)) for i in xrange(p)])
+	print(foo.shape)
+
+
+	#featureArray -= np.tile(overallAve, (1, z, label_len))
 
 	# b. Subtract this overallAve image from all images:
 	#featureArray = featureArray - repmat( overallAve, [1, size(featureArray,2), size(featureArray,3) ] );

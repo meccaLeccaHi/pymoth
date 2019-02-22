@@ -108,8 +108,8 @@ indPoolForPostTrain = list(range(300,400)) # 301:400
 
 # Population preprocessing pools of indices:
 preP = dict()
-preP['indsToAverageGeneral'] = list(range(550,1000)) # 551:1000
-preP['indsToCalculateReceptiveField'] = list(range(550,1000)) # 551:1000
+preP['indsToAverageGeneral'] = list(range(550,999)) # 551:1000
+preP['indsToCalculateReceptiveField'] = list(range(550,999)) # 551:1000
 preP['maxInd'] = max( [ preP['indsToCalculateReceptiveField'] + indPoolForTrain ][0] ) # we'll throw out unused samples.
 
 ## 2. Pre-processing parameters for the thumbnails:
