@@ -125,8 +125,7 @@ preP['useExistingConnectionMatrices'] = useExistingConnectionMatrices # boolean
 preP['matrixParamsFilename'] = matrixParamsFilename
 
 # generate the data array:
-#fA, activePixelInds, lengthOfSide =
-generateDownsampledMNISTSet(preP) # argin = preprocessingParams
+fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP) # argin = preprocessingParams
 
 ## The dataset fA is a feature array ready for running experiments. Each experiment uses a random draw from this dataset.
 ## fA = n x m x 10 array where n = #active pixels, m = #digits

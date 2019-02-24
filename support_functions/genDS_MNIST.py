@@ -27,6 +27,9 @@ def generateDownsampledMNISTSet( preP ):
 	from support_functions.extractFA import extractMNISTFeatureArray
 	from support_functions.vec_images import cropDownsampleVectorizeImageStack
 	from support_functions.aveImStack import averageImageStack
+	from support_functions.selectPix import selectActivePixels
+	# DEV NOTE: Collapse these babies into one beautiful object
+
 	im_dir = 'MNIST_all'
 
 	# 1. extract mnist:
@@ -50,8 +53,6 @@ def generateDownsampledMNISTSet( preP ):
 	new_length = 144
 
 	featureArray = np.zeros((new_length, z, label_len)) # pre-allocate
-	fa_shape = featureArray.shape
-	print('this featureArray shape:', fa_shape)
 
 	# crop, downsample, and vectorize the average images and the image stacks
 	for c in range(label_len):
@@ -73,30 +74,49 @@ def generateDownsampledMNISTSet( preP ):
 		classAvesRaw[:,c] = averageImageStack(featureArray[:, preP['indsToAverageGeneral'], c],
 			list(range(len(preP['indsToAverageGeneral']))) )
 		overallAve += classAvesRaw[:,c]
+	overallAve /= label_len
 
-	print(overallAve.shape)
-	print(z,h,w,label_len)
+	# b. Subtract this overallAve image from all images
+	ave_2D = np.matlib.repmat(overallAve,z,1).T
+	ave_3D = np.repeat(ave_2D[:,:,np.newaxis],label_len,2)
+	featureArray -= ave_3D
+	del ave_2D, ave_3D
 
-	print('foo')
-	foo = np.array([np.tile(overallAve, (1,z)) for i in range(label_len)])
-	([np.tile(overallAve, (m,n)) for i in xrange(p)])
-	print(foo.shape)
+	featureArray = featureArray.clip(min=0) # remove any negative pixel values
 
-
-	#featureArray -= np.tile(overallAve, (1, z, label_len))
-
-	# b. Subtract this overallAve image from all images:
-	#featureArray = featureArray - repmat( overallAve, [1, size(featureArray,2), size(featureArray,3) ] );
-	#featureArray = max( featureArray, 0 );  kill negative pixel values
-
-	# c. Normalize each image so the pixels sum to the same amount:
-	#fSums = sum(featurpreP['maxInd']eArray,1);
-	#fNorm = preP.pixelSum*featureArray./repmat(fSums, [size(featureArray,1), 1, 1 ] );
-	#featureArray = fNorm;
+	# c. Normalize each image so the pixels sum to the same amount
+	fSums = np.sum(featureArray, axis=0)
+	normArray = np.repeat(fSums[np.newaxis,:,:],new_length,0)
+	fNorm = preP['pixelSum']*featureArray/normArray
+	featureArray = fNorm
+	## DEV NOTE: Replace above with syntax below
+	## featureArray *= preP['pixelSum']
+	## featureArray /= normArray
 	# featureArray now consists of mean-subtracted, non-negative,
 	# normalized (by sum of pixels) columns, each column a vectorized thumbnail. size = 144 x numDigitsPerClass x 10
 
-	#lengthOfSide = size(featureArray,1);  save to allow sde_EM_evolution to print thumbnails.
+	lengthOfSide = new_length # save to allow sde_EM_evolution to print thumbnails.
+
+	# d. Define a Receptive Field, ie the active pixels
+	# Reduce the number of features by getting rid of less-active pixels.
+	# If we are using an existing moth then activePixelInds is already defined, so
+	# we need to load the modelParams to get the number of features (since this is defined by the AL architecture):
+	if preP['useExistingConnectionMatrices']:
+		pass
+		# load 'modelParams'
+		#    load( preP['matrixParamsFilename'] )
+		#    preP['numFeatures'] = modelParams['nF']
+
+	foo = featureArray[:, preP['indsToCalculateReceptiveField'], :]
+	activePixelInds = selectActivePixels(foo, preP['numFeatures'], preP['showAverageImages'])
+
+	featureArray = featureArray[activePixelInds,:,:] # Project onto the active pixels
+
+
+	# print(bar.shape)
+	# print('bar min',np.min(bar))
+	# print('bar max',np.max(bar))
+	# print('this featureArray shape:', featureArray.shape)
 
 	# d. Define a Receptive Field, ie the active pixels:
 	# Reduce the number of features by getting rid of less-active pixels.
@@ -109,3 +129,5 @@ def generateDownsampledMNISTSet( preP ):
 	#activePixelInds = selectActivePixels_fn( featureArray( :, preP.indsToCalculateReceptiveField, : ),...
 	#                                                                                  preP.numFeatures, preP.showAverageImages );
 	#featureArray = featureArray(activePixelInds,:,:);    Project onto the active pixels
+
+	return featureArray, activePixelInds, lengthOfSide

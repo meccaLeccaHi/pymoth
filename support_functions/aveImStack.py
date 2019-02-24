@@ -29,20 +29,3 @@ def averageImageStack( imStack, indicesToAverage ):
     # DEV NOTE: remove averageIm above feed right side directly to return to save memory
 
     return averageIm
-
-    # # case: images are col vectors:
-    # if length(size(imStack)) == 2
-    #     aveIm = zeros(size(imStack,1),1);
-    #     for i = indicesToAverage
-    #         aveIm = aveIm + imStack(:, i);
-    #     end
-    # else
-    #     aveIm = zeros(size(imStack,1), size(imStack,2));
-    #     for i = indicesToAverage
-    #         aveIm = aveIm + imStack(:,:,i);
-    #     end
-    # end
-    # # normalize:
-    # averageIm = aveIm/length(indicesToAverage);
-
-    return averageIm
