@@ -2,7 +2,7 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     # Select the most active pixels, considering all class average images, to use as features.
     # Inputs:
     #    1. featureArray: 3-D array nF x nS x nC, where nF = # of features, nS = # samples per class, nC = number of classes.
-    #        As created by generateDwnsampledMnistSet_fn.m
+    #        As created by genDS_MNIST
     #    2. numFeatures: The number of active pixels to use (these form the receptive field).
     #    3. showImages:  1 means show average class images, 0 = don't show.
     # Output:
@@ -17,14 +17,32 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     pixNum, numPerClass, classNum  = featureArray.shape
     cA = np.zeros((pixNum, classNum+1))
 
-    print(pixNum, numPerClass, classNum)
-
     for i in range(classNum):
         #temp = np.zeros((pixNum, numPerClass))
-        foo = averageImageStack(featureArray[:,:,i], list(range(numPerClass)))
-        # print(foo.shape)
-        # print(cA[:,i].shape)
         cA[:,i] = averageImageStack(featureArray[:,:,i], list(range(numPerClass)))
+
+    # last col = average image over all digits
+    cA[:,-1] = np.sum(cA[:,:-1],axis=1) / classNum
+
+    print(pixNum, numPerClass, classNum)
+
+    z = np.max(cA,axis=0)
+    print('foo')
+    print(z.shape)
+
+    z_norm = z
+    z_norm[-1] = 1
+
+    bar = np.matlib.repmat(z_norm,pixNum,1)
+    print(bar.shape)
+
+    caNormed = cA/np.matlib.repmat(z_norm,pixNum,1)
+    # num = size(caNormed,2);
+
+    # normed version (does not rescale the overall average)
+    # z = max(cA);
+    # caNormed = cA./repmat( [z(1:end-1), 1], [size(cA,1),1]);
+    # num = size(caNormed,2);
 
     # # make a classAves matrix, each col a class ave 1 to 10 (ie 0), and add a col for the overallAve
     # numPerClass = size(featureArray,2);

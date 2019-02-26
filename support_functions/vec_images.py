@@ -24,8 +24,8 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
     width = range(cropVal[2], w-cropVal[3])
     height = range(cropVal[0], h-cropVal[1])
 
-    new_width = (h-sum(cropVal[0:2]))/downsampleVal
-    new_height = (w-sum(cropVal[2:]))/downsampleVal
+    new_width = (h-np.sum(cropVal[0:2]))/downsampleVal
+    new_height = (w-np.sum(cropVal[2:]))/downsampleVal
 
     imColArray = np.zeros((int(new_width*new_height),z))
     d = downsampleVal
