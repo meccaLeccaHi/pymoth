@@ -8,6 +8,9 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     #   4. titleString = string
 
     import numpy as np
+    import os
+
+    import sys
 
     # bookkeeping: change dim if needed
     # DEV NOTE: Clarify with Charles
@@ -29,8 +32,16 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     numCols = np.ceil(np.sqrt(total*2)) # param to set
     vert = 1/(numRows + 1)
     horiz = 1/(numCols + 1)
-    #
-    # scrsz = get(0,'ScreenSize');
+
+    print('OS',os.name)
+    print('sys',sys.platform)
+
+    import tkinter as tk
+
+    root = tk.Tk()
+    scrsz = (root.winfo_screenwidth(), root.winfo_screenheight())
+    root.destroy()
+
     # thumbs = figure('Position',[scrsz(1), scrsz(2), scrsz(3)*0.8, scrsz(4)*0.8 ]);
     # for class = 1:nC
     #     for i = 1:numPerClass
