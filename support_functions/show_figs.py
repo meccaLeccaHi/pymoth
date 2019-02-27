@@ -16,76 +16,60 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     scrsz = [screen_width, screen_height]
 
     import numpy as np
-    # import os
-    # import sys # check if we actually need?
-    # print('OS',os.name)
-    # print('sys',sys.platform)
-    import matplotlib.pyplot as plt # check if we actually need?
+    import matplotlib.pyplot as plt
 
     # bookkeeping: change dim if needed
-    # DEV NOTE: Clarify with Charles
-    print('featureArray shape:',featureArray.shape)
+    # DEV NOTE: Clarify with Charles - this seems unnecessary
     if len(featureArray.shape)==2:
-        print('WARNING: Utilizing un-tested feature!')
         f = np.zeros((featureArray.shape[0],featureArray.shape[1],1))
         f[:,:,0] = featureArray
-        featureArray = f
-
-    pixNum, nC, classNum  = featureArray.shape
-    # DEV NOTE: Should be able to remove classNum from inputs above and in script
-    print('lalala- FIX THIS WHEN WE CAN COMPARE WITH THE MATLAB VARS')
-    ## I think it's supposed to be 10x10, but need to check the vals of the matlab vars
-    print(nC,numPerClass)
-    total = nC*numPerClass
-    # DEV NOTE: Add commentary when we understand better
-    numRows = np.ceil(np.sqrt(total/2)) # param to set
-    numCols = np.ceil(np.sqrt(total*2)) # param to set
-    vert = 1/(numRows + 1)
-    horiz = 1/(numCols + 1)
+        featureArray = f  #.squeeze()
 
     print('featureArray shape:',featureArray.shape)
 
-    scrsz = [(i/100)*0.8 for i in scrsz]
+    pixNum, numPerClass, nC  = featureArray.shape
+    # DEV NOTE: Should be able to remove classNum from inputs above
 
-    #thumbs = plt.figure(figsize=scrsz, dpi=100)
+    total = nC*numPerClass # total number of subplots
+    numRows = np.ceil(np.sqrt(total/2)) # n of rows
+    numCols = np.ceil(np.sqrt(total*2)) # n of cols
+    vert = 1/(numRows + 1) # vertical step size
+    horiz = 1/(numCols + 1) # horizontal step size
+
+    fig_sz = [np.floor((i/100)*0.8) for i in scrsz]
+    print('fig_sz',fig_sz)
+    print(numRows,numCols)
+    thumbs = plt.figure(figsize=fig_sz, dpi=100)
 
     for cl in range(nC): # 'class' is a keyword in Python; renamed to 'cl'
         for i in range(numPerClass):
-            col = numPerClass*(cl-1) + i
-            print(col)
-
+            ax_i = numPerClass*(cl) + i + 1
             thisInput = featureArray[:, i, cl]
 
-            ###RESUME HERE
+            if normalize:
+                # DEV NOTE: This only affects the last image in the stack (the average)
+                # -> could be made more efficient
+                thisInput /= thisInput.max() # renormalize, to offset effect of classMagMatrix scaling
 
+            ax_count = i + (cl*nC)
+            plt.subplot(np.int(numRows),np.int(numCols),ax_i)
 
+            # # DEV NOTE: Rename or delete these
+            # # reverse:
+            # # thisInput = (-thisInput + 1)*1.1
+            # thisCol = ax_i % numCols
+            # if thisCol==0:
+            #     thisCol = numCols
+            # thisRow = np.ceil( ax_i / numCols )
 
+            # a = horiz*(thisCol - 1) # x-coordinates (left edge)
+            # b = 1 - vert*(thisRow) # y-coordinates (bottom edge)
+            # c = horiz # subplot width
+            # d = vert # subplot height
 
+            side = np.int(np.sqrt(len(thisInput)))
+            plt.imshow(thisInput.reshape((side,side)), cmap='gray')
 
-
-    # thumbs = figure('Position',[scrsz(1), scrsz(2), scrsz(3)*0.8, scrsz(4)*0.8 ]);
-    # for class = 1:nC
-    #     for i = 1:numPerClass
-    #         col = numPerClass*(class-1) + i;
-    #         thisInput = featureArray(:, i, class) ;
-    #         % show the thumbnail of the input:
-    #         if normalize
-    #             thisInput = thisInput/max(thisInput);  % renormalize, to offset effect of classMagMatrix scaling
-    #         end
-    # %        % reverse:
-    # %        thisInput = (-thisInput + 1)*1.1;
-    #         thisCol = mod( col, numCols );
-    #         if thisCol == 0, thisCol = numCols; end
-    #         thisRow = ceil( col / numCols );
-    #         a = horiz*(thisCol - 1);
-    #         b = 1 - vert*(thisRow);
-    #         c = horiz;
-    #         d = vert;
-    #         subplot('Position', [a b c d] ), % [ left corner, bottom corner, width, height ]
-    #         imshow(reshape(thisInput,[sqrt(length(thisInput)), sqrt(length(thisInput))] ) );   % Assumes square thumbnails
-    #     end
-    #    drawnow
-    # end
-    # % add a title at the bottom
-    # xlabel(titleString, 'fontweight', 'bold' )
-    # drawnow
+    # add a title at the bottom
+    plt.xlabel(titleString, fontweight='bold')
+    plt.show()

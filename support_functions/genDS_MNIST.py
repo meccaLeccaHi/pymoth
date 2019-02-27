@@ -24,7 +24,6 @@ def generateDownsampledMNISTSet( preP ):
 
 	import os
 	import numpy as np
-	#import numpy.matlib as npm
 	from support_functions.extractFA import extractMNISTFeatureArray
 	from support_functions.vec_images import cropDownsampleVectorizeImageStack
 	from support_functions.aveImStack import averageImageStack
@@ -112,18 +111,15 @@ def generateDownsampledMNISTSet( preP ):
 	foo = featureArray[:, preP['indsToCalculateReceptiveField'], :]
 	activePixelInds = selectActivePixels(foo, preP['numFeatures'], preP['showAverageImages'])
 
-	featureArray = featureArray[activePixelInds,:,:] # Project onto the active pixels
-
-
-	# print(bar.shape)
-	# print('bar min',np.min(bar))
-	# print('bar max',np.max(bar))
-	# print('this featureArray shape:', featureArray.shape)
+	print('this featureArray shape:', featureArray.shape)
+	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
+	print('this featureArray shape:', featureArray.shape)
 
 	# d. Define a Receptive Field, ie the active pixels:
 	# Reduce the number of features by getting rid of less-active pixels.
 	# If we are using an existing moth then activePixelInds is already defined, so
 	# we need to load the modelParams to get the number of features (since this is defined by the AL architecture):
+	print(preP['useExistingConnectionMatrices'])
 	#if preP.useExistingConnectionMatrices
 	#    load( preP.matrixParamsFilename );     loads 'modelParams'
 	#    preP.numFeatures = modelParams.nF;

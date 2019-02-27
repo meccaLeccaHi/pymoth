@@ -30,7 +30,8 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     caNormed = cA/np.tile(z,(pixNum,1))
     # num = size(caNormed,2);
 
-    print(pixNum, numPerClass, classNum)
+    print('caNormed shape:', caNormed.shape)
+    # print(pixNum, numPerClass, classNum)
 
     # select most active 'numFeatures' pixels
     this = cA[:,:-1]
@@ -42,7 +43,7 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     vals = vals[::-1]
 
     # start selecting the highest-valued pixels
-    # DEV NOTE: Clarify with Charles
+    # DEV NOTE: Clarify this part with CBD
     stop = 0
     while not stop:
         thresh = vals.max()
@@ -58,20 +59,12 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
         titleStr = 'class aves, all pixels'
         showFeatureArrayThumbnails(caNormed, classNum+1, normalize, titleStr)
 
-    # if showImages
-    #     # plot the normalized classAves pre-ablation:
-    #     normalize = 0;
-    #     titleStr = 'class aves, all pixels';
-    #     showFeatureArrayThumbnails_fn(caNormed, size(caNormed,2), normalize, titleStr)
-    #
-    #     # look at active pixels of the classAves, ie post-ablation:
-    #     normalize = 0;
-    #     caActiveOnly = zeros(size(caNormed));
-    #     caActiveOnly(activePixelInds, : ) = caNormed(activePixelInds, :) ;
-    #     titleStr = 'class aves, active pixels only';
-    #     showFeatureArrayThumbnails_fn(caActiveOnly, size(caActiveOnly,2), normalize, titleStr)
-    #
-    # end
+        # look at active pixels of the classAves, ie post-ablation
+        normalize = 0
+        caActiveOnly = np.zeros((caNormed.shape))
+        caActiveOnly[activePixelInds, : ] = caNormed[activePixelInds, :]
+        titleStr = 'class aves, active pixels only'
 
+        showFeatureArrayThumbnails(caActiveOnly, classNum+1, normalize, titleStr)
 
     return activePixelInds
