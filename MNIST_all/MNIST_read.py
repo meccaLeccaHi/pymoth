@@ -1,11 +1,10 @@
 def MNIST_read():
-
 	# Read in MNIST digit set in Le Cun's format
 	# [trainImages, trainLabels, testImages, testLabels] = MNIST_read()
 	#
 	# The data is available at
-	# http://yann.lecun.com/exdb/mnist/ 
-	# 
+	# http://yann.lecun.com/exdb/mnist/
+	#
 	# OUTPUT:
 	# trainImages(:,:,i) is a numpy matrix of size 28x28x60000
 	#		 0 = background, 255 = foreground
@@ -14,7 +13,7 @@ def MNIST_read():
 	# testLabels(i)
 	#
 	# Use MNIST_show(trainImages, trainLabels) to visualize data.
-	
+
 	import numpy as np
 	import os
 
@@ -56,29 +55,31 @@ def MNIST_read():
 			print(f'Image label array shape: {labels.shape}')
 			return labels
 
-		# Loop each exp. set [training and test]		
+		# Loop each exp. set [training and test]
 		for set_label, urls in image_urls.items():
+			# Check for /raw folder, create one if doesn't exist
+			if not os.path.isdir(os.path.join('.',im_dir,raw_dir)):
+				os.mkdir(os.path.join('.',im_dir,raw_dir))
 			# Check for raw (compressed) images
 			if not os.path.isfile(os.path.join('.',im_dir,raw_dir,set_label+'_images.gz')):
 				print(f'Downloading {set_label} images')
-				wget.download(urls['images'],(os.path.join('.',im_dir,raw_dir,set_label+'_images.gz')))
+				wget.download(urls['images'],os.path.join('.',im_dir,raw_dir,set_label+'_images.gz'))
 			# Check for raw (compressed) labels
 			if not os.path.isfile(os.path.join('.',im_dir,raw_dir,set_label+'_labels.gz')):
 				print(f'Downloading {set_label} labels')
-				wget.download(urls['labels'],(os.path.join('.',im_dir,raw_dir,set_label+'_labels.gz')))
+				wget.download(urls['labels'],os.path.join('.',im_dir,raw_dir,set_label+'_labels.gz'))
 
 			print(f'Reading {set_label} images')
 			images = extract_images(set_label+'_images.gz')
 			print(f'Reading {set_label} labels')
 			labels = extract_labels(set_label+'_labels.gz')
 			print(f'Saving {set_label} images and labels')
-			np.save(os.path.join('.',im_dir,raw_dir,set_label+'_images.npy'),images)		
+			np.save(os.path.join('.',im_dir,raw_dir,set_label+'_images.npy'),images)
 			np.save(os.path.join('.',im_dir,raw_dir,set_label+'_labels.npy'),labels)
-	
+
 	train_imgs = np.load(os.path.join('.',im_dir,raw_dir,'train_images.npy'))
 	train_lbls = np.load(os.path.join('.',im_dir,raw_dir,'train_labels.npy'))
 	test_imgs = np.load(os.path.join('.',im_dir,raw_dir,'test_images.npy'))
 	test_lbls = np.load(os.path.join('.',im_dir,raw_dir,'test_labels.npy'))
 
 	return train_imgs, train_lbls, test_imgs, test_lbls
-
