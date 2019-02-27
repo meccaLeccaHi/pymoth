@@ -19,13 +19,11 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     import matplotlib.pyplot as plt
 
     # bookkeeping: change dim if needed
-    # DEV NOTE: Clarify with Charles - this seems unnecessary
+    # DEV NOTE: Clarify with CBD - this seems unnecessary
     if len(featureArray.shape)==2:
         f = np.zeros((featureArray.shape[0],featureArray.shape[1],1))
         f[:,:,0] = featureArray
         featureArray = f  #.squeeze()
-
-    print('featureArray shape:',featureArray.shape)
 
     pixNum, numPerClass, nC  = featureArray.shape
     # DEV NOTE: Should be able to remove classNum from inputs above

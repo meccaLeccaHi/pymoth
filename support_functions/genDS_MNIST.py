@@ -104,28 +104,14 @@ def generateDownsampledMNISTSet( preP ):
 	# we need to load the modelParams to get the number of features (since this is defined by the AL architecture):
 	if preP['useExistingConnectionMatrices']:
 		pass
-		# load 'modelParams'
-		#    load( preP['matrixParamsFilename'] )
-		#    preP['numFeatures'] = modelParams['nF']
+		# DEV NOTE: Implement this!!
+		# # load 'modelParams'
+		# load( preP['matrixParamsFilename'] )
+		# preP['numFeatures'] = modelParams['nF']
 
-	foo = featureArray[:, preP['indsToCalculateReceptiveField'], :]
-	activePixelInds = selectActivePixels(foo, preP['numFeatures'], preP['showAverageImages'])
-
-	print('this featureArray shape:', featureArray.shape)
+	# DEV NOTE: Clarify this part with CBD - need to understand 'active pixels' better
+	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]
+	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'], preP['showAverageImages'])
 	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
-	print('this featureArray shape:', featureArray.shape)
-
-	# d. Define a Receptive Field, ie the active pixels:
-	# Reduce the number of features by getting rid of less-active pixels.
-	# If we are using an existing moth then activePixelInds is already defined, so
-	# we need to load the modelParams to get the number of features (since this is defined by the AL architecture):
-	print(preP['useExistingConnectionMatrices'])
-	#if preP.useExistingConnectionMatrices
-	#    load( preP.matrixParamsFilename );     loads 'modelParams'
-	#    preP.numFeatures = modelParams.nF;
-	#end
-	#activePixelInds = selectActivePixels_fn( featureArray( :, preP.indsToCalculateReceptiveField, : ),...
-	#                                                                                  preP.numFeatures, preP.showAverageImages );
-	#featureArray = featureArray(activePixelInds,:,:);    Project onto the active pixels
 
 	return featureArray, activePixelInds, lengthOfSide

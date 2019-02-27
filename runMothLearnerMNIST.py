@@ -127,6 +127,7 @@ preP['matrixParamsFilename'] = matrixParamsFilename
 # generate the data array:
 fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP) # argin = preprocessingParams
 
+print('fA shape',fA.shape)
 ## The dataset fA is a feature array ready for running experiments. Each experiment uses a random draw from this dataset.
 ## fA = n x m x 10 array where n = #active pixels, m = #digits
 ##   from each class that will be used. The 3rd dimension gives the class, 1:10   where 10 = '0'.
