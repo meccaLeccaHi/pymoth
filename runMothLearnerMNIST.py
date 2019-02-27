@@ -49,7 +49,7 @@ trPerClass =  3 # the number of training samples per class
 numSniffs = 2 # number of exposures each training sample
 
 ## Flags to show various images:
-showAverageImages = False # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'
+showAverageImages = True # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'
 showThumbnailsUsed =  10 #  N means show N experiment inputs from each class. 0 means don't show any.
 showENPlots = [1, 1] # 1 to plot, 0 to ignore
 # arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN.

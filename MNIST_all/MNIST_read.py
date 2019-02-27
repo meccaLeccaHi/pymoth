@@ -2,11 +2,11 @@ def MNIST_read():
 	# Read in MNIST digit set in Le Cun's format
 	# [trainImages, trainLabels, testImages, testLabels] = MNIST_read()
 	#
-	# The data is available at
+	# The data is available at:
 	# http://yann.lecun.com/exdb/mnist/
 	#
 	# OUTPUT:
-	# trainImages(:,:,i) is a numpy matrix of size 28x28x60000
+	# trainImages(:,:,i) is a numpy matrix of size 28x28x60,000
 	#		 0 = background, 255 = foreground
 	# trainLabels(i) - 60000x1 vector of integer
 	# testImages(:,:,i) size 28x28x10,000
