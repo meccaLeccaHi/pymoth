@@ -8,24 +8,23 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     #   4. titleString = string
 
     # tkinter errors if run after matplotlib is loaded, so we run it first
-    def get_screensize():
-        #print('OS',os.name)
-        #print('sys',sys.platform)
-        import tkinter as tk
-        root = tk.Tk()
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        root.destroy()
-        return [screen_width, screen_height]
-    scrsz = get_screensize()
+    import tkinter as tk
+    root = tk.Tk()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.destroy()
+    scrsz = [screen_width, screen_height]
 
     import numpy as np
-    import os
-    #import sys # check if we actually need?
+    # import os
+    # import sys # check if we actually need?
+    # print('OS',os.name)
+    # print('sys',sys.platform)
     import matplotlib.pyplot as plt # check if we actually need?
 
     # bookkeeping: change dim if needed
     # DEV NOTE: Clarify with Charles
+    print('featureArray shape:',featureArray.shape)
     if len(featureArray.shape)==2:
         print('WARNING: Utilizing un-tested feature!')
         f = np.zeros((featureArray.shape[0],featureArray.shape[1],1))
@@ -44,10 +43,12 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     vert = 1/(numRows + 1)
     horiz = 1/(numCols + 1)
 
-    print('larg',featureArray.shape)
+    print('featureArray shape:',featureArray.shape)
 
     scrsz = [(i/100)*0.8 for i in scrsz]
-    thumbs = plt.figure(figsize=scrsz, dpi=100)
+
+    #thumbs = plt.figure(figsize=scrsz, dpi=100)
+
     for cl in range(nC): # 'class' is a keyword in Python; renamed to 'cl'
         for i in range(numPerClass):
             col = numPerClass*(cl-1) + i

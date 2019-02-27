@@ -27,7 +27,7 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     # normed version (does not rescale the overall average)
     z = np.max(cA,axis=0)
     z[-1] = 1
-    caNormed = cA/np.matlib.repmat(z,pixNum,1)
+    caNormed = cA/np.tile(z,(pixNum,1))
     # num = size(caNormed,2);
 
     print(pixNum, numPerClass, classNum)

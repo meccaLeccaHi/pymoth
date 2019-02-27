@@ -4,9 +4,13 @@ Python wrapper for MothNet
 #### Dependencies:
 - numpy
 - scipy
-- pillow (`$ pip install pillow`)
-- [wget](https://pypi.org/project/wget/) (`$ pip install wget`)
+-matplotlib
+- pillow
+- [wget](https://pypi.org/project/wget/) 
 
--?[Tkinter](https://docs.python.org/3/library/tkinter.html#module-tkinter)?
+`$ pip install numpy scipy matplotlib pillow wget`
+
 
 [Matlab source](https://github.com/charlesDelahunt/PuttingABugInML)
+
+

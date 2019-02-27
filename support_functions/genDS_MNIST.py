@@ -24,6 +24,7 @@ def generateDownsampledMNISTSet( preP ):
 
 	import os
 	import numpy as np
+	#import numpy.matlib as npm
 	from support_functions.extractFA import extractMNISTFeatureArray
 	from support_functions.vec_images import cropDownsampleVectorizeImageStack
 	from support_functions.aveImStack import averageImageStack
@@ -77,7 +78,8 @@ def generateDownsampledMNISTSet( preP ):
 	overallAve /= label_len
 
 	# b. Subtract this overallAve image from all images
-	ave_2D = np.matlib.repmat(overallAve,z,1).T
+	ave_2D = np.tile(overallAve,(z,1)).T
+	# ave_2D = npm.repmat(overallAve,z,1).T
 	ave_3D = np.repeat(ave_2D[:,:,np.newaxis],label_len,2)
 	featureArray -= ave_3D
 	del ave_2D, ave_3D
