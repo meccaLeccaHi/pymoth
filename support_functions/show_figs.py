@@ -1,9 +1,9 @@
-def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleString ):
+def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString ):
     # Show thumbnails of inputs used in the experiment.
     # Inputs:
     #   1. featureArray = either 3-D (1 = cols of features, 2 = within class samples, 3 = class)
     #                               or 2-D (1 = cols of features, 2 = within class samples, no 3)
-    #   2. numPerClass = how many of the thumbnails from each class to show.
+    #   2. showPerClass = how many of the thumbnails from each class to show.
     #   3. normalize = 1 if you want to rescale thumbs to [0 1], 0 if you don't
     #   4. titleString = string
 
@@ -12,12 +12,15 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     root = tk.Tk()
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
+    root.update()
     root.destroy()
     scrsz = [screen_width, screen_height]
 
     import numpy as np
     import matplotlib.pyplot as plt
 
+    #print('featureArray shape:',featureArray.shape)
+    #print('featureArray sum:',featureArray.sum(axis=2))
     # bookkeeping: change dim if needed
     # DEV NOTE: Clarify with CBD - this seems unnecessary
     if len(featureArray.shape)==2:
@@ -28,25 +31,26 @@ def showFeatureArrayThumbnails( featureArray, numPerClass, normalize, titleStrin
     pixNum, numPerClass, nC  = featureArray.shape
     # DEV NOTE: Should be able to remove classNum from inputs above
 
-    total = nC*numPerClass # total number of subplots
+    total = nC*showPerClass # total number of subplots
     numRows = np.ceil(np.sqrt(total/2)) # n of rows
     numCols = np.ceil(np.sqrt(total*2)) # n of cols
     vert = 1/(numRows + 1) # vertical step size
     horiz = 1/(numCols + 1) # horizontal step size
 
-    fig_sz = [np.floor((i/100)*0.8) for i in scrsz]
-    print('fig_sz',fig_sz)
-    print(numRows,numCols)
+    print('scrsz',scrsz)
+    fig_sz = [np.floor((i/100)*0.5) for i in scrsz]
+    print('fig size',fig_sz)
     thumbs = plt.figure(figsize=fig_sz, dpi=100)
 
     for cl in range(nC): # 'class' is a keyword in Python; renamed to 'cl'
-        for i in range(numPerClass):
-            ax_i = numPerClass*(cl) + i + 1
+        for i in range(showPerClass):
+            ax_i = showPerClass*(cl) + i + 1
             thisInput = featureArray[:, i, cl]
 
             if normalize:
                 # DEV NOTE: This only affects the last image in the stack (the average)
                 # -> could be made more efficient
+                #print(thisInput.max())
                 thisInput /= thisInput.max() # renormalize, to offset effect of classMagMatrix scaling
 
             ax_count = i + (cl*nC)

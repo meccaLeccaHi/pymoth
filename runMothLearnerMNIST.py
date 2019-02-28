@@ -30,6 +30,8 @@ import numpy as np
 from support_functions.setMNISTExpParams import setMNISTExperimentParams
 from support_functions.genDS_MNIST import generateDownsampledMNISTSet
 from MNIST_all.MNIST_read import MNIST_read
+from support_functions.show_figs import showFeatureArrayThumbnails
+from support_functions.model_params import specifyModelParamsMnist
 
 ## USER ENTRIES (Edit parameters below):
 
@@ -49,7 +51,7 @@ trPerClass =  3 # the number of training samples per class
 numSniffs = 2 # number of exposures each training sample
 
 ## Flags to show various images:
-showAverageImages = True # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'
+showAverageImages = False # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'
 showThumbnailsUsed =  10 #  N means show N experiment inputs from each class. 0 means don't show any.
 showENPlots = [1, 1] # 1 to plot, 0 to ignore
 # arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN.
@@ -127,59 +129,75 @@ preP['matrixParamsFilename'] = matrixParamsFilename
 # generate the data array:
 fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP) # argin = preprocessingParams
 
-print('fA shape',fA.shape)
-## The dataset fA is a feature array ready for running experiments. Each experiment uses a random draw from this dataset.
-## fA = n x m x 10 array where n = #active pixels, m = #digits
-##   from each class that will be used. The 3rd dimension gives the class, 1:10   where 10 = '0'.
+pixNum, numPerClass, classNum = fA.shape
+# The dataset fA is a feature array ready for running experiments. Each experiment uses a random draw from this dataset.
+# fA = n x m x 10 array where n = #active pixels, m = #digits
+#   from each class that will be used. The 3rd dimension gives the class, 1:10   where 10 = '0'.
 
-##-----------------------------------
+#-----------------------------------
 
-## Loop through the number of simulations specified:
-#disp( [ 'starting sim(s) for goal = ', num2str(goal), ', trPerClass = ', num2str(trPerClass), ', numSniffsPerSample = ' , num2str(numSniffs) ,':' ] )
+# Loop through the number of simulations specified:
+print(f'starting sim(s) for goal = {goal}, trPerClass = {trPerClass}, '
+	f'numSniffsPerSample = {numSniffs}')
 
-#for run = 1:numRuns
-#
-#    ## Subsample the dataset for this simulation:
+for run in range(numRuns):
 
-#    # Line up the images for the experiment (in 10 parallel queues)
-#	digitQueues = zeros(size(fA))
-#
-#    for i = classLabels
-#        # 1. Baseline (pre-train) images:
-#            # choose some images from the baselineIndPool:
-#            rangeTopEnd = max(indPoolForBaseline) - min(indPoolForBaseline) + 1
-#            # select random digits:
-#            theseInds = min(indPoolForBaseline) + randsample( rangeTopEnd, valPerClass ) - 1  # since randsample min pick = 1
-#            digitQueues( :, 1:valPerClass, i ) = fA(:, theseInds, i )
-#
-#        # 2. Training images:
-#            # choose some images from the trainingIndPool:
-#            rangeTopEnd = max(indPoolForTrain) - min(indPoolForTrain) + 1
-#            theseInds = min(indPoolForTrain) + randsample( rangeTopEnd, trPerClass ) - 1
-#            # repeat these inputs if taking multiple sniffs of each training sample:
-#            theseInds = repmat(theseInds, [ numSniffs , 1 ] )
-#            digitQueues(:, valPerClass + 1:valPerClass + trPerClass*numSniffs, i) = fA(:, theseInds, i)
-#
-#        # 3. Post-training (val) images:
-#             # choose some images from the postTrainIndPool:
-#            rangeTopEnd = max(indPoolForPostTrain) - min(indPoolForPostTrain) + 1
-#            # pick some random digits:
-#            theseInds = min(indPoolForPostTrain) + randsample( rangeTopEnd, valPerClass ) - 1
-#            digitQueues(:,valPerClass + trPerClass*numSniffs + 1: valPerClass + trPerClass*numSniffs + valPerClass, i) = fA(:, theseInds, i)
-#    end # for i = classLabels
-#
-#    # # show the final versions of thumbnails to be used, if wished:
-#    if showThumbnailsUsed
-#        tempArray = zeros( lengthOfSide, size(digitQueues,2), size(digitQueues,3))
-#        tempArray(activePixelInds,:,:) = digitQueues  # fill in the non-zero pixels
-#        titleString = 'Input thumbnails'
-#        normalize = 1
-#        showFeatureArrayThumbnails_fn(tempArray, showThumbnailsUsed, normalize, titleString )
-#                                                                             #argin2 = number of images per class to show.
-#    end
-#
+	## Subsample the dataset for this simulation
+	# Line up the images for the experiment (in 10 parallel queues)
+	digitQueues = np.zeros(fA.shape)
+
+	for i in classLabels:
+
+		## 1. Baseline (pre-train) images
+		# choose some images from the baselineIndPool
+		rangeTopEnd = max(indPoolForBaseline) - min(indPoolForBaseline) + 1
+		r_sample = np.random.choice(rangeTopEnd, valPerClass) # select random digits
+		theseInds = min(indPoolForBaseline) + r_sample
+		digitQueues[:,:valPerClass,i] = fA[:,theseInds,i]
+
+		## 2. Training images
+		# choose some images from the trainingIndPool
+		rangeTopEnd = max(indPoolForTrain) - min(indPoolForTrain) + 1
+		r_sample = np.random.choice(rangeTopEnd, trPerClass) # select random digits
+		theseInds = min(indPoolForTrain) + r_sample
+		# repeat these inputs if taking multiple sniffs of each training sample
+		theseInds = np.tile(theseInds, numSniffs)
+		digitQueues[:, valPerClass:(valPerClass+trPerClass*numSniffs), i] = fA[:, theseInds, i]
+
+		## 3. Post-training (val) images
+		# choose some images from the postTrainIndPool
+		rangeTopEnd = max(indPoolForPostTrain) - min(indPoolForPostTrain) + 1
+		r_sample = np.random.choice(rangeTopEnd, valPerClass) # select random digits
+		theseInds = min(indPoolForPostTrain) + r_sample
+		digitQueues[:,(valPerClass+trPerClass*numSniffs):(valPerClass+trPerClass*numSniffs+valPerClass),
+			i] = fA[:, theseInds, i]
+
+	# show the final versions of thumbnails to be used, if wished
+	if showThumbnailsUsed:
+		tempArray = np.zeros((lengthOfSide, numPerClass, classNum))
+		tempArray[activePixelInds,:,:] = digitQueues
+		normalize = 1
+		titleStr = 'Input thumbnails'
+		showFeatureArrayThumbnails(tempArray, showThumbnailsUsed, normalize, titleStr)
+
 #    #-----------------------------------------
-#
+
+	print('NEXT STEPS')
+	print('Step 1: Create a moth')
+	print('Step 2: ...')
+	print('Step 3: Greatness')
+
+	# Create a moth. Either load an existing moth, or create a new moth
+	if useExistingConnectionMatrices:
+		pass
+		# DEV NOTE: Implement this!!
+		# # load 'matrixParamsFilename'
+	else:
+		pass
+		## DEV NOTE: Implement this!!
+		## a) load template params with specify_params_fn (modelParams is a struct)
+		# modelParams = specifyModelParamsMnist_fn( length(activePixelInds), goal  )
+
 #    ## Create a moth. Either load an existing moth, or create a new moth:
 #
 #    if useExistingConnectionMatrices
