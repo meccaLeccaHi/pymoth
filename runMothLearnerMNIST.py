@@ -54,7 +54,7 @@ numSniffs = 2 # number of exposures each training sample
 
 ## Flags to show various images:
 showAverageImages = False # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'
-showThumbnailsUsed =  10 #  N means show N experiment inputs from each class. 0 means don't show any.
+showThumbnailsUsed =  0 #  N means show N experiment inputs from each class. 0 means don't show any.
 showENPlots = [1, 1] # 1 to plot, 0 to ignore
 # arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN.
 # arg2 refers to EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image).
