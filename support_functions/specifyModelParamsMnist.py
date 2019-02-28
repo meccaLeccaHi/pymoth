@@ -341,4 +341,13 @@ noiseK,noiseE,EnoiseStd = [0]*3
 #------------------------------------------------------------------------
 
 # Pre-allocate connection matrix attributes for later
+F2R = None
 F2Rbinary = None
+
+Rspont = None
+R2G = None
+R2P = None
+R2L = None
+R2PIcol = None
+
+L2G = None
