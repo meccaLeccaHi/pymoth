@@ -37,9 +37,8 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     vert = 1/(numRows + 1) # vertical step size
     horiz = 1/(numCols + 1) # horizontal step size
 
-    print('scrsz',scrsz)
+    print('screen size: ',scrsz)
     fig_sz = [np.floor((i/100)*0.5) for i in scrsz]
-    print('fig size',fig_sz)
     thumbs = plt.figure(figsize=fig_sz, dpi=100)
 
     for cl in range(nC): # 'class' is a keyword in Python; renamed to 'cl'

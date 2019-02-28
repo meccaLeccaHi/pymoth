@@ -1,7 +1,7 @@
-def initializeConnectionMatrices(modelParams):
+def initializeConnectionMatrices(mP):
     # Generates the various connection matrices, given a modelParams object,
     # and appends them to modelParams.
-    # Input: 'modelParams', a Python object
+    # Input: 'mP', model params object
     # Output: 'params', a struct that includes connection matrices and other model
     # info necessary to FR evolution and plotting
 
@@ -17,8 +17,20 @@ def initializeConnectionMatrices(modelParams):
     # Comment: Since there are many zero connections (ie matrices are usually
     # not all-to-all) we often need to apply masks to preserve the zero connections
 
+    print('bleep')
+    print(mP.RperFFrMu)
     # first make a binary mask S2Rbinary
-    if RperFFrMu > 0:
+    if mP.RperFFrMu > 0:
+        F2Rbinary = np.random.rand(mP.nR, mP.nF) < mP.RperSFrMu # 1s and 0s
+        print('bloop',F2Rbinary)
+        if mP.makeFeaturesOrthogonalFlag:
+            # remove any overlap in the active odors, by keeping only one non-zero entry in each row
+            b = F2Rbinary
+            for i in range(mP.nR):
+                row = b[i,:]
+                if row.sum() > 1:
+                    c = np.where(row==1)
+
     #     F2Rbinary = rand(nR, nF) < RperSFrMu # 1s and 0s.
     #     if makeFeaturesOrthogonalFlag
     #     %     % remove any overlap in the active odors, by keeping only one non-zero entry in each row:
