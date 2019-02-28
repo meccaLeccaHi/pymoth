@@ -31,7 +31,7 @@ from support_functions.setMNISTExpParams import setMNISTExperimentParams
 from support_functions.genDS_MNIST import generateDownsampledMNISTSet
 from MNIST_all.MNIST_read import MNIST_read
 from support_functions.show_figs import showFeatureArrayThumbnails
-from support_functions.model_params import specifyModelParamsMnist
+import support_functions.specifyModelParamsMnist as model_params
 
 ## USER ENTRIES (Edit parameters below):
 
@@ -193,10 +193,18 @@ for run in range(numRuns):
 		# DEV NOTE: Implement this!!
 		# # load 'matrixParamsFilename'
 	else:
-		pass
-		## DEV NOTE: Implement this!!
-		## a) load template params with specify_params_fn (modelParams is a struct)
-		# modelParams = specifyModelParamsMnist_fn( length(activePixelInds), goal  )
+		# a) load template params
+		modelParams = model_params
+
+		# b) over-write default values below (if applicable)
+		modelParams.nF = len(activePixelInds)
+		modelParams.goal = goal
+
+		# c) Now populate the moth's connection matrices using the modelParams
+		# modelParams = initializeConnectionMatrices(modelParams)
+
+
+
 
 #    ## Create a moth. Either load an existing moth, or create a new moth:
 #
