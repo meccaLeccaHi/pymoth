@@ -17,19 +17,24 @@ def initializeConnectionMatrices(mP):
     # Comment: Since there are many zero connections (ie matrices are usually
     # not all-to-all) we often need to apply masks to preserve the zero connections
 
-    print('bleep')
-    print(mP.RperFFrMu)
     # first make a binary mask S2Rbinary
     if mP.RperFFrMu > 0:
-        F2Rbinary = np.random.rand(mP.nR, mP.nF) < mP.RperSFrMu # 1s and 0s
-        print('bloop',F2Rbinary)
+        mP.F2Rbinary = np.random.rand(mP.nR, mP.nF) < mP.RperSFrMu # 1s and 0s
+        print('bloop',mP.F2Rbinary)
         if mP.makeFeaturesOrthogonalFlag:
             # remove any overlap in the active odors, by keeping only one non-zero entry in each row
-            b = F2Rbinary
+            b = mP.F2Rbinary
             for i in range(mP.nR):
                 row = b[i,:]
                 if row.sum() > 1:
                     c = np.where(row==1)
+                    t = np.ceil(np.random.rand(1, c)) # pick one index to be non-zero
+                    b[i,:] = 0
+                    b[i,c[t]] = 1
+
+            mP.F2Rbinary = b
+        ###### TEST ALL OF THIS (clause above)
+    else: # case: we are assigning a fixed # gloms to each S
 
     #     F2Rbinary = rand(nR, nF) < RperSFrMu # 1s and 0s.
     #     if makeFeaturesOrthogonalFlag

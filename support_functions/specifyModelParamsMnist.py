@@ -337,3 +337,8 @@ noiseStdFactor= 0.3
 noiseR,noiseP,noiseL,noisePI = [noise]*4
 RnoiseStd,PnoiseStd,LnoiseStd,PInoiseStd,KnoiseStd = [noise*noiseStdFactor]*5
 noiseK,noiseE,EnoiseStd = [0]*3
+
+#------------------------------------------------------------------------
+
+# Pre-allocate connection matrix attributes for later
+F2Rbinary = None
