@@ -340,14 +340,42 @@ noiseK,noiseE,EnoiseStd = [0]*3
 
 #------------------------------------------------------------------------
 
-# Pre-allocate connection matrix attributes for later
-F2R = None
-F2Rbinary = None
-
-Rspont = None
-R2G = None
-R2P = None
-R2L = None
-R2PIcol = None
-
-L2G = None
+# # Pre-allocate connection matrix attributes for later
+# F2R = None
+# F2Rbinary = None
+#
+# Rspont = None
+# R2G = None
+# R2P = None
+# R2L = None
+# R2PI = None
+# R2PIcol = None
+#
+# P2K = None
+# PI2K = None
+#
+# octo2R = None
+# octo2P = None
+# octo2PI = None
+# octo2L = None
+# octo2K = None
+# octo2E = None
+#
+# L2G = None
+# L2P = None
+# L2L = None
+# L2PI = None
+# L2R = None
+#
+# G2PI = None
+#
+# K2E = None
+#
+# noiseRvec = None
+# noisePvec = None
+# noisePIvec = None
+# noiseLvec = None
+# noiseKvec = None
+# noiseEvec = None
+#
+# kGlobalDampVec = None

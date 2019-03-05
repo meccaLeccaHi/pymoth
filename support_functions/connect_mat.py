@@ -112,23 +112,27 @@ def initializeConnectionMatrices(mP):
     mP.L2PI = ( mP.L2Lmult + mP.L2PIstd*r.rand(mP.nG,mP.nG) ).clip(min=0) * L2GgabaSens
      # Masked by G2PI later
 
-
-    ###### STILL NEED TO TEST ALL OF THIS (above)
-
     # Ps (excitatory):
     P2KconnMatrix = r.rand(mP.nK, mP.nP) < mP.KperPfrMu # each col is a P, and a fraction of the entries will = 1
      # different cols (PNs) will have different numbers of 1's (~binomial dist)
 
-    print('P2KconnMatrix shape', P2KconnMatrix.shape)
-
-    # P2K = max(0, P2Kmu + P2Kstd*r.rand(nK, nP) ) # all >= 0
-    # P2K = P2K*P2KconnMatrix
+    mP.P2K = ( mP.P2Kmu + mP.P2Kstd*r.rand(mP.nK, mP.nP) ).clip(min=0) # all >= 0
+    mP.P2K *= P2KconnMatrix
     # cap P2K values at hebMaxP2K, so that hebbian training never decreases wts:
-    # P2K = min(P2K, hebMaxPK);
+    print('mP.hebMaxPK',mP.hebMaxPK)
+    mP.P2K = mP.P2K.clip(max=mP.hebMaxPK)
     # PKwt maps from the Ps to the Ks. Given firing rates P, PKwt gives the
     # effect on the various Ks
     # It is nK x nP with entries >= 0.
-    #
+
+    ### RESUME HERE
+    ### NEED TO RECONCILE P2K above (max val: ~ 3.2) with the matlab version (max val: 5.5)
+
+    print('P2K shape',mP.P2K.shape)
+    print(np.max(mP.P2K))
+    print(np.min(mP.P2K))
+
+
     #--------------------------------------------------------------------
     # PIs (inhibitory): (not used in mnist)
     # 0. These are more complicated, since each PI is fed by several Gs
@@ -136,7 +140,11 @@ def initializeConnectionMatrices(mP):
     # 1. b) We give wts to the G-> PI connections. these will be used to calc PI firing rates.
     # 2. a) We map from PIs to Ks (binary), then
     # 2. b) multiply the binary map by a random matrix to get the synapse weights.
-    #
+
+
+
+    ###### STILL NEED TO TEST ALL OF THIS (above)
+
     # In the moth, each PI is fed by many gloms
     # G2PIconn = r.rand(mP.nPI, mP.nG) < GperPIfrMu # step 1a
     # G2PI = max( 0,  G2PIstd*r.rand(mP.nPI, mP.nG) + G2PImu) # step 1b
