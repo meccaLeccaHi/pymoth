@@ -142,8 +142,15 @@ def initializeConnectionMatrices(mP):
     # 2. b) multiply the binary map by a random matrix to get the synapse weights.
 
 
+    # In the moth, each PI is fed by many gloms
+    # G2PIconn = r.rand(mP.nPI, mP.nG) < GperPIfrMu # step 1a
+    # G2PI = ( G2PIstd*r.rand(mP.nPI, mP.nG) + G2PImu ).clip(min=0) # step 1b
+    # G2PI *= G2PIconn  % mask with double values, step 1b (cont)
+    # G2PI /= G2PI./np.tile(G2PI.sum(axis=1),(1, size(G2PI,2)) )
+
 
     ###### STILL NEED TO TEST ALL OF THIS (above)
+
 
     # In the moth, each PI is fed by many gloms
     # G2PIconn = r.rand(mP.nPI, mP.nG) < GperPIfrMu # step 1a
