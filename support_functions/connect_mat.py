@@ -17,8 +17,20 @@ def initializeConnectionMatrices(mP):
     # Comment: Since there are many zero connections (ie matrices are usually
     # not all-to-all) we often need to apply masks to preserve the zero connections
 
+    # l = dir(mP)
+    # d = mP.__dict__
+    # from pprint import pprint
+    # pprint(l)
+    # pprint(d, indent=2)
+
     import numpy as np
     import numpy.random as r
+    from decimal import Decimal, getcontext
+    getcontext().prec = 4 # set Decimal type precision
+
+    def pos_rect(input):
+        input[input < 0] = 0
+        return input
 
     # first make a binary mask S2Rbinary
     if mP.RperFFrMu > 0:
@@ -51,15 +63,15 @@ def initializeConnectionMatrices(mP):
     # now mask a matrix of gaussian weights
     rand_mat = r.rand(*mP.F2Rbinary.shape)
     mP.F2R = ( mP.F2Rmu*mP.F2Rbinary + mP.F2Rstd*rand_mat )*mP.F2Rbinary # the last term ensures 0s stay 0s
-    mP.F2R = mP.F2R.clip(min=0) # to prevent any negative weights
+    mP.F2R = pos_rect(mP.F2R) # to prevent any negative weights
 
     # spontaneous FRs for Rs
-    if mP.spontRdistFlag == 1: # case: gaussian distribution
+    if mP.spontRdistFlag==1: # case: gaussian distribution
         mP.Rspont = mP.spontRmu*np.ones((mP.nG, 1)) + mP.spontRstd*r.rand(mP.nG, 1)
-        mP.Rspont = mP.Rspont.clip(min=0)
+        mP.Rspont = pos_rect(mP.Rspont)
     else: # case: 2 gamma distribution
-        a = mP.spontRmu/mP.spontRstd
-        b = mP.spontRmu/a # spontRstd
+        a = Decimal(mP.spontRmu)/Decimal(mP.spontRstd)
+        b = Decimal(mP.spontRmu)/a # spontRstd
         g = np.random.gamma(a, scale=b, size=(mP.nG,1))
         mP.Rspont = mP.spontRbase + g
 
@@ -77,11 +89,10 @@ def initializeConnectionMatrices(mP):
 
     # Construct L2G = nG x nG matrix of lateral neurons. This is a precursor to L2P etc
     # DEV NOTE: Had to make this different than matlab version - in Python, scalars have no shape
-    # Maybe should run by CBD?
+    # Run by CBD
     mP.L2G = mP.L2Gmu + mP.L2Gstd*r.rand(mP.nG, mP.nG)
-    mP.L2G = mP.L2G.clip(min=0) # kill any vals < 0
-    # set diagonal = 0
-    mP.L2G -= np.diag(np.diag(mP.L2G))
+    mP.L2G = pos_rect(mP.L2G) # kill any vals < 0
+    mP.L2G -= np.diag(np.diag(mP.L2G)) # set diagonal = 0
 
     # are enough of these values 0?
     numZero = (mP.L2G.flatten()==0).sum() - mP.nG # ignore the diagonal zeroes
@@ -105,32 +116,24 @@ def initializeConnectionMatrices(mP):
     mP.L2G *= mP.GsensMu
 
     # now generate all the L2etc matrices:
-    mP.L2R = ( mP.L2Rmult + mP.L2Rstd*r.rand(mP.nG,mP.nG) ).clip(min=0) * L2GgabaSens
+    mP.L2R = pos_rect( mP.L2Rmult + mP.L2Rstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
      # the last term will keep 0 entries = 0
-    mP.L2P = ( mP.L2Pmult + mP.L2Pstd*r.rand(mP.nG,mP.nG) ).clip(min=0) * L2GgabaSens
-    mP.L2L = ( mP.L2Lmult + mP.L2Lstd*r.rand(mP.nG,mP.nG) ).clip(min=0) * L2GgabaSens
-    mP.L2PI = ( mP.L2Lmult + mP.L2PIstd*r.rand(mP.nG,mP.nG) ).clip(min=0) * L2GgabaSens
+    mP.L2P = pos_rect( mP.L2Pmult + mP.L2Pstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
+    mP.L2L = pos_rect( mP.L2Lmult + mP.L2Lstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
+    mP.L2PI = pos_rect( mP.L2Lmult + mP.L2PIstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
      # Masked by G2PI later
 
     # Ps (excitatory):
     P2KconnMatrix = r.rand(mP.nK, mP.nP) < mP.KperPfrMu # each col is a P, and a fraction of the entries will = 1
      # different cols (PNs) will have different numbers of 1's (~binomial dist)
 
-    mP.P2K = ( mP.P2Kmu + mP.P2Kstd*r.rand(mP.nK, mP.nP) ).clip(min=0) # all >= 0
+    mP.P2K = pos_rect( mP.P2Kmu + mP.P2Kstd*r.rand(mP.nK, mP.nP) ) # all >= 0
     mP.P2K *= P2KconnMatrix
     # cap P2K values at hebMaxP2K, so that hebbian training never decreases wts:
-    print('mP.hebMaxPK',mP.hebMaxPK)
-    mP.P2K = mP.P2K.clip(max=mP.hebMaxPK)
+    mP.P2K[mP.P2K < mP.hebMaxPK] = mP.hebMaxPK
     # PKwt maps from the Ps to the Ks. Given firing rates P, PKwt gives the
     # effect on the various Ks
     # It is nK x nP with entries >= 0.
-
-    ### RESUME HERE
-    ### NEED TO RECONCILE P2K above (max val: ~ 3.2) with the matlab version (max val: 5.5)
-
-    print('P2K shape',mP.P2K.shape)
-    print(np.max(mP.P2K))
-    print(np.min(mP.P2K))
 
 
     #--------------------------------------------------------------------
@@ -141,6 +144,11 @@ def initializeConnectionMatrices(mP):
     # 2. a) We map from PIs to Ks (binary), then
     # 2. b) multiply the binary map by a random matrix to get the synapse weights.
 
+    ### RESUME HERE
+
+    print('P2K shape',mP.P2K.shape)
+    print(np.max(mP.P2K))
+    print(np.min(mP.P2K))
 
     # In the moth, each PI is fed by many gloms
     # G2PIconn = r.rand(mP.nPI, mP.nG) < GperPIfrMu # step 1a
