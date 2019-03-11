@@ -142,38 +142,46 @@ def initializeConnectionMatrices(mP):
     # 1. a) We map from Gs to PIs (binary, one G can feed multiple PI) with G2PIconn
     # 1. b) We give wts to the G-> PI connections. these will be used to calc PI firing rates.
     # 2. a) We map from PIs to Ks (binary), then
-    # 2. b) multiply the binary map by a random matrix to get the synapse weights.
-
-    ### RESUME HERE
-
-    print('P2K shape',mP.P2K.shape)
-    print(np.max(mP.P2K))
-    print(np.min(mP.P2K))
+    # 2. b) Multiply the binary map by a random matrix to get the synapse weights.
 
     # In the moth, each PI is fed by many gloms
-    # G2PIconn = r.rand(mP.nPI, mP.nG) < GperPIfrMu # step 1a
-    # G2PI = ( G2PIstd*r.rand(mP.nPI, mP.nG) + G2PImu ).clip(min=0) # step 1b
-    # G2PI *= G2PIconn  % mask with double values, step 1b (cont)
-    # G2PI /= G2PI./np.tile(G2PI.sum(axis=1),(1, size(G2PI,2)) )
+    mP.G2PIconn = r.rand(mP.nPI, mP.nG) < mP.GperPIfrMu # step 1a
+    mP.G2PI = pos_rect(mP.G2PIstd*r.rand(mP.nPI, mP.nG) + mP.G2PImu) # step 1b
+    mP.G2PI *= mP.G2PIconn # mask with double values, step 1b (cont)
+    mP.G2PI /= np.tile(mP.G2PI.sum(axis=1).reshape(-1, 1),(1, mP.G2PI.shape[1]))
 
+    # mask PI matrices
+    mP.L2PI = np.matmul(mP.G2PI,mP.L2G) # nPI x nG
 
-    ###### STILL NEED TO TEST ALL OF THIS (above)
-
-
-    # In the moth, each PI is fed by many gloms
-    # G2PIconn = r.rand(mP.nPI, mP.nG) < GperPIfrMu # step 1a
-    # G2PI = max( 0,  G2PIstd*r.rand(mP.nPI, mP.nG) + G2PImu) # step 1b
-    # G2PI = G2PIconn.*G2PI;  % mask with double values, step 1b (cont)
-    # G2PI = G2PI./repmat(sum(G2PI,2), 1, size(G2PI,2) );
-    #
-    # mask PI matrices:
-    # L2PI = G2PI*L2G;       % nPI x nG
-    #
-    # R2PI = bsxfun(@times,G2PI, R2PIcol');
+    mP.R2PI = mP.G2PI*mP.R2PIcol.T
     # nG x nPI matrices, (i,j)th entry = effect from j'th object to i'th object.
     # eg, the rows with non-zero entries in the j'th col of L2PI are those PIs affected by the LN from the j'th G.
     # eg, the cols with non-zero entries in the i'th row of R2PI are those Rs feeding gloms that feed the i'th PI.
-    #
+
+    ### RESUME HERE
+
+
+
+
+
+    
+    if mP.nPI>0:
+        mP.PI2Kconn = r.rand(mP.nK, mP.nPI) < mP.KperPIfrMu # step 2a
+        mP.PI2K = pos_rect(mP.PI2Kmu + mP.PI2Kstd*r.rand(mP.nK, mP.nPI)) # step 2b
+        mP.PI2K *= mP.PI2Kconn # mask
+        mP.PI2K[mP.PI2K < mP.hebMaxPIK] = mP.hebMaxPIK
+        # 1. G2PI maps the Gs to the PIs. It is nPI x nG, doubles.
+        #    The weights are used to find the net PI firing rate
+        # 2. PI2K maps the PIs to the Ks. It is nK x nPI with entries >= 0.
+        #    G2K = PI2K*G2PI # binary map from G to K via PIs. not used
+
+
+
+    ###### STILL NEED TO TEST ALL OF THIS (above)
+    # print('L2PI shape',mP.L2PI.shape)
+    # print(np.max(mP.L2PI))
+    # print(np.min(mP.L2PI))
+
     # if nPI > 0
     #     PI2Kconn = r.rand(mP.nK, mP.nPI) < KperPIfrMu # step 2a
     #     PI2K = max( 0, PI2Kmu + PI2Kstd*r.rand(mP.nK, mP.nPI) ) # step 2b
