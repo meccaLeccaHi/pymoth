@@ -158,13 +158,6 @@ def initializeConnectionMatrices(mP):
     # eg, the rows with non-zero entries in the j'th col of L2PI are those PIs affected by the LN from the j'th G.
     # eg, the cols with non-zero entries in the i'th row of R2PI are those Rs feeding gloms that feed the i'th PI.
 
-    ### RESUME HERE
-
-
-
-
-
-    
     if mP.nPI>0:
         mP.PI2Kconn = r.rand(mP.nK, mP.nPI) < mP.KperPIfrMu # step 2a
         mP.PI2K = pos_rect(mP.PI2Kmu + mP.PI2Kstd*r.rand(mP.nK, mP.nPI)) # step 2b
@@ -175,6 +168,38 @@ def initializeConnectionMatrices(mP):
         # 2. PI2K maps the PIs to the Ks. It is nK x nPI with entries >= 0.
         #    G2K = PI2K*G2PI # binary map from G to K via PIs. not used
 
+    #--------------------------------------------------------------------
+
+    # K2E (excit):
+    mP.K2EconnMatrix = r.rand(mP.nE, mP.nK) < mP.KperEfrMu # each col is a K, and a fraction of the entries will = 1.
+    #    different cols (KCs) will have different numbers of 1's (~binomial dist).
+
+    mP.K2E = pos_rect( mP.K2Emu + mP.K2Estd*r.rand(mP.nE, mP.nK) ) # all >= 0
+    mP.K2E = np.multiply(mP.K2E, mP.K2EconnMatrix)
+    mP.K2E[mP.K2E < mP.hebMaxKE] = mP.hebMaxKE
+    # K2E maps from the KCs to the ENs. Given firing rates KC, K2E gives the effect on the various ENs.
+    # It is nE x nK with entries >= 0.
+
+    # octopamine to Gs and to Ks
+    mP.octo2G = pos_rect( mP.octo2Gmu + mP.octo2Gstd*r.rand(mP.nG, 1) ) # intermediate step
+    # uniform distribution (experiment)
+    mP.octo2G = pos_rect( mP.octo2Gmu + 4*mP.octo2Gstd*r.rand(mP.nG, 1) - 2*mP.octo2Gstd ) # 2*(linspace(0,1,nG) )' );
+    mP.octo2K = pos_rect( mP.octo2Kmu + mP.octo2Kstd*r.rand(mP.nK, 1) )
+    # each of these is a col vector with entries >= 0
+
+    mP.octo2P = pos_rect( mP.octo2Pmult*mP.octo2G + mP.octo2Pstd*r.rand(mP.nG, 1) ) # effect of octo on P, includes gaussian variation from P to P
+    mP.octo2L = pos_rect( mP.octo2Lmult*mP.octo2G + mP.octo2Lstd*r.rand(mP.nG, 1) )
+    mP.octo2R = pos_rect( mP.octo2Rmult*mP.octo2G + mP.octo2Rstd*r.rand(mP.nG, 1) )
+    #  uniform distributions (experiments)
+    mP.octo2P = pos_rect( mP.octo2Pmult*mP.octo2G + 4*mP.octo2Pstd*r.rand(mP.nG, 1) - 2*mP.octo2Pstd )
+    mP.octo2L = pos_rect( mP.octo2Lmult*mP.octo2G + 4*mP.octo2Lstd*r.rand(mP.nG, 1) - 2*mP.octo2Lstd )
+    mP.octo2R = pos_rect( mP.octo2Rmult*mP.octo2G + 4*mP.octo2Rstd*r.rand(mP.nG, 1) - 2*mP.octo2Rstd )
+    # mask and weight octo2PI
+    # octo2PIwts = bsxfun(@times, G2PI, octo2PImult*octo2G') # does not include a PI-varying std term
+    # normalize this by taking average:
+    # octo2PI = sum(octo2PIwts,2)./ sum(G2PIconn,2) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
+    #                                           % the 1st term = summed weights (col), 2nd term = # Gs contributing to each PI (col)
+    # octo2E = pos_rect( octo2Emu + octo2Estd*r.rand(nE, 1) )
 
 
     ###### STILL NEED TO TEST ALL OF THIS (above)
@@ -182,66 +207,25 @@ def initializeConnectionMatrices(mP):
     # print(np.max(mP.L2PI))
     # print(np.min(mP.L2PI))
 
-    # if nPI > 0
-    #     PI2Kconn = r.rand(mP.nK, mP.nPI) < KperPIfrMu # step 2a
-    #     PI2K = max( 0, PI2Kmu + PI2Kstd*r.rand(mP.nK, mP.nPI) ) # step 2b
-    #     PI2K = PI2K.*PI2Kconn # mask
-    #     PI2K = min(PI2K, hebMaxPIK);
-    #     % 1. G2PI maps the Gs to the PIs. It is nPI x nG, doubles.
-    #     %    The weights are used to find the net PI firing rate
-    #     % 2. PI2K maps the PIs to the Ks. It is nK x nPI with entries >= 0.
-    #     %    G2K = PI2K*G2PI # binary map from G to K via PIs. not used
-    # end
-    #--------------------------------------------------------------------
-    #
-    # # K2E (excit):
-    # K2EconnMatrix = r.rand(mP.nE, mP.nK) < KperEfrMu # each col is a K, and a fraction of the entries will = 1.
-    #         % different cols (KCs) will have different numbers of 1's (~binomial dist).
-    # K2E = max(0, K2Emu + K2Estd*r.rand(mP.nE, mP.nK) ) # all >= 0
-    # K2E = K2E.*K2EconnMatrix
-    # K2E = min(K2E, hebMaxKE)
-    # # K2E maps from the KCs to the ENs. Given firing rates KC, K2E gives the effect on the various ENs.
-    # # It is nE x nK with entries >= 0.
-    #
-    # octopamine to Gs and to Ks:
-    # # octo2G = max( 0, octo2Gmu + octo2Gstd*r.rand(mP.nG, 1) );  % intermediate step
-    # # uniform distribution (experiment):
-    # octo2G = max( 0, octo2Gmu + 4*octo2Gstd*r.rand(nG, 1) - 2*octo2Gstd ) # 2*(linspace(0,1,nG) )' ); %
-    # octo2K = max( 0, octo2Kmu + octo2Kstd*r.rand(nK, 1) );
-    # # each of these is a col vector with entries >= 0
-    #
-    # octo2P = max(0, octo2Pmult*octo2G + octo2Pstd*r.rand(mP.nG, 1) ) # effect of octo on P, includes gaussian variation from P to P
-    # octo2L = max(0, octo2Lmult*octo2G + octo2Lstd*r.rand(mP.nG, 1) );
-    # octo2R = max(0, octo2Rmult*octo2G + octo2Rstd*r.rand(mP.nG, 1) );
-    #  % uniform distributions (experiments):
-    # octo2P = max(0, octo2Pmult*octo2G + 4*octo2Pstd*r.rand(mP.nG, 1) - 2*octo2Pstd );
-    # octo2L = max(0, octo2Lmult*octo2G + 4*octo2Lstd*r.rand(mP.nG, 1) - 2*octo2Lstd );
-    # octo2R = max(0, octo2Rmult*octo2G + 4*octo2Rstd*r.rand(mP.nG, 1) - 2*octo2Rstd );
-    # mask and weight octo2PI:
-    # octo2PIwts = bsxfun(@times, G2PI, octo2PImult*octo2G') # does not include a PI-varying std term
-    # normalize this by taking average:
-    # octo2PI = sum(octo2PIwts,2)./ sum(G2PIconn,2) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
-    #                                           % the 1st term = summed weights (col), 2nd term = # Gs contributing to each PI (col)
-    # octo2E = max(0, octo2Emu + octo2Estd*r.rand(nE, 1) );
-    #
+
     # each neuron has slightly different noise levels for sde use. Define noise vectors for each type:
     # Gaussian versions:
     # noiseRvec = epsRstd + RnoiseSig*r.rand(nR, 1)
-    # noiseRvec = max(0, noiseRvec);   % remove negative noise entries
+    # noiseRvec = pos_rect( noiseRvec ) # remove negative noise entries
     # noisePvec = epsPstd + PnoiseSig*r.rand(nP, 1)
-    # noisePvec = max(0, noisePvec);
+    # noisePvec = pos_rect( noisePvec )
     # noiseLvec = epsLstd + LnoiseSig*r.rand(mP.nG, 1)
-    # noiseLvec = max(0, noiseLvec);
+    # noiseLvec = pos_rect( noiseLvec )
     # noisePIvec = noisePI + PInoiseStd*r.rand(nPI, 1)
-    # noisePIvec = max(0, noisePIvec);
+    # noisePIvec = pos_rect( noisePIvec )
     # noiseKvec = noiseK + KnoiseStd*r.rand(nK, 1)
-    # noiseKvec = max(0, noiseKvec);
+    # noiseKvec = pos_rect( noiseKvec )
     # noiseEvec = noiseE + EnoiseStd*r.rand(nE, 1)
-    # noiseEvec = max(0, noiseEvec );
+    # noiseEvec = pos_rect( noiseEvec )
     # gamma versions:
-    # a = noiseR/RnoiseStd;
-    # b = noiseR/a;
-    # g = makedist( 'gamma', 'a', a, 'b', b );
+    # a = noiseR/RnoiseStd
+    # b = noiseR/a
+    # g = makedist( 'gamma', 'a', a, 'b', b )
     # noiseRvec = random(g,[nR,1]);
     # noiseRvec(noiseRvec > 15) = 0;   % experiment to see if just outlier noise vals boost KC noise
     # a = noiseP/PnoiseStd;
