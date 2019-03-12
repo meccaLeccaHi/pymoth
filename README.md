@@ -11,7 +11,7 @@ Python wrapper for MothNet
 `$ pip install numpy scipy matplotlib pillow wget`
 
 Uses [Decimal](https://docs.python.org/3/library/decimal.html) module* for floating point arithmetic to avoid representation errors (more info [here](https://docs.python.org/2/tutorial/floatingpoint.html)).
-*Unlike hardware based binary floating point, the decimal module has an alterable precision (defaulting to 28 places).
+*Unlike hardware based binary floating point, the decimal module has an alterable precision (defaulting to 28 places). In this case, we rounded at four significant digits.
 
 [MNIST source](http://yann.lecun.com/exdb/mnist/)
 
