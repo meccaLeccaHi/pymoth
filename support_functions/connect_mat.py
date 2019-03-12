@@ -196,55 +196,43 @@ def initializeConnectionMatrices(mP):
     mP.octo2L = pos_rect( mP.octo2Lmult*mP.octo2G + 4*mP.octo2Lstd*r.rand(mP.nG, 1) - 2*mP.octo2Lstd )
     mP.octo2R = pos_rect( mP.octo2Rmult*mP.octo2G + 4*mP.octo2Rstd*r.rand(mP.nG, 1) - 2*mP.octo2Rstd )
     # mask and weight octo2PI
-    # octo2PIwts = bsxfun(@times, G2PI, octo2PImult*octo2G') # does not include a PI-varying std term
-    # normalize this by taking average:
-    # octo2PI = sum(octo2PIwts,2)./ sum(G2PIconn,2) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
-    #                                           % the 1st term = summed weights (col), 2nd term = # Gs contributing to each PI (col)
-    # octo2E = pos_rect( octo2Emu + octo2Estd*r.rand(nE, 1) )
+    mP.octo2PIwts = mP.G2PI*( mP.octo2PImult*mP.octo2G.T ) # does not include a PI-varying std term
+    # normalize this by taking average
+    mP.octo2PI = mP.octo2PIwts.sum(axis=1)/mP.G2PIconn.sum(axis=1) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
+
+    mP.octo2E = pos_rect( mP.octo2Emu + mP.octo2Estd*r.rand(mP.nE, 1) )
 
 
-    ###### STILL NEED TO TEST ALL OF THIS (above)
-    # print('L2PI shape',mP.L2PI.shape)
-    # print(np.max(mP.L2PI))
-    # print(np.min(mP.L2PI))
 
 
     # each neuron has slightly different noise levels for sde use. Define noise vectors for each type:
     # Gaussian versions:
-    # noiseRvec = epsRstd + RnoiseSig*r.rand(nR, 1)
-    # noiseRvec = pos_rect( noiseRvec ) # remove negative noise entries
-    # noisePvec = epsPstd + PnoiseSig*r.rand(nP, 1)
-    # noisePvec = pos_rect( noisePvec )
-    # noiseLvec = epsLstd + LnoiseSig*r.rand(mP.nG, 1)
-    # noiseLvec = pos_rect( noiseLvec )
-    # noisePIvec = noisePI + PInoiseStd*r.rand(nPI, 1)
-    # noisePIvec = pos_rect( noisePIvec )
-    # noiseKvec = noiseK + KnoiseStd*r.rand(nK, 1)
-    # noiseKvec = pos_rect( noiseKvec )
-    # noiseEvec = noiseE + EnoiseStd*r.rand(nE, 1)
-    # noiseEvec = pos_rect( noiseEvec )
+    # mP.noiseRvec = pos_rect( mP.mP.epsRstd + mP.RnoiseSig*r.rand(mP.nR, 1) ) # remove negative noise entries
+    # mP.noisePvec = pos_rect( mP.epsPstd + mP.PnoiseSig*r.rand(mP.nP, 1) )
+    # mP.noiseLvec = pos_rect( mP.epsLstd + mP.LnoiseSig*r.rand(mP.nG, 1) )
+    mP.noisePIvec = pos_rect( mP.noisePI + mP.PInoiseStd*r.rand(mP.nPI, 1) )
+    mP.noiseKvec = pos_rect( mP.noiseK + mP.KnoiseStd*r.rand(mP.nK, 1) )
+    mP.noiseEvec = pos_rect( mP.noiseE + mP.EnoiseStd*r.rand(mP.nE, 1) )
     # gamma versions:
-    # a = noiseR/RnoiseStd
-    # b = noiseR/a
-    # g = makedist( 'gamma', 'a', a, 'b', b )
-    # noiseRvec = random(g,[nR,1]);
-    # noiseRvec(noiseRvec > 15) = 0;   % experiment to see if just outlier noise vals boost KC noise
-    # a = noiseP/PnoiseStd;
-    # b = noiseP/a;
-    # g = makedist( 'gamma', 'a', a, 'b', b );
-    # noisePvec = random(g,[nP,1]);
-    # noisePvec(noisePvec > 15) = 0;   % experiment to see if outlier noise vals boost KC noise
-    # a = noiseL/LnoiseStd;
-    # b = noiseL/a;
-    # g = makedist( 'gamma', 'a', a, 'b', b );
-    # noiseLvec = random(g,[nG,1]);
-    #
-    # kGlobalDampVec = kGlobalDampFactor + kGlobalDampStd*r.rand(nK,1) # each KC may be affected a bit differently by LH inhibition
+    a = Decimal(mP.noiseR)/Decimal(mP.RnoiseStd)
+    b = Decimal(mP.noiseR)/a
+    mP.noiseRvec = np.random.gamma(a, scale=b, size=(mP.nR,1))
+
+    # DEV NOTE: Run below by CBD - Still necessary?
+    mP.noiseRvec[mP.noiseRvec > 15] = 0 # experiment to see if just outlier noise vals boost KC noise
+
+    a = Decimal(mP.noiseL)/Decimal(mP.LnoiseStd)
+    b = Decimal(mP.noiseL)/a
+    mP.noiseLvec = np.random.gamma(a, scale=b, size=(mP.nG,1))
+
+    mP.kGlobalDampVec = mP.kGlobalDampFactor + mP.kGlobalDampStd*r.rand(mP.nK,1)
+    # each KC may be affected a bit differently by LH inhibition
+
     #--------------------------------------------------------------------
-    #
+
     # append these matrices to 'modelParams' struct:
     # no editing necessary in this section
-    #
+
     # modelParams.F2R = F2R;
     # modelParams.R2P = R2P;
     # modelParams.R2PI = R2PI;
@@ -264,7 +252,7 @@ def initializeConnectionMatrices(mP):
     # modelParams.PI2K = PI2K;
     # modelParams.K2E = K2E;
     # modelParams.Rspont = Rspont;  % col vector
-    #
+
     # modelParams.noiseRvec = noiseRvec;
     # modelParams.noisePvec = noisePvec;
     # modelParams.noisePIvec = noisePIvec;
