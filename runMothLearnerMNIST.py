@@ -205,24 +205,11 @@ for run in range(numRuns):
 		# c) Now populate the moth's connection matrices using the modelParams
 		modelParams = initializeConnectionMatrices(modelParams)
 
+	modelParams.trueClassLabels = classLabels # misc parameter tagging along
+	modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
 
 
 
-#    ## Create a moth. Either load an existing moth, or create a new moth:
-#
-#    if useExistingConnectionMatrices
-#		load( matrixParamsFilename )
-#	else   # case: new moth
-# 	    # a) load template params with specify_params_fn:
-#   		modelParams = specifyModelParamsMnist_fn( length(activePixelInds), goal  )  # modelParams = struct
-#
-#        # c) Now populate the moth's connection matrices using the modelParams:
-#        modelParams = initializeConnectionMatrices_fn(modelParams)
-#    end
-#
-#    modelParams.trueClassLabels = classLabels     # misc parameter tagging along
-#    modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
-#
 #	# Define the experiment parameters, including book-keeping for time-stepped evolutions, eg
 #    #       when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
 #    experimentParams = experimentFn( trClasses, classLabels, valPerClass )

@@ -353,7 +353,9 @@ noiseK,noiseE,EnoiseStd = [0]*3
 
 #------------------------------------------------------------------------
 
-# # Pre-allocate connection matrix attributes for later
+# Pre-allocate connection matrix attributes for later
+trueClassLabels = None
+saveAllNeuralTimecourses = None
 # F2R = None
 # F2Rbinary = None
 #

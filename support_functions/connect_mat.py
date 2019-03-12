@@ -184,7 +184,7 @@ def initializeConnectionMatrices(mP):
     # octopamine to Gs and to Ks
     mP.octo2G = pos_rect( mP.octo2Gmu + mP.octo2Gstd*r.rand(mP.nG, 1) ) # intermediate step
     # uniform distribution (experiment)
-    mP.octo2G = pos_rect( mP.octo2Gmu + 4*mP.octo2Gstd*r.rand(mP.nG, 1) - 2*mP.octo2Gstd ) # 2*(linspace(0,1,nG) )' );
+    mP.octo2G = pos_rect( mP.octo2Gmu + 4*mP.octo2Gstd*r.rand(mP.nG, 1) - 2*mP.octo2Gstd ) # 2*(linspace(0,1,nG) )' )
     mP.octo2K = pos_rect( mP.octo2Kmu + mP.octo2Kstd*r.rand(mP.nK, 1) )
     # each of these is a col vector with entries >= 0
 
@@ -233,30 +233,32 @@ def initializeConnectionMatrices(mP):
     # append these matrices to 'modelParams' struct:
     # no editing necessary in this section
 
-    # modelParams.F2R = F2R;
-    # modelParams.R2P = R2P;
-    # modelParams.R2PI = R2PI;
-    # modelParams.R2L = R2L;
-    # modelParams.octo2R = octo2R;
-    # modelParams.octo2P = octo2P;
-    # modelParams.octo2PI = octo2PI;
-    # modelParams.octo2L = octo2L;
-    # modelParams.octo2K = octo2K;
-    # modelParams.octo2E = octo2E;
-    # modelParams.L2P = L2P;
-    # modelParams.L2L = L2L;
-    # modelParams.L2PI = L2PI;
-    # modelParams.L2R = L2R;
-    # modelParams.G2PI = G2PI;
-    # modelParams.P2K = P2K;
-    # modelParams.PI2K = PI2K;
-    # modelParams.K2E = K2E;
-    # modelParams.Rspont = Rspont;  % col vector
+    # mP.F2R = F2R
+    # mP.R2P = R2P
+    # mP.R2PI = R2PI
+    # mP.R2L = R2L
+    # mP.octo2R = octo2R
+    # mP.octo2P = octo2P
+    # mP.octo2PI = octo2PI
+    # mP.octo2L = octo2L
+    # mP.octo2K = octo2K
+    # mP.octo2E = octo2E
+    # mP.L2P = L2P
+    # mP.L2L = L2L
+    # mP.L2PI = L2PI
+    # mP.L2R = L2R
+    # mP.G2PI = G2PI
+    # mP.P2K = P2K
+    # mP.PI2K = PI2K
+    # mP.K2E = K2E
+    # mP.Rspont = Rspont # col vector
 
-    # modelParams.noiseRvec = noiseRvec;
-    # modelParams.noisePvec = noisePvec;
-    # modelParams.noisePIvec = noisePIvec;
-    # modelParams.noiseLvec = noiseLvec;
-    # modelParams.noiseKvec = noiseKvec;
-    # modelParams.noiseEvec = noiseEvec;
-    # modelParams.kGlobalDampVec = kGlobalDampVec;
+    # mP.noiseRvec = noiseRvec
+    # mP.noisePvec = noisePvec
+    # mP.noisePIvec = noisePIvec
+    # mP.noiseLvec = noiseLvec
+    # mP.noiseKvec = noiseKvec
+    # mP.noiseEvec = noiseEvec
+    # mP.kGlobalDampVec = kGlobalDampVec
+
+    return mP
