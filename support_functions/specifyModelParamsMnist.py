@@ -43,8 +43,10 @@ from decimal import Decimal
 
 # Functions to perform float arithmetic in MATLAB-esque fashion
 def mult(a,b):
+    '''Float multiplication function'''
     return float(round(Decimal(a)*Decimal(b),4))
 def div(a,b):
+    '''Float division function'''
     return float(round(Decimal(a)/Decimal(b),4))
 
 nF = 85 # number of features

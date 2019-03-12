@@ -29,6 +29,7 @@ def initializeConnectionMatrices(mP):
     getcontext().prec = 4 # set Decimal type precision
 
     def pos_rect(input):
+        '''Positive rectifier function'''
         input[input < 0] = 0
         return input
 
