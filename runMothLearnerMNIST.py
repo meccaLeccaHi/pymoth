@@ -76,7 +76,7 @@ valPerClass = 15  # number of digits used in validation sets and in baseline set
 trClasses = np.repeat( classLabels, trPerClass )
 trClasses = np.random.permutation( trClasses )
 # repeat these inputs if taking multiple sniffs of each training sample:
-trClasses = np.tile( trClasses, [1, numSniffs] )
+trClasses = np.tile( trClasses, [1, numSniffs] )[0]
 
 # Experiment details for 10 digit training:
 experimentFn = setMNISTExperimentParams # @setMnistExperimentParams_fn
@@ -184,11 +184,6 @@ for run in range(numRuns):
 
 #    #-----------------------------------------
 
-	print('NEXT STEPS')
-	print('Step 1: Create a moth')
-	print('Step 2: ...')
-	print('Step 3: Greatness')
-
 	# Create a moth. Either load an existing moth, or create a new moth
 	if useExistingConnectionMatrices:
 		pass
@@ -208,15 +203,18 @@ for run in range(numRuns):
 	modelParams.trueClassLabels = classLabels # misc parameter tagging along
 	modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
 
+	# Define the experiment parameters, including book-keeping for time-stepped evolutions, eg
+	#       when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
+	experimentParams = experimentFn( trClasses, classLabels, valPerClass )
 
+	#-----------------------------------
 
-#	# Define the experiment parameters, including book-keeping for time-stepped evolutions, eg
-#    #       when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
-#    experimentParams = experimentFn( trClasses, classLabels, valPerClass )
+	print('NEXT STEPS')
+	print('Step 1: Run this experiment')
+	print('Step 2: ...')
+	print('Step 3: Greatness')
 
-#    #-----------------------------------
-#
-#    ## 3. run this experiment as sde time-step evolution:
+	## 3. run this experiment as sde time-step evolution:
 
 #    simResults = sdeWrapper_fn( modelParams, experimentParams, digitQueues )
 #

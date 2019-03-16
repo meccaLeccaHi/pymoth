@@ -1,5 +1,4 @@
 def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
-
 	# This function defines parameters of a time-evolution experiment: overall timing, stim timing and
 	# strength, octo timing and strength, lowpass window parameter, etc.
 	# It does book-keeping to allow analysis of the SDE time-stepped evolution of the neural firing rates.
@@ -19,6 +18,9 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	#	5. no event buffer
 	#	6. post-training period: deliver a group of digits for each class
 
+	# import packages
+	import numpy as np
+
 	stimMag = 20 # stim magnitudes as passed into AL (See original version in smartAsABug codebase)
 	stimLength = 0.22
 	nC = len(classLabels) # the number of classes in this experiment
@@ -36,83 +38,96 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	gap = 10
 
 	for i in range(nC):
-		print('baselineTimes', baselineTimes)
-		print('startTime', startTime)
-		print('step', step)
-		print('valPerClass', valPerClass)
+		# vector of timepoints
+		baselineTimes += list(range(startTime, startTime + valPerClass*step, step))
+		startTime = max(baselineTimes) + gap
+	endOfBaseline = max(baselineTimes) + 25 # include extra buffer before training
 
-	#		baselineTimes = [ baselineTimes, startTime : step : startTime + (valPerClass - 1)*step  ]# vector of timepoints, one digit applied every 'step' seconds
-	#		startTime = max(baselineTimes) + gap
-	#	end
-	#	endOfBaseline = max(baselineTimes) + 25   # include extra buffer before training
+	# Training period:
+	# vector of timepoints, one digit every 'trStep' seconds
+	trainTimes = list(range(endOfBaseline, endOfBaseline + len(trClasses)*trStep, trStep))
+	endOfTrain = max(trainTimes) + 25 # includes buffer before Validation
 
-	#	# Training period:
-	#	trainTimes = endOfBaseline : trStep : endOfBaseline + (length(trClasses) - 1)*trStep      # vector of timepoints, one digit every 'trStep' seconds
-	#	endOfTrain = max(trainTimes) + 25    # includes buffer before Validation
+	# Val period:
+	# do a loop, to allow gaps between class groups
+	valTimes = []
+	startTime = endOfTrain
+	for i in range(nC):
+		# vector of timepoints
+		valTimes += list(range(startTime, startTime + valPerClass*step, step))
+		startTime = max(valTimes) + gap
+	endOfVal = max(valTimes) + 4
 
-	#	# Val period:
-	#	# do a loop, to allow gaps between class groups:
-	#	valTimes = []
-	#	startTime = endOfTrain
-	#	for i = 1:nC
-	#	valTimes = [ valTimes, startTime : step : startTime + (valPerClass - 1)*step  ] # vector of timepoints
-	#	startTime = max(valTimes) + gap
-	#	end
-	#	endOfVal = max(valTimes) + 4
+	## assemble vectors of stimulus data for export:
 
-	#	## assemble vectors of stimulus data for export:
+	# Assign the classes of each stim. Assign the baseline and val in blocks,
+	# and the training stims in the order passed in:
+	whichClass = np.zeros( (1, len(baselineTimes+trainTimes+valTimes)) )
+	numBaseline = valPerClass*nC
+	numTrain = len(trClasses)
+	for c in range(nC):
+		# the baseline groups
+		whichClass[ c*valPerClass + 1: (c+1)*valPerClass ] = classLabels[c]
+		# the val groups
+		whichClass[ numBaseline + numTrain + c*valPerClass + 1 : \
+			numBaseline + numTrain + (c+1)*valPerClass ]  = classLabels[c]
+	whichClass[ :, numBaseline + 1:numBaseline + numTrain + 1 ] = trClasses
 
-	#	# Assign the classes of each stim. Assign the baseline and val in blocks, and the training stims in the order passed in:
-	#	whichClass = zeros( size ( [baselineTimes, trainTimes, valTimes ] ) )
-	#	numBaseline = valPerClass*nC
-	#	numTrain = length(trClasses)
-	#	for c = 1:nC
-	#	whichClass( (c-1)*valPerClass + 1: c*valPerClass)  = classLabels(c)  # the baseline groups
-	#	whichClass( numBaseline + numTrain + (c-1)*valPerClass + 1 :  numBaseline + numTrain + c*valPerClass )  = classLabels(c)  # the val groups
-	#	end
-	#	whichClass( numBaseline + 1:numBaseline + numTrain ) = trClasses
-	#	expParams.whichClass = whichClass
+	# DEV NOTE: The following hack allows us to set the attributes of a Python object
+	# the same way we set the fields of a struct in matlab. Should be removed after
+	# transition to OOP
+	class Object(object):
+		pass
+	expParams = Object()
 
-	#	stimStarts =  [ baselineTimes, trainTimes, valTimes ]
-	#	expParams.stimStarts = stimStarts # starting times
-	#	expParams.durations = stimLength*ones( size( stimStarts ) )      # durations
-	#	expParams.classMags = stimMag*ones( size( stimStarts ) )              # magnitudes
+	expParams.whichClass = whichClass
 
-	#	# octopamine input timing:
-	#	expParams.octoMag = 1
-	#	expParams.octoStart = trainTimes
-	#	expParams.durationOcto = 1
+	stimStarts =  baselineTimes + trainTimes + valTimes
+	expParams.stimStarts = stimStarts # starting times
+	expParams.durations = stimLength*np.ones( (1,len(stimStarts)) ) # durations
+	expParams.classMags = stimMag*np.ones( (1,len(stimStarts)) ) # magnitudes
 
-	#	# heb timing: Hebbian updates are enabled 25# of the way into the stimulus, and
-	#	# last until 75# of the way through (ie active during the peak response period)
-	#	expParams.hebStarts = trainTimes + 0.25*stimLength
-	#	expParams.hebDurations = 0.5*stimLength*ones(size(trainTimes))
-	#	expParams.startTrain = min(expParams.hebStarts)
-	#	expParams.endTrain = max(expParams.hebStarts) + max(expParams.hebDurations)
+	# octopamine input timing:
+	expParams.octoMag = 1
+	expParams.octoStart = trainTimes
+	expParams.durationOcto = 1
 
-	#	## Other time parameters required for time evolution book-keeping:
+	# Hebbian timing: Hebbian updates are enabled 25# of the way into the stimulus, and
+	# last until 75% of the way through (ie active during the peak response period)
+	expParams.hebStarts = [i + 0.25*stimLength for i in trainTimes]
+	expParams.hebDurations = 0.5*stimLength*np.ones( (1,len(trainTimes)) )
+	expParams.startTrain = min(expParams.hebStarts)
+	expParams.endTrain = max(expParams.hebStarts) + max(expParams.hebDurations)
 
-	#	# the numbers 1,2,3 do refer to time periods where spont responses are allowed to settle before recalibration.
-	#	expParams.startPreNoiseSpontMean1 = -25
-	#	expParams.stopPreNoiseSpontMean1 = -15
-	#	# Currently no change is made in start/stopSpontMean2. So spontaneous behavior may be stable in this range.
-	#	expParams.startSpontMean2 = -10
-	#	expParams.stopSpontMean2 = -5
-	#	# currently, spontaneous behavior is steady-state by startSpontMean3.
-	#	expParams.startSpontMean3 = 0
-	#	expParams.stopSpontMean3 = 28
+	## Other time parameters required for time evolution book-keeping:
 
-	#	expParams.preHebPollTime = min(trainTimes) - 5
-	#	expParams.postHebPollTime = max(trainTimes) + 5
+	# the numbers 1,2,3 do refer to time periods where spont responses are
+	# allowed to settle before recalibration.
+	expParams.startPreNoiseSpontMean1 = -25
+	expParams.stopPreNoiseSpontMean1 = -15
+	# Currently no change is made in start/stopSpontMean2.
+	# So spontaneous behavior may be stable in this range.
+	expParams.startSpontMean2 = -10
+	expParams.stopSpontMean2 = -5
+	# currently, spontaneous behavior is steady-state by startSpontMean3.
+	expParams.startSpontMean3 = 0
+	expParams.stopSpontMean3 = 28
 
-	#	# timePoints for plotting EN responses:
-	#	# spontaneous response periods, before and after training, to view effect of training on spontaneous FRs:
-	#	expParams.preHebSpontStart = expParams.startSpontMean3
-	#	expParams.preHebSpontStop = expParams.stopSpontMean3
-	#	expParams.postHebSpontStart = max(trainTimes) + 5
-	#	expParams.postHebSpontStop = min(valTimes) - 3
+	expParams.preHebPollTime = min(trainTimes) - 5
+	expParams.postHebPollTime = max(trainTimes) + 5
 
-	#	# hamming filter window parameter (= width of transition zone in seconds). The lp filter is applied to odors and to octo
-	#	expParams.lpParam =  0.12
+	# timePoints for plotting EN responses:
+	# spontaneous response periods, before and after training, to view effect of
+	# training on spontaneous FRs:
+	expParams.preHebSpontStart = expParams.startSpontMean3
+	expParams.preHebSpontStop = expParams.stopSpontMean3
+	expParams.postHebSpontStart = max(trainTimes) + 5
+	expParams.postHebSpontStop = min(valTimes) - 3
 
-	#	expParams.simStop = max(stimStarts) + 10
+	# hamming filter window parameter (= width of transition zone in seconds).
+	# The lp filter is applied to odors and to octo
+	expParams.lpParam =  0.12
+
+	expParams.simStop = max(stimStarts) + 10
+
+	return expParams
