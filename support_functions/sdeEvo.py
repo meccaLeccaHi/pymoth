@@ -67,7 +67,7 @@ def sdeWrapper( modelParams, expParams, featureArray ):
             # print(np.where(cols))
             classMagMatrix[i, cols] = theseMags[j]
             # exit()
-    print('bar',np.where(cols))
+    print('bar',np.where(cols)) # NEED TO FIX- doesn't correspond to matlab output
 
 
     # # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
