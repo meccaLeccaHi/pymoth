@@ -15,7 +15,7 @@ def generateDownsampledMNISTSet( preP ):
 	#	will be used. The 3rd dimension gives the class, 1:10   where 10 = '0'.
 	#   2. activePixelInds: list of pixel indices to allow re-embedding into empty thumbnail for viewing.
 	#   3. lengthOfSide: allows reconstruction of thumbnails given from the  feature vectors.
-	#------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 	# Preprocessing includes:
 	#   1. Load MNIST set.generateDownsampledMnistSet_fn
 	#   2. cropping and downsampling

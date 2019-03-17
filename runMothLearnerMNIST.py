@@ -33,6 +33,7 @@ from MNIST_all.MNIST_read import MNIST_read
 from support_functions.show_figs import showFeatureArrayThumbnails
 import support_functions.specifyModelParamsMnist as model_params
 from support_functions.connect_mat import initializeConnectionMatrices
+from support_functions.sdeEvo import sdeWrapper
 
 
 ## USER ENTRIES (Edit parameters below):
@@ -65,11 +66,11 @@ resultsFilename = 'results'  # will get the run number appended to it.
 saveResultsDataFolder = [] # String. If non-empty, 'resultsFilename' will be saved here.
 saveResultsImageFolder = [] # StrtempArraying. If non-empty, images will be saved here (if showENPlots also non-zero).
 
-#-----------------------------------------------
+#-------------------------------------------------------------------------------
 
 ## Misc book-keeping
 
-classLabels = list(range(10))  # For MNIST. '0' is labeled as 10
+classLabels = np.array(range(10))  # For MNIST. '0' is labeled as 10
 valPerClass = 15  # number of digits used in validation sets and in baseline sets
 
 # make a vector of the classes of the training samples, randomly mixed:
@@ -81,7 +82,7 @@ trClasses = np.tile( trClasses, [1, numSniffs] )[0]
 # Experiment details for 10 digit training:
 experimentFn = setMNISTExperimentParams # @setMnistExperimentParams_fn
 
-#-----------------------------------------------
+#-------------------------------------------------------------------------------
 
 ## Load and preprocess the dataset.
 
@@ -136,7 +137,7 @@ pixNum, numPerClass, classNum = fA.shape
 # fA = n x m x 10 array where n = #active pixels, m = #digits
 #   from each class that will be used. The 3rd dimension gives the class, 1:10   where 10 = '0'.
 
-#-----------------------------------
+#-------------------------------------------------------------------------------
 
 # Loop through the number of simulations specified:
 print(f'starting sim(s) for goal = {goal}, trPerClass = {trPerClass}, '
@@ -182,7 +183,7 @@ for run in range(numRuns):
 		titleStr = 'Input thumbnails'
 		showFeatureArrayThumbnails(tempArray, showThumbnailsUsed, normalize, titleStr)
 
-#    #-----------------------------------------
+#-------------------------------------------------------------------------------
 
 	# Create a moth. Either load an existing moth, or create a new moth
 	if useExistingConnectionMatrices:
@@ -207,7 +208,7 @@ for run in range(numRuns):
 	#       when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
 	experimentParams = experimentFn( trClasses, classLabels, valPerClass )
 
-	#-----------------------------------
+#-------------------------------------------------------------------------------
 
 	print('NEXT STEPS')
 	print('Step 1: Run this experiment')
@@ -216,9 +217,9 @@ for run in range(numRuns):
 
 	## 3. run this experiment as sde time-step evolution:
 
-#    simResults = sdeWrapper_fn( modelParams, experimentParams, digitQueues )
+	simResults = sdeWrapper( modelParams, experimentParams, digitQueues )
 #
-#    #-----------------------------------
+#-------------------------------------------------------------------------------
 
 #    ## Experiment Results: EN behavior, classifier calculations:
 #

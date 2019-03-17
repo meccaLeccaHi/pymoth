@@ -5,13 +5,13 @@ def initializeConnectionMatrices(mP):
     # Output: 'params', a struct that includes connection matrices and other model
     # info necessary to FR evolution and plotting
 
-    #--------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     # step 1: build the matrices
     # step 2: pack the matrices into a struct 'params' for output
     # These steps are kept separate for clarity of step 2
 
-    #--------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     ## Step 1: Generate connection matrices
     # Comment: Since there are many zero connections (ie matrices are usually
@@ -136,8 +136,8 @@ def initializeConnectionMatrices(mP):
     # effect on the various Ks
     # It is nK x nP with entries >= 0.
 
+#-------------------------------------------------------------------------------
 
-    #--------------------------------------------------------------------
     # PIs (inhibitory): (not used in mnist)
     # 0. These are more complicated, since each PI is fed by several Gs
     # 1. a) We map from Gs to PIs (binary, one G can feed multiple PI) with G2PIconn
@@ -169,7 +169,7 @@ def initializeConnectionMatrices(mP):
         # 2. PI2K maps the PIs to the Ks. It is nK x nPI with entries >= 0.
         #    G2K = PI2K*G2PI # binary map from G to K via PIs. not used
 
-    #--------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     # K2E (excit):
     mP.K2EconnMatrix = r.rand(mP.nE, mP.nK) < mP.KperEfrMu # each col is a K, and a fraction of the entries will = 1.
@@ -228,7 +228,7 @@ def initializeConnectionMatrices(mP):
     mP.kGlobalDampVec = mP.kGlobalDampFactor + mP.kGlobalDampStd*r.rand(mP.nK,1)
     # each KC may be affected a bit differently by LH inhibition
 
-    #--------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     # append these matrices to 'modelParams' struct:
     # no editing necessary in this section

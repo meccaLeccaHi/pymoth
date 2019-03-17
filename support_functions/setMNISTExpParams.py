@@ -9,7 +9,9 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	# 	3. valPerClass: how many digits of each class to use for baseline and post-train
 	# Output:
 	#	1. expParams: struct with experiment info.
-	# ----------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+
 	# Order of time periods:
 	#	1. no event period: allow system to settle to a steady state spontaneous FR baseline
 	#   2. baseline period: deliver a group of digits for each class
@@ -29,7 +31,14 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	step = 3 # the time between digits (3 seconds)
 	trStep = step + 2 # allow more time between training digits
 
-	expParams = {'simStart':-30} # use negative start-time for convenience (artifact)
+	# DEV NOTE: The following hack allows us to set the attributes of a Python object
+	# the same way we set the fields of a struct in matlab. Should be removed after
+	# transition to OOP
+	class Object(object):
+		pass
+	expParams = Object()
+
+	expParams.simStart = -30 # use negative start-time for convenience (artifact)
 
 	## Baseline period:
 	# do a loop, to allow gaps between class groups:
@@ -62,7 +71,7 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 
 	# Assign the classes of each stim. Assign the baseline and val in blocks,
 	# and the training stims in the order passed in:
-	whichClass = np.zeros( (1, len(baselineTimes+trainTimes+valTimes)) )
+	whichClass = np.zeros( (1, len(baselineTimes+trainTimes+valTimes)), dtype=int )
 	numBaseline = valPerClass*nC
 	numTrain = len(trClasses)
 	for c in range(nC):
@@ -73,17 +82,10 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 			numBaseline + numTrain + (c+1)*valPerClass ]  = classLabels[c]
 	whichClass[ :, numBaseline + 1:numBaseline + numTrain + 1 ] = trClasses
 
-	# DEV NOTE: The following hack allows us to set the attributes of a Python object
-	# the same way we set the fields of a struct in matlab. Should be removed after
-	# transition to OOP
-	class Object(object):
-		pass
-	expParams = Object()
-
 	expParams.whichClass = whichClass
 
 	stimStarts =  baselineTimes + trainTimes + valTimes
-	expParams.stimStarts = stimStarts # starting times
+	expParams.stimStarts = np.array(stimStarts).reshape(1,-1) # starting times
 	expParams.durations = stimLength*np.ones( (1,len(stimStarts)) ) # durations
 	expParams.classMags = stimMag*np.ones( (1,len(stimStarts)) ) # magnitudes
 

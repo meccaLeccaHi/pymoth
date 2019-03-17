@@ -8,7 +8,7 @@
 # Output:
 #   1. modelParams = struct ready to pass to 'initializeConnectionMatrices'
 #
-# -------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 # # The following abbreviations are used:
 # # n* = number of *
@@ -68,7 +68,7 @@ nPI = int(nG*PIfr) # these are in addition to nP
 # note that outputs P and PI only affect KCs
 nE = 10 # extrinsic neurons in eg beta-lobe of MB, ie the read-out/decision neurons
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 ## Hebbian learning rates:
 
@@ -87,7 +87,7 @@ dieBackTauPK = 0 # If > 0, divide this fraction of gains evenly among all nonzer
 # weights, and subtract.
 dieBackTauPIK = 0 # no PIs in mnist moths
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 ## Time constants for the diff eqns
 
@@ -144,7 +144,7 @@ RperFRawNum = 1 # ie one RN (equiv one Glom) for each F (feature, ie pixel).
 F2Rmu = div(100, nG) # controls how strongly a given feature will affect G's
 F2Rstd = 0
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # R characteristics
 R2Gmu = 5 # controls how strongly R's affect their G's
@@ -160,7 +160,7 @@ R2PIstd = 0
 R2Lmult = 0.75 # so R has much weaker effect on LNs than on PNs (0.75 vs 4)
 R2Lstd = mult(stdFactor, R2Lmult)
 
-#-----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # define spontaneous steady-state firing rates (FRs) of RNs
 spontRdistFlag = 2 # 1 = gaussian, 2 = gamma + base.
@@ -169,7 +169,7 @@ spontRstd = mult(0.05, spontRmu)
 spontRbase = 0 # for gamma only
 # if using gamma, params are derived from spontRmu and spontRstd.
 
-#-----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # L2* connection matrices
 
@@ -193,7 +193,7 @@ GsensStd = mult(0.2, GsensMu)
 # Note: Gsensstd expresses variation in L effect, so if we assume that P, L,
 # and R are all similarly gaba-resistent within a given G, set L2Pstd etc below = 0.
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 ## define effect of LNs on various components
 
@@ -214,7 +214,7 @@ L2Lstd = mult(stdFactor, L2Lmult)
 G2PImu = 1 # 0.6
 G2PIstd = 0 # 0.1*G2PImu
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # Sparsity in the KCs:
 # KCs are globally damped by the LH (or perhaps by a neuron within the MB). The
@@ -228,8 +228,8 @@ kGlobalDampFactor = 1 # used to make a vector to deliver damping to KCs
 kGlobalDampStd = 0 # allows variation of damping effect by KC.
 # Effect of the above is to make global damping uniform on KCs.
 
-#------------------------------------------------------------------------
-#
+#-------------------------------------------------------------------------------
+
 # AL to MB, ie PN to KC connection matrices:
 #
 # Define distributions to describe how Ps connect to Ks, ie synapses:
@@ -277,7 +277,7 @@ hebMaxPK = P2Kmu + (3*P2Kstd) # ceiling for P2K weights
 hebTauPIK = hebTauPK  # irrelevant since PI2K weights == 0
 hebMaxPIK = PI2Kmu + (3*PI2Kstd)
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # KC -> EN connections:
 # Start with all weights uniform and full connectivity. Training rapidly individuates the connectivities of ENs.
@@ -286,7 +286,7 @@ K2Emu = 3     # strength of connection
 K2Estd = 0     # variation in connection strengths
 hebMaxKE = 20*K2Emu + 3*K2Estd  # max allowed connection weights (min = 0)
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # distribution of octopamine -> glom strengths (small variation):
 # NOTES:
@@ -337,7 +337,7 @@ octo2Kstd = octoStdFactor * octo2Kmu
 octo2Emu = 0  # for completeness, not used
 octo2Estd = 0
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # Noise parameters for noisy AL neurons
 # - Define distributions for random variation in P,R,L and K vectors at each step
@@ -351,7 +351,7 @@ noiseR,noiseP,noiseL,noisePI = [noise]*4
 RnoiseStd,PnoiseStd,LnoiseStd,PInoiseStd,KnoiseStd = [noise*noiseStdFactor]*5
 noiseK,noiseE,EnoiseStd = [0]*3
 
-#------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 # Pre-allocate connection matrix attributes for later
 trueClassLabels = None
