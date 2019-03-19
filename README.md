@@ -4,9 +4,9 @@ Python wrapper for MothNet
 #### Dependencies:
 - numpy
 - scipy
--matplotlib
+- matplotlib
 - pillow
-- [wget](https://pypi.org/project/wget/) 
+- [wget](https://pypi.org/project/wget/)
 
 `$ pip install numpy scipy matplotlib pillow wget`
 
@@ -16,5 +16,3 @@ Uses [Decimal](https://docs.python.org/3/library/decimal.html) module* for float
 [MNIST source](http://yann.lecun.com/exdb/mnist/)
 
 [Matlab source](https://github.com/charlesDelahunt/PuttingABugInML)
-
-

@@ -52,7 +52,12 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     for i,c in enumerate(classList):
         # extract the relevant odor puffs. All vectors should be same size, in same order
 
+        print('c:',c)
         puffs = (whichClass == c)
+        print('where puffs:', np.where(puffs))
+        print('puffs shape:', puffs.shape)
+
+        exit()
         theseClassStarts = stimStarts[puffs]
         theseDurations = durations[puffs]
         theseMags = classMags[puffs]
