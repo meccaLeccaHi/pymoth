@@ -36,7 +36,7 @@ def extractMNISTFeatureArray( mnist, labels, image_indices, phase_label ):
             target_data = mnist['test_labels']
 
         # Convert to double precision float (https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html)
-        class_array = im_data[np.where(target_data==c)].astype('float64')/256
+        class_array = im_data[target_data==c].astype('float64')/256
 
         im_array[image_indices,:,:,c] = class_array[image_indices,:,:]
 

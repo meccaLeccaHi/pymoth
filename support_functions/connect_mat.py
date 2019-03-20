@@ -36,13 +36,14 @@ def initializeConnectionMatrices(mP):
     # first make a binary mask S2Rbinary
     if mP.RperFFrMu > 0:
         mP.F2Rbinary = r.rand(mP.nR, mP.nF) < mP.RperSFrMu # 1s and 0s
+        # DEV NOTE: The following flag doesn't exist - remove?
         if mP.makeFeaturesOrthogonalFlag:
             # remove any overlap in the active odors, by keeping only one non-zero entry in each row
             b = mP.F2Rbinary
             for i in range(mP.nR):
                 row = b[i,:]
                 if row.sum() > 1:
-                    c = np.where(row==1)
+                    c = np.nonzero(row==1)
                     t = np.ceil(r.rand(1, c)) # pick one index to be non-zero
                     b[i,:] = 0
                     b[i,c[t]] = 1
@@ -56,7 +57,8 @@ def initializeConnectionMatrices(mP):
         # connect one R to each S, then go through again to connect a 2nd R to each S, etc
         for i in range(mP.RperFRawNum):
             for j in range(mP.nF):
-                inds = np.where(counts < maxFperR)
+                inds = np.nonzero(counts < maxFperR)
+                print('inds[:10]:', inds[:10])
                 a = np.random.randint(len(inds))
                 counts[inds[a]] += 1
                 mP.F2Rbinary[inds[a],j] = 1

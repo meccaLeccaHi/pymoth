@@ -6,11 +6,11 @@ def MNIST_read():
 	# http://yann.lecun.com/exdb/mnist/
 	#
 	# OUTPUT:
-	# trainImages(:,:,i) is a numpy matrix of size 28x28x60,000
-	#		 0 = background, 255 = foreground
-	# trainLabels(i) - 60000x1 vector of integer
-	# testImages(:,:,i) size 28x28x10,000
-	# testLabels(i)
+	# trainImages is a numpy matrix of size 60,000x28x28
+	#		 (0 = background, 255 = foreground)
+	# trainLabels is a 60,000x1 vector of integers
+	# testImages is a numpy matrix of size 10,000x28x28
+	# testLabels is a 10,000x1 vector of integers
 	#
 	# Use MNIST_show(trainImages, trainLabels) to visualize data.
 

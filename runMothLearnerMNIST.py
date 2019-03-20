@@ -80,7 +80,7 @@ trClasses = np.random.permutation( trClasses )
 trClasses = np.tile( trClasses, [1, numSniffs] )[0]
 
 # Experiment details for 10 digit training:
-experimentFn = setMNISTExperimentParams # @setMnistExperimentParams_fn
+experimentFn = setMNISTExperimentParams
 
 #-------------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ experimentFn = setMNISTExperimentParams # @setMnistExperimentParams_fn
 
 # Define train and control pools for the experiment, and determine the receptive field.
 # This is done first because the receptive field determines the number of AL units, which
-#      must be updated in modelParams before 'initializeMatrixParams_fn' runs.experimentFn
+#      must be updated in modelParams before 'initializeMatrixParams_fn' runs.
 # This dataset will be used for each simulation in numRuns. Each
 #      simulation draws a new set of samples from this set.
 
@@ -131,6 +131,14 @@ preP['matrixParamsFilename'] = matrixParamsFilename
 
 # generate the data array:
 fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP) # argin = preprocessingParams
+
+print('fA.shape:',fA.shape)
+print('fA max:',np.max(fA))
+print('fA min:',np.min(fA))
+fA_sum = fA.sum(axis=1).sum(axis=0)
+print('fA sum shape:',fA_sum.shape)
+print('fA sum:',fA_sum)
+exit()
 
 pixNum, numPerClass, classNum = fA.shape
 # The dataset fA is a feature array ready for running experiments. Each experiment uses a random draw from this dataset.
@@ -206,7 +214,9 @@ for run in range(numRuns):
 
 	# Define the experiment parameters, including book-keeping for time-stepped evolutions, eg
 	#       when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
-	experimentParams = experimentFn( trClasses, classLabels, valPerClass )
+	experimentParams = setMNISTExperimentParams( trClasses, classLabels, valPerClass )
+	# experimentParams = experimentFn( trClasses, classLabels, valPerClass )
+	# RESTORE LATER
 
 #-------------------------------------------------------------------------------
 

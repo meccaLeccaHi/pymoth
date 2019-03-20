@@ -49,12 +49,16 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     classMags = expParams.classMags
     # create a classMagMatrix, each row giving the stimulus magnitudes of a different class:
     classMagMatrix = np.zeros((len(classList), len(time))) # ie 4 x len(time)
-    for i,c in enumerate(classList):
+    for i,cl in enumerate(classList):
         # extract the relevant odor puffs. All vectors should be same size, in same order
 
-        print('c:',c)
-        puffs = (whichClass == c)
-        print('where puffs:', np.where(puffs))
+        print('whichClass:', whichClass)
+        print('cl:',cl)
+        puffs = (whichClass == cl)
+        print('puffs:',puffs)
+        nz_puffs = np.nonzero(puffs)[0]
+        print('nonzero puffs:', nz_puffs)
+        print('length nonzero puffs:', len(nz_puffs))
         print('puffs shape:', puffs.shape)
 
         exit()

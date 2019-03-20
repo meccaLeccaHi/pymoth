@@ -71,7 +71,7 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 
 	# Assign the classes of each stim. Assign the baseline and val in blocks,
 	# and the training stims in the order passed in:
-	whichClass = np.zeros( (1, len(baselineTimes+trainTimes+valTimes)), dtype=int )
+	whichClass = np.empty((1, len(baselineTimes+trainTimes+valTimes))) * np.nan
 	numBaseline = valPerClass*nC
 	numTrain = len(trClasses)
 	for c in range(nC):
@@ -83,6 +83,10 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	whichClass[ :, numBaseline + 1:numBaseline + numTrain + 1 ] = trClasses
 
 	expParams.whichClass = whichClass
+
+	print('RESUME HERE: this is not equivalent w matlab version... and you\'re still okay :)')
+	print('whichClass:', whichClass)
+	quit()
 
 	stimStarts =  baselineTimes + trainTimes + valTimes
 	expParams.stimStarts = np.array(stimStarts).reshape(1,-1) # starting times

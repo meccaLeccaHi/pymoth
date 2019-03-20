@@ -34,14 +34,13 @@ def generateDownsampledMNISTSet( preP ):
 
 	# 1. extract mnist:
 	mnist = np.load(os.path.join(im_dir,'MNIST_all.npy')).item()
-
 	# loads dictionary 'mnist' with keys:value pairs =
-	#              .training_images, .test_images, .training_labels, .test_labels (ie the original data from PMTK3)
+	#              .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
 	#              AND parsed by class. These fields are used to assemble the imageArray:
-	#              .trI_* = train_images of class *;
-	#              .teI_* = test_images of class *;
-	#              .trL_* = train_labels of class *;
-	#              .teL_* = test_labels of class *;
+	#              .trI_* = train_images of class *
+	#              .teI_* = test_images of class *
+	#              .trL_* = train_labels of class *
+	#              .teL_* = test_labels of class *
 
 	# extract the required images and classes
 	imageIndices = range(preP['maxInd']+1)
@@ -62,7 +61,16 @@ def generateDownsampledMNISTSet( preP ):
 		 	preP['crop'], preP['downsampleRate'], preP['downsampleMethod'])
 		featureArray[...,c] = featureMatrix
 
-	del imageArray   # to save memory
+	del imageArray # to save memory
+
+	print('featureArray shape:', featureArray.shape)
+	print('featureArray max:',np.max(featureArray))
+	print('featureArray min:',np.min(featureArray))
+	foo = featureArray.sum(axis=0).sum(axis=0)
+	print('foo shape:',foo.shape)
+	print('foo:',foo)
+	print("RESUME HERE: figure out what cropDownsampleVectorizeImageStack is doing to make feature Array different from Matlab version.")
+	quit()
 
 	# subtract a mean image from all feature vectors, then make values non-negative
 
@@ -83,7 +91,7 @@ def generateDownsampledMNISTSet( preP ):
 	featureArray -= ave_3D
 	del ave_2D, ave_3D
 
-	featureArray = featureArray.clip(min=0) # remove any negative pixel values
+	featureArray[ featureArray < 0 ] = 0 # remove any negative pixel values
 
 	# c. Normalize each image so the pixels sum to the same amount
 	fSums = np.sum(featureArray, axis=0)

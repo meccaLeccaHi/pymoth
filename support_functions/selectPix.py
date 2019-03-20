@@ -30,9 +30,6 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     caNormed = cA/np.tile(z,(pixNum,1))
     # num = size(caNormed,2);
 
-    print('caNormed shape:', caNormed.shape)
-    # print(pixNum, numPerClass, classNum)
-
     # select most active 'numFeatures' pixels
     this = cA[:,:-1]
     thisLogical = np.zeros((pixNum, classNum))
@@ -43,7 +40,7 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     vals = vals[::-1]
 
     # start selecting the highest-valued pixels
-    # DEV NOTE: Clarify this part with CBD
+    # DEV NOTE: Clarify this part with CBD - (why do it?)
     stop = 0
     while not stop:
         thresh = vals.max()
@@ -51,11 +48,10 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
         activePixels = thisLogical.sum(axis=1) # sum the rows. If a class ave had the i'th pixel, selected, keptPixels(i) > 0
         stop = (activePixels > 0).sum() >= numFeatures # check if we have enough pixels
         vals = vals[vals < thresh]  # peel off the value(s) just used
-    activePixelInds = np.nonzero(activePixels > 0)
+    activePixelInds = np.nonzero(activePixels > 0)[0]
     print('activePixelInds len:', len(activePixelInds))
-    print('activePixelInds[0] len:', len(activePixelInds[0]))
-
-    print("NEED TO FIX USE OF np.where!!!!!!!")
+    print('activePixelInds[:5]:', activePixelInds[:5])
+    print("NEED TO FIX: Doesn't correspond to matlab counterpart!!")
 
     if showImages:
         # plot the normalized classAves pre-ablation
