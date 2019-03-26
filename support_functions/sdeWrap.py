@@ -18,6 +18,7 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     # 4. unpack evolution output and export
 
     import numpy as np
+    from support_functions.sdeEvo import sdeEvoMNIST
 
     ## 1. initialize states of various components:
 
@@ -101,7 +102,8 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     # If = 0, a random seed value will be chosen. If > 0, the seed will be defined.
 
     # Run the SDE evolution:
-    
+    thisRun = sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
+        octoHits, modelParams, expParams, seedValue )
     # # Run the SDE evolution:
     # thisRun= sdeEvolutionMnist_fn(tspan, initCond, time,...
     #   classMagMatrix, featureArray, octoHits, modelParams, expParams, seedValue )
