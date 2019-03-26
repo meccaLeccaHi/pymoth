@@ -33,7 +33,7 @@ from MNIST_all.MNIST_read import MNIST_read
 from support_functions.show_figs import showFeatureArrayThumbnails
 import support_functions.specifyModelParamsMnist as model_params
 from support_functions.connect_mat import initializeConnectionMatrices
-from support_functions.sdeEvo import sdeWrapper
+from support_functions.sdeWrap import sdeWrapper
 
 
 ## USER ENTRIES (Edit parameters below):
