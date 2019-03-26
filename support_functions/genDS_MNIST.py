@@ -63,15 +63,6 @@ def generateDownsampledMNISTSet( preP ):
 
 	del imageArray # to save memory
 
-	print('featureArray shape:', featureArray.shape)
-	print('featureArray max:',np.max(featureArray))
-	print('featureArray min:',np.min(featureArray))
-	foo = featureArray.sum(axis=0).sum(axis=0)
-	print('foo shape:',foo.shape)
-	print('foo:',foo)
-	print("RESUME HERE: figure out what cropDownsampleVectorizeImageStack is doing to make feature Array different from Matlab version.")
-	quit()
-
 	# subtract a mean image from all feature vectors, then make values non-negative
 
 	# DEV NOTE: The following loop could be collapsed into the loop above

@@ -17,12 +17,6 @@ def initializeConnectionMatrices(mP):
     # Comment: Since there are many zero connections (ie matrices are usually
     # not all-to-all) we often need to apply masks to preserve the zero connections
 
-    # l = dir(mP)
-    # d = mP.__dict__
-    # from pprint import pprint
-    # pprint(l)
-    # pprint(d, indent=2)
-
     import numpy as np
     import numpy.random as r
     from decimal import Decimal, getcontext
@@ -43,7 +37,7 @@ def initializeConnectionMatrices(mP):
             for i in range(mP.nR):
                 row = b[i,:]
                 if row.sum() > 1:
-                    c = np.nonzero(row==1)
+                    c = np.nonzero(row==1)[0]
                     t = np.ceil(r.rand(1, c)) # pick one index to be non-zero
                     b[i,:] = 0
                     b[i,c[t]] = 1
@@ -57,8 +51,7 @@ def initializeConnectionMatrices(mP):
         # connect one R to each S, then go through again to connect a 2nd R to each S, etc
         for i in range(mP.RperFRawNum):
             for j in range(mP.nF):
-                inds = np.nonzero(counts < maxFperR)
-                print('inds[:10]:', inds[:10])
+                inds = np.nonzero(counts < maxFperR)[0]
                 a = np.random.randint(len(inds))
                 counts[inds[a]] += 1
                 mP.F2Rbinary[inds[a],j] = 1

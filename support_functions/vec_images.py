@@ -38,6 +38,7 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
 
         if downsampleMethod: # bicubic
             t2 = imresize(t,1/downsampleVal, interp='bicubic')
+
         else: # sum 2 x 2 blocks
             t2 = np.zeros((int(len(height)/d),int(len(width)/d)))
             for i in range(int(len(height)/d)):
@@ -46,7 +47,7 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
                     t2[i,j] = b.sum()
 
         t2 = t2.flatten()
-        t2 = t2/max(t2)
+        t2 = t2/np.max(t2)
 
         imColArray[:,s] = t2
 

@@ -76,17 +76,15 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	numTrain = len(trClasses)
 	for c in range(nC):
 		# the baseline groups
-		whichClass[ c*valPerClass + 1: (c+1)*valPerClass ] = classLabels[c]
+		whichClass[ :, c*valPerClass : (c+1)*valPerClass ] = classLabels[c]
+
 		# the val groups
-		whichClass[ numBaseline + numTrain + c*valPerClass + 1 : \
+		whichClass[ :, numBaseline + numTrain + c*valPerClass : \
 			numBaseline + numTrain + (c+1)*valPerClass ]  = classLabels[c]
-	whichClass[ :, numBaseline + 1:numBaseline + numTrain + 1 ] = trClasses
+
+	whichClass[ :, numBaseline : numBaseline + numTrain ] = trClasses
 
 	expParams.whichClass = whichClass
-
-	print('RESUME HERE: this is not equivalent w matlab version... and you\'re still okay :)')
-	print('whichClass:', whichClass)
-	quit()
 
 	stimStarts =  baselineTimes + trainTimes + valTimes
 	expParams.stimStarts = np.array(stimStarts).reshape(1,-1) # starting times

@@ -45,13 +45,17 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     while not stop:
         thresh = vals.max()
         thisLogical[this>=thresh] = 1
-        activePixels = thisLogical.sum(axis=1) # sum the rows. If a class ave had the i'th pixel, selected, keptPixels(i) > 0
+        activePixels = thisLogical.sum(axis=1) # sum the rows.
+        # If a class ave had the i'th pixel, selected, keptPixels(i) > 0
         stop = (activePixels > 0).sum() >= numFeatures # check if we have enough pixels
+
         vals = vals[vals < thresh]  # peel off the value(s) just used
+
     activePixelInds = np.nonzero(activePixels > 0)[0]
     print('activePixelInds len:', len(activePixelInds))
     print('activePixelInds[:5]:', activePixelInds[:5])
-    print("NEED TO FIX: Doesn't correspond to matlab counterpart!!")
+    print("NEED TO FIX?: Doesn't correspond to matlab counterpart")
+    # quit()
 
     if showImages:
         # plot the normalized classAves pre-ablation

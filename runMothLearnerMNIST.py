@@ -113,8 +113,8 @@ indPoolForPostTrain = list(range(300,400)) # 301:400
 
 # Population preprocessing pools of indices:
 preP = dict()
-preP['indsToAverageGeneral'] = list(range(550,999)) # 551:1000
-preP['indsToCalculateReceptiveField'] = list(range(550,999)) # 551:1000
+preP['indsToAverageGeneral'] = list(range(550,1000)) # 551:1000
+preP['indsToCalculateReceptiveField'] = list(range(550,1000)) # 551:1000
 preP['maxInd'] = max( [ preP['indsToCalculateReceptiveField'] + indPoolForTrain ][0] ) # we'll throw out unused samples.
 
 ## 2. Pre-processing parameters for the thumbnails:
@@ -123,7 +123,7 @@ preP['crop'] = 2
 preP['numFeatures'] =  85  # number of pixels in the receptive field
 preP['pixelSum'] = 6
 preP['showAverageImages'] = showAverageImages # boolean
-preP['downsampleMethod'] = 0 # 0 means sum square patches of pixels. 1 means use bicubic interpolation.
+preP['downsampleMethod'] = 1 # 0 means sum square patches of pixels. 1 means use bicubic interpolation.
 
 preP['classLabels'] = classLabels # append
 preP['useExistingConnectionMatrices'] = useExistingConnectionMatrices # boolean
@@ -131,14 +131,6 @@ preP['matrixParamsFilename'] = matrixParamsFilename
 
 # generate the data array:
 fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP) # argin = preprocessingParams
-
-print('fA.shape:',fA.shape)
-print('fA max:',np.max(fA))
-print('fA min:',np.min(fA))
-fA_sum = fA.sum(axis=1).sum(axis=0)
-print('fA sum shape:',fA_sum.shape)
-print('fA sum:',fA_sum)
-exit()
 
 pixNum, numPerClass, classNum = fA.shape
 # The dataset fA is a feature array ready for running experiments. Each experiment uses a random draw from this dataset.
@@ -148,8 +140,7 @@ pixNum, numPerClass, classNum = fA.shape
 #-------------------------------------------------------------------------------
 
 # Loop through the number of simulations specified:
-print(f'starting sim(s) for goal = {goal}, trPerClass = {trPerClass}, '
-	f'numSniffsPerSample = {numSniffs}')
+print(f'starting sim(s) for goal = {goal}, trPerClass = {trPerClass}, numSniffsPerSample = {numSniffs}')
 
 for run in range(numRuns):
 
