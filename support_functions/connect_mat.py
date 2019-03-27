@@ -58,11 +58,13 @@ def initializeConnectionMatrices(mP):
 
     # now mask a matrix of gaussian weights
     rand_mat = r.rand(*mP.F2Rbinary.shape)
+    # Note: S (stimuli) for odor case is replaced by F (features) for MNIST version
     mP.F2R = ( mP.F2Rmu*mP.F2Rbinary + mP.F2Rstd*rand_mat )*mP.F2Rbinary # the last term ensures 0s stay 0s
     mP.F2R = pos_rect(mP.F2R) # to prevent any negative weights
 
     # spontaneous FRs for Rs
     if mP.spontRdistFlag==1: # case: gaussian distribution
+        #  steady-state RN FR, base + noise:
         mP.Rspont = mP.spontRmu*np.ones((mP.nG, 1)) + mP.spontRstd*r.rand(mP.nG, 1)
         mP.Rspont = pos_rect(mP.Rspont)
     else: # case: 2 gamma distribution
@@ -117,7 +119,7 @@ def initializeConnectionMatrices(mP):
     mP.L2P = pos_rect( mP.L2Pmult + mP.L2Pstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
     mP.L2L = pos_rect( mP.L2Lmult + mP.L2Lstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
     mP.L2PI = pos_rect( mP.L2Lmult + mP.L2PIstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
-     # Masked by G2PI later
+     # Masked by G2PI later (no PIs for mnist)
 
     # Ps (excitatory):
     P2KconnMatrix = r.rand(mP.nK, mP.nP) < mP.KperPfrMu # each col is a P, and a fraction of the entries will = 1
@@ -145,11 +147,12 @@ def initializeConnectionMatrices(mP):
     mP.G2PI = pos_rect(mP.G2PIstd*r.rand(mP.nPI, mP.nG) + mP.G2PImu) # step 1b
     mP.G2PI *= mP.G2PIconn # mask with double values, step 1b (cont)
     mP.G2PI /= np.tile(mP.G2PI.sum(axis=1).reshape(-1, 1),(1, mP.G2PI.shape[1]))
+    # no PIs for mnist
 
     # mask PI matrices
     mP.L2PI = np.matmul(mP.G2PI,mP.L2G) # nPI x nG
 
-    mP.R2PI = mP.G2PI*mP.R2PIcol.T
+    mP.R2PI = mP.G2PI*mP.R2PIcol.T # no PIs for MNIST
     # nG x nPI matrices, (i,j)th entry = effect from j'th object to i'th object.
     # eg, the rows with non-zero entries in the j'th col of L2PI are those PIs affected by the LN from the j'th G.
     # eg, the cols with non-zero entries in the i'th row of R2PI are those Rs feeding gloms that feed the i'th PI.
@@ -159,6 +162,7 @@ def initializeConnectionMatrices(mP):
         mP.PI2K = pos_rect(mP.PI2Kmu + mP.PI2Kstd*r.rand(mP.nK, mP.nPI)) # step 2b
         mP.PI2K *= mP.PI2Kconn # mask
         mP.PI2K[mP.PI2K < mP.hebMaxPIK] = mP.hebMaxPIK
+        # no PIs for mnist
         # 1. G2PI maps the Gs to the PIs. It is nPI x nG, doubles.
         #    The weights are used to find the net PI firing rate
         # 2. PI2K maps the PIs to the Ks. It is nK x nPI with entries >= 0.
@@ -194,6 +198,7 @@ def initializeConnectionMatrices(mP):
     mP.octo2PIwts = mP.G2PI*( mP.octo2PImult*mP.octo2G.T ) # does not include a PI-varying std term
     # normalize this by taking average
     mP.octo2PI = mP.octo2PIwts.sum(axis=1)/mP.G2PIconn.sum(axis=1) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
+    # no PIs for mnist
 
     mP.octo2E = pos_rect( mP.octo2Emu + mP.octo2Estd*r.rand(mP.nE, 1) )
 
@@ -205,7 +210,7 @@ def initializeConnectionMatrices(mP):
     # mP.noiseRvec = pos_rect( mP.mP.epsRstd + mP.RnoiseSig*r.rand(mP.nR, 1) ) # remove negative noise entries
     # mP.noisePvec = pos_rect( mP.epsPstd + mP.PnoiseSig*r.rand(mP.nP, 1) )
     # mP.noiseLvec = pos_rect( mP.epsLstd + mP.LnoiseSig*r.rand(mP.nG, 1) )
-    mP.noisePIvec = pos_rect( mP.noisePI + mP.PInoiseStd*r.rand(mP.nPI, 1) )
+    mP.noisePIvec = pos_rect( mP.noisePI + mP.PInoiseStd*r.rand(mP.nPI, 1) ) # no PIs for mnist
     mP.noiseKvec = pos_rect( mP.noiseK + mP.KnoiseStd*r.rand(mP.nK, 1) )
     mP.noiseEvec = pos_rect( mP.noiseE + mP.EnoiseStd*r.rand(mP.nE, 1) )
     # gamma versions:

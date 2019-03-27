@@ -85,7 +85,7 @@ hebTauPK = mult(5e3, goal) # learning rate for P2K weights. Higher means slower.
 # Decay: There is no decay for P2K weights
 dieBackTauPK = 0 # If > 0, divide this fraction of gains evenly among all nonzero
 # weights, and subtract.
-dieBackTauPIK = 0 # no PIs in mnist moths
+dieBackTauPIK = 0 # no PIs in mnist moths (no PIs for mnist)
 
 #-------------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ dieBackTauPIK = 0 # no PIs in mnist moths
 tau = 7
 tauR = tau
 tauP = tau
-tauPI = tau
+tauPI = tau # no PIs for mnist
 tauL = tau
 tauK = tau
 tauE = tau
@@ -106,7 +106,7 @@ tauE = tau
 C = 10.5
 cR = C
 cP = C
-cPI = C
+cPI = C # no PIs for mnist
 cL = C
 cK = C
 
@@ -114,6 +114,7 @@ cK = C
 # slope of stdmoid at zero = C*slopeParam/4
 desiredSlope = 1 # 'desiredSlope' is the one to adjust.
 slopeParam = div(desiredSlope, C) # a convenience variable.
+# slope of sigmoid at 0 = slopeParam*c/4, where c = mP.cR, mP.cP, mP.cL, etc
 
 # stdmoid param to make range 0:C or -C/2:C/2
 symmetricAboutZero = 1 # '0' means: [-inf:inf] -> [0, C], 0 -> C/2.
@@ -273,9 +274,9 @@ P2Kstd = mult(0.5, P2Kmu)    # bigger variance than most connection matrices
 PI2Kmu = 0
 PI2Kstd = 0
 
-hebMaxPK = P2Kmu + (3*P2Kstd) # ceiling for P2K weights
-hebTauPIK = hebTauPK  # irrelevant since PI2K weights == 0
-hebMaxPIK = PI2Kmu + (3*PI2Kstd)
+hebMaxPK = P2Kmu + (3*P2Kstd) # ceiling for P2K connection weights
+hebTauPIK = hebTauPK  # irrelevant since PI2K weights == 0 (no PIs for mnist)
+hebMaxPIK = PI2Kmu + (3*PI2Kstd) # no PIs for mnist
 
 #-------------------------------------------------------------------------------
 
@@ -356,6 +357,7 @@ noiseK,noiseE,EnoiseStd = [0]*3
 # Pre-allocate connection matrix attributes for later
 trueClassLabels = None
 saveAllNeuralTimecourses = None
+
 # F2R = None
 # F2Rbinary = None
 #

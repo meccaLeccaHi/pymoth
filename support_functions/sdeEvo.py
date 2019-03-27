@@ -79,28 +79,26 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
     # numbers of objects
     (nC,_) = classMagMatrix.shape
-    print('nC:',nC)
-    quit()
+    nP = mP.nG
+    nL = mP.nG
+    nR = mP.nG
 
-    # numbers of objects
-    # nC = size(classMagMatrix,1)
-    # nP = mP.nG
-    # nL = mP.nG
-    # nR = mP.nG
+    # DEV NOTE: Remove this next section
+    ## noise in individual neuron FRs
+    # These are vectors, one vector for each type:
+    wRsig = mP.noiseRvec
+    wPsig = mP.noisePvec
+    wPIsig = mP.noisePIvec # no PIs for mnist
+    wLsig = mP.noiseLvec
+    wKsig = mP.noiseKvec
+    wEsig = mP.noiseEvec
 
-    # # noise in individual neuron FRs. These are vectors, one vector for each type:
-    # wRsig = mP.noiseRvec
-    # wPsig = mP.noisePvec
-    # wPIsig = mP.noisePIvec # no PIs for mnist
-    # wLsig = mP.noiseLvec
-    # wKsig = mP.noiseKvec
-    # wEsig = mP.noiseEvec
+    # steady-state RN FR, base + noise:
+    RspontRatios = mP.Rspont/mean(mP.Rspont) # used to scale stim inputs
 
-    # kGlobalDampVec = mP.kGlobalDampVec # uniform 1's currently, ie LH inhibition hits all KCs equally
+    # param for sigmoid that squashes inputs to neurons:
 
-    # # steady-state RN FR, base + noise:
-    # Rspont = mP.Rspont
-    # RspontRatios = Rspont/mean(Rspont) # used to scale stim inputs
+
 
     # # param for sigmoid that squashes inputs to neurons:
     # slopeParam = mP.slopeParam # slope of sigmoid at 0 = slopeParam*c/4, where c = mP.cR, mP.cP, mP.cL, etc
@@ -287,10 +285,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 #-------------------------------------------------------------------------------
 
     #     # dR:
-    #     # inputs: S = stim,  L = lateral neurons, Rspont = spontaneous FR
-    #     # NOTE: octo does not affect Rspont. It affects R's response to input odors.
+    #     # inputs: S = stim,  L = lateral neurons, mP.Rspont = spontaneous FR
+    #     # NOTE: octo does not affect mP.Rspont. It affects R's response to input odors.
     #     Rinputs = -mP.L2R*oldL.*max( 0, (ones(mP.nG,1) - thisOctoHit*mP.octo2R*mP.octoNegDiscount ) )   + ...
-    #         (mP.F2R*thisInput).*RspontRatios.*( ones(mP.nG,1) + thisOctoHit*mP.octo2R ) + Rspont
+    #         (mP.F2R*thisInput).*RspontRatios.*( ones(mP.nG,1) + thisOctoHit*mP.octo2R ) + mP.Rspont
 
     #     Rinputs = piecewiseLinearPseudoSigmoid_fn (Rinputs, mP.cR, rSlope)
 
@@ -363,7 +361,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     #     damper = max(damper, minDamperVal)
 
     #     Kinputs = oldP2K*oldP.*(1 + mP.octo2K*thisOctoHit) ...    # but note that mP.octo2K == 0
-    #       - ( damper*kGlobalDampVec + oldPI2K*oldPI ).*max( 0, (1 - mP.octo2K*thisOctoHit) ) # but no PIs for mnist
+    #       - ( damper*mP.kGlobalDampVec + oldPI2K*oldPI ).*max( 0, (1 - mP.octo2K*thisOctoHit) ) # but no PIs for mnist
 
     #     Kinputs = piecewiseLinearPseudoSigmoid_fn (Kinputs, mP.cK, kSlope)
 
