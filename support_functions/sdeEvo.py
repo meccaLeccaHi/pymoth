@@ -67,7 +67,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     #   This has the following effects on simResults:
     #       1. In the heat maps and time-courses this will give a period of uniform FRs.
     #       2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
-    #          the stopSpontMean3 timepoint.
+    #          the exP.stopSpontMean3 timepoint.
 
 #-------------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     nL = mP.nG
     nR = mP.nG
 
-    # DEV NOTE: Remove this next section
+    # DEV NOTE: Remove this next section (lines 89:94)
     ## noise in individual neuron FRs
     # These are vectors, one vector for each type:
     wRsig = mP.noiseRvec
@@ -94,68 +94,75 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     wEsig = mP.noiseEvec
 
     # steady-state RN FR, base + noise:
-    RspontRatios = mP.Rspont/mean(mP.Rspont) # used to scale stim inputs
+    RspontRatios = mP.Rspont/mP.Rspont.mean() # used to scale stim inputs
 
-    # param for sigmoid that squashes inputs to neurons:
-
-
-
-    # # param for sigmoid that squashes inputs to neurons:
-    # slopeParam = mP.slopeParam # slope of sigmoid at 0 = slopeParam*c/4, where c = mP.cR, mP.cP, mP.cL, etc
-    # # the slope at x = 0 = slopeParam*span/4
-    # kSlope = slopeParam*mP.cK/4
-    # pSlope = slopeParam*mP.cP/4
-    # piSlope = slopeParam*mP.cPI/4 # no PIs for mnist
-    # rSlope = slopeParam*mP.cR/4
-    # lSlope = slopeParam*mP.cL/4
-
-    # # end timepoints for the section used to define mean spontaneous firing rates, in order to calibrate noise.
-    # # To let the system settle, we recalibrate noise levels to current spontaneous FRs in stages.
-    # # This ensures that in steady state, noise levels are correct in relation to mean FRs.
-    # startPreNoiseSpontMean1 = exP.startPreNoiseSpontMean1
-    # stopPreNoiseSpontMean1 = exP.stopPreNoiseSpontMean1
-    # startSpontMean2 = exP.startSpontMean2
-    # stopSpontMean2 = exP.stopSpontMean2
-    # startSpontMean3 = exP.startSpontMean3
-    # stopSpontMean3 = exP.stopSpontMean3
+    # DEV NOTE: Are we worried about the precision of these values (below)?
+    ## param for sigmoid that squashes inputs to neurons:
+    # the slope at x = 0 = mP.slopeParam*span/4
+    kSlope = mP.slopeParam*mP.cK/4
+    pSlope = mP.slopeParam*mP.cP/4
+    piSlope = mP.slopeParam*mP.cPI/4 # no PIs for mnist
+    rSlope = mP.slopeParam*mP.cR/4
+    lSlope = mP.slopeParam*mP.cL/4
 
 #-------------------------------------------------------------------------------
 
-    # dt = time(2) - time(1) # this is determined by start, stop and step in calling function
-    # N = floor( (tspan(2) - tspan(1)) / dt ) # number of steps in noise evolution
-    # T(1:N) = tspan(1):dt:tspan(2)-dt # the time vector
+    dt = time[1] - time[0] # this is determined by start, stop and step in calling function
+    N = int( (tspan[1] - tspan[0]) / dt ) # number of steps in noise evolution
+    T = np.linspace(tspan[0], tspan[1], N) # the time vector
 
 #-------------------------------------------------------------------------------
 
-    # P = zeros(nP,N)
-    # PI = zeros(mP.nPI,N) # no PIs for mnist
-    # L = zeros(nL,N)
-    # R = zeros(nR, N)
-    # K = zeros(mP.nK, N)
-    # E = zeros(mP.nE, N)
+    P = np.zeros((nP, N))
+    PI = np.zeros((mP.nPI, N)) # no PIs for mnist
+    L = np.zeros((nL, N))
+    R = np.zeros((nR, N))
+    K = np.zeros((mP.nK, N))
+    E = np.zeros((mP.nE, N))
 
-    # # initialize the FR matrices with initial conditions:
-    # P(:,1) = initCond( 1 : nP) # col vector
-    # PI(:,1) = initCond( nP + 1 : nP + mP.nPI) # no PIs for mnist
-    # L(:,1) = initCond( nP + mP.nPI + 1 : nP + mP.nPI + nL )
-    # R(:,1) = initCond(nP + mP.nPI + nL + 1: nP + mP.nPI + nL + nR)
-    # K(:,1) = initCond(nP + mP.nPI + nL + nR + 1: nP + mP.nPI + nL + nR + mP.nK)
-    # E(:,1) = initCond(end - mP.nE + 1 : end)
-    # P2Kheb{1} = mP.P2K # '-heb' suffix is used to show that it will vary with time
-    # PI2Kheb{1} = mP.PI2K # no PIs for mnist
-    # K2Eheb{1} = mP.K2E
-    # P2Kmask = mP.P2K > 0
-    # PI2Kmask = mP.PI2K > 0 # no PIs for mnist
-    # K2Emask = mP.K2E > 0
-    # newP2K = mP.P2K # initialize
-    # newPI2K = mP.PI2K # no PIs for mnist
-    # newK2E = mP.K2E
+    # initialize the FR matrices with initial conditions
+    P[:,0] = initCond[ : nP ] # col vector
+    PI[:,0] = initCond[ nP : nP + mP.nPI ] # no PIs for mnist
+    L[:,0] = initCond[ nP + mP.nPI : nP + mP.nPI + nL ]
+    R[:,0] = initCond[ nP + mP.nPI + nL : nP + mP.nPI + nL + nR ]
+    K[:,0] = initCond[ nP + mP.nPI + nL + nR : nP + mP.nPI + nL + nR + mP.nK ]
+    E[:,0] = initCond[ -mP.nE : ]
+    # P2Kheb = mP.P2K # '-heb' suffix is used to show that it will vary with time
+    # PI2Kheb = mP.PI2K # no PIs for mnist
+    # K2Eheb = mP.K2E
 
-    ## initialize the counters for the various classes:
-    # classCounter = zeros(size(classMagMatrix,1), 1)
+    P2Kmask = mP.P2K > 0
+    PI2Kmask = mP.PI2K > 0 # no PIs for mnist
+    K2Emask = mP.K2E > 0
+    newP2K = mP.P2K # initialize
+    newPI2K = mP.PI2K # no PIs for mnist
+    newK2E = mP.K2E
+
+    # initialize the counters for the various classes
+    classCounter = np.zeros(nC)
+
+    # make a list of Ts for which heb is active
+    hebRegion = np.zeros(T.shape)
+    for i in range(len(exP.hebStarts)):
+
+        print('exP.hebDurations shape:',exP.hebDurations.shape)
+        print('exP.hebDurations[i] shape:',exP.hebDurations[i].shape)
+        print('(exP.hebStarts[i] + exP.hebDurations[i]):',(exP.hebStarts[i] + exP.hebDurations[i]))
+        quit()
+        foo = exP.hebStarts[i]<=T<=(exP.hebStarts[i] + exP.hebDurations[i])
+        print('foo:',foo)
+
+        inds = (T >= exP.hebStarts[i]) & (T <= (exP.hebStarts[i] + exP.hebDurations[i]))
+        print('inds:',inds)
+        quit()
+        hebRegion[inds] = 1
+
+    print('exP.hebStarts type:',type(exP.hebStarts))
+    print('exP.hebStarts len:',len(exP.hebStarts))
+    quit()
 
     ## make a list of Ts for which heb is active:
-    # hebRegion = zeros(size(T))
+    # hebRegion = np.zeros(size(T))
     # for i = 1:length(exP.hebStarts)
     #     hebRegion(T >= exP.hebStarts(i) & T <= exP.hebStarts(i) + exP.hebDurations(i) ) = 1
     # end
@@ -184,7 +191,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
     #     step = time(2) - time(1)
 
-    #     if T(i) < stopSpontMean3 + 5 || mP.saveAllNeuralTimecourses
+    #     if T(i) < exP.stopSpontMean3 + 5 || mP.saveAllNeuralTimecourses
     #         oldR = R(:,i)
     #         oldP = P(:,i)
     #         oldPI = PI(:,i) # no PIs for mnist
@@ -213,13 +220,13 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     #     #   2. whether we are past the window where meanSpontFR is recalculated to meanSpont2 and
     #     #   3. whether we are past the window where final stdSpontFR can be calculated.
 
-    #     adjustNoiseFlag1 = oldT > stopPreNoiseSpontMean1
-    #     adjustNoiseFlag2 = oldT > stopSpontMean2
-    #     adjustNoiseFlag3 = oldT > stopSpontMean3
+    #     adjustNoiseFlag1 = oldT > exP.stopPreNoiseSpontMean1
+    #     adjustNoiseFlag2 = oldT > exP.stopSpontMean2
+    #     adjustNoiseFlag3 = oldT > exP.stopSpontMean3
 
     #     if adjustNoiseFlag1 && ~meanCalc1Done  # ie we have not yet calc'ed
     #   the noise weight vectors:
-    #         inds = find(T > startPreNoiseSpontMean1 & T < stopPreNoiseSpontMean1)
+    #         inds = find(T > exP.startPreNoiseSpontMean1 & T < exP.stopPreNoiseSpontMean1)
     #         meanSpontP = mean(P(:,inds),2)
     #         meanSpontR = mean(R(:,inds),2)
     #         meanSpontPI = mean(PI(:,inds),2)
@@ -229,7 +236,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     #         meanCalc1Done = 1 # so we don't calc this again
     #     end
     #     if adjustNoiseFlag2 && ~meanCalc2Done  # ie we want to calc new noise weight vectors. This stage is surplus.
-    #         inds = find(T > startSpontMean2 & T < stopSpontMean2)
+    #         inds = find(T > exP.startSpontMean2 & T < exP.stopSpontMean2)
     #         meanSpontP = mean(P(:,inds),2)
     #         meanSpontR = mean(R(:,inds),2)
     #         meanSpontPI = mean(PI(:,inds),2)
@@ -241,7 +248,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     #     end
     #     if adjustNoiseFlag3 && ~meanCalc3Done  # we want to calc stdSpontP for use with LH channel and maybe for use in heb:
     #         # maybe we should also use this for noise calcs (eg dWP). But the difference is slight.
-    #         inds = find(T > startSpontMean3 & T < stopSpontMean3)
+    #         inds = find(T > exP.startSpontMean3 & T < exP.stopSpontMean3)
     #         ssMeanSpontP = mean(P(:,inds),2) # 'ss' means steady state
     #         ssStdSpontP = std(P(:,inds),0, 2)
     #         ssMeanSpontPI = mean(PI(:,inds),2) # no PIs for mnist
@@ -268,7 +275,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     #     # get values of feature inputs at time index i, as a col vector.
     #     # This allows for simultaneous inputs by different classes, but current
     #     # experiments apply only one class at a time.
-    #     thisInput = zeros(mP.nF,1)
+    #     thisInput = np.zeros(mP.nF)
     #     thisStimClassInd = []
     #     for j = 1:nC
     #         if classMagMatrix(j,i) > 0
@@ -440,7 +447,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     #         dk2e = dk2e.*K2Emask
 
     #         # restrict changes to just the i'th row of mP.K2E, where i = ind of training stim
-    #         restrictK2Emask = zeros(size(mP.K2E))
+    #         restrictK2Emask = np.zeros(size(mP.K2E))
     #         restrictK2Emask(thisStimClassInd,:) = 1
     #         dk2e = dk2e.*restrictK2Emask
 
@@ -449,7 +456,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # inactive connections for this EN die back:
     #         if mP.dieBackTauKE > 0
     #             # restrict dieBacks to only the trained EN:
-    #             targetMask = zeros(size(dk2e(:)))
+    #             targetMask = np.zeros(size(dk2e(:)))
     #             targetMask( dk2e(:) == 0 ) = 1
     #             targetMask = reshape(targetMask, size(dk2e))
     #             targetMask = targetMask.*restrictK2Emask
@@ -469,7 +476,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 #-------------------------------------------------------------------------------
 
     # update the evolution matrices, disallowing negative FRs.
-    #     if T(i) < stopSpontMean3 + 5 || mP.saveAllNeuralTimecourses
+    #     if T(i) < exP.stopSpontMean3 + 5 || mP.saveAllNeuralTimecourses
     #         R(:,i+1) = max( 0, newR)
     #         P(:,i+1) = max( 0, newP)
     #         PI(:,i+1) = max( 0, newPI) # no PIs for mnist

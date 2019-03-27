@@ -217,9 +217,14 @@ def initializeConnectionMatrices(mP):
     a = Decimal(mP.noiseR)/Decimal(mP.RnoiseStd)
     b = Decimal(mP.noiseR)/a
     mP.noiseRvec = np.random.gamma(a, scale=b, size=(mP.nR,1))
-
     # DEV NOTE: Run below by CBD - Still necessary?
     mP.noiseRvec[mP.noiseRvec > 15] = 0 # experiment to see if just outlier noise vals boost KC noise
+
+    a = Decimal(mP.noiseP)/Decimal(mP.PnoiseStd)
+    b = Decimal(mP.noiseP)/a
+    mP.noisePvec = np.random.gamma(a, scale=b, size=(mP.nR,1))
+    # DEV NOTE: Run below by CBD - Still necessary?
+    mP.noisePvec[mP.noisePvec > 15] = 0 # experiment to see if outlier noise vals boost KC noise
 
     a = Decimal(mP.noiseL)/Decimal(mP.LnoiseStd)
     b = Decimal(mP.noiseL)/a

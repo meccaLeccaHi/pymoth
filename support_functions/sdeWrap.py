@@ -53,16 +53,16 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     for i,cl in enumerate(classList):
         # extract the relevant odor puffs. All vectors should be same size, in same order
         puffs = (whichClass == cl)
-        nz_puffs = np.nonzero(puffs)[1]
         theseClassStarts = stimStarts[puffs]
         theseDurations = durations[puffs]
         theseMags = classMags[puffs]
+
         for j in range(len(theseClassStarts)):
             #cols = np.where(theseClassStarts[j] < time < (theseClassStarts[j] + theseDurations[j]))
             cols = (theseClassStarts[j] < time) & (time < (theseClassStarts[j] + theseDurations[j]))
             classMagMatrix[i, cols] = theseMags[j]
     # print('bar',np.where(cols)) # NEED TO FIX- doesn't exactly correspond to matlab output
-    print(len(np.where(cols)[0])) # Contains one element too many
+    print(f'fix me - {len(np.where(cols)[0])}') # Contains one element too many
 
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
     lpParam = expParams.lpParam # default transition zone = 0.12 sec

@@ -13,7 +13,8 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
     import numpy as np
 
     if type(cropVal) is int:
-        cropVal = cropVal*np.ones((1,4),dtype = int)[0]
+        #cropVal = cropVal*np.ones((1,4),dtype = int)[0]
+        cropVal = cropVal*np.ones(4,dtype = int)
 
     if len(imStack.shape)==3:
         z,h,w = imStack.shape
@@ -35,6 +36,7 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
         # crop image
         ixgrid = np.ix_(width, height)
         t = t[ixgrid]
+
 
         if downsampleMethod: # bicubic
             t2 = imresize(t,1/downsampleVal, interp='bicubic')

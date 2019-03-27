@@ -42,54 +42,57 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 
 	## Baseline period:
 	# do a loop, to allow gaps between class groups:
-	baselineTimes = []
+	baselineTimes = np.empty(0)
 	startTime = 30
 	gap = 10
-
 	for i in range(nC):
 		# vector of timepoints
-		baselineTimes += list(range(startTime, startTime + valPerClass*step, step))
-		startTime = max(baselineTimes) + gap
-	endOfBaseline = max(baselineTimes) + 25 # include extra buffer before training
+		baselineTimes = np.append(baselineTimes,
+			range(startTime, startTime + valPerClass*step, step) )
+		startTime = int(np.max(baselineTimes) + gap)
+	endOfBaseline = int(np.max(baselineTimes) + 25) # include extra buffer before training
 
 	# Training period:
 	# vector of timepoints, one digit every 'trStep' seconds
-	trainTimes = list(range(endOfBaseline, endOfBaseline + len(trClasses)*trStep, trStep))
-	endOfTrain = max(trainTimes) + 25 # includes buffer before Validation
+	trainTimes = np.array(range(endOfBaseline, endOfBaseline + len(trClasses)*trStep, trStep))
+	endOfTrain = int(np.max(trainTimes) + 25) # includes buffer before Validation
 
 	# Val period:
 	# do a loop, to allow gaps between class groups
-	valTimes = []
+	valTimes = np.empty(0)
 	startTime = endOfTrain
 	for i in range(nC):
 		# vector of timepoints
-		valTimes += list(range(startTime, startTime + valPerClass*step, step))
-		startTime = max(valTimes) + gap
-	endOfVal = max(valTimes) + 4
+		valTimes = np.append(valTimes,
+			range(startTime, startTime + valPerClass*step, step) )
+		startTime = int(np.max(valTimes) + gap)
+	endOfVal = np.max(valTimes) + 4
 
 	## assemble vectors of stimulus data for export:
 
 	# Assign the classes of each stim. Assign the baseline and val in blocks,
 	# and the training stims in the order passed in:
-	whichClass = np.empty((1, len(baselineTimes+trainTimes+valTimes))) * np.nan
+
+	stimStarts = np.hstack(( baselineTimes, trainTimes, valTimes ))
+
+	whichClass = np.empty(stimStarts.shape) * np.nan
 	numBaseline = valPerClass*nC
 	numTrain = len(trClasses)
 	for c in range(nC):
 		# the baseline groups
-		whichClass[ :, c*valPerClass : (c+1)*valPerClass ] = classLabels[c]
+		whichClass[ c*valPerClass : (c+1)*valPerClass ] = classLabels[c]
 
 		# the val groups
-		whichClass[ :, numBaseline + numTrain + c*valPerClass : \
+		whichClass[ numBaseline + numTrain + c*valPerClass : \
 			numBaseline + numTrain + (c+1)*valPerClass ]  = classLabels[c]
 
-	whichClass[ :, numBaseline : numBaseline + numTrain ] = trClasses
+	whichClass[ numBaseline : numBaseline + numTrain ] = trClasses
 
 	expParams.whichClass = whichClass
 
-	stimStarts =  baselineTimes + trainTimes + valTimes
-	expParams.stimStarts = np.array(stimStarts).reshape(1,-1) # starting times
-	expParams.durations = stimLength*np.ones( (1,len(stimStarts)) ) # durations
-	expParams.classMags = stimMag*np.ones( (1,len(stimStarts)) ) # magnitudes
+	expParams.stimStarts = stimStarts # starting times
+	expParams.durations = stimLength*np.ones( len(stimStarts) ) # durations
+	expParams.classMags = stimMag*np.ones( len(stimStarts) ) # magnitudes
 
 	# octopamine input timing:
 	expParams.octoMag = 1
@@ -99,12 +102,16 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	# Hebbian timing: Hebbian updates are enabled 25# of the way into the stimulus, and
 	# last until 75% of the way through (ie active during the peak response period)
 	expParams.hebStarts = [i + 0.25*stimLength for i in trainTimes]
-	expParams.hebDurations = 0.5*stimLength*np.ones( (1,len(trainTimes)) )
+	expParams.hebDurations = 0.5*stimLength*np.ones( len(trainTimes) )
 	expParams.startTrain = min(expParams.hebStarts)
 	expParams.endTrain = max(expParams.hebStarts) + max(expParams.hebDurations)
 
 	## Other time parameters required for time evolution book-keeping:
-
+	# end timepoints for the section used to define mean spontaneous firing rates,
+    # in order to calibrate noise.
+    # To let the system settle, we recalibrate noise levels to current spontaneous
+    # FRs in stages.
+    # This ensures that in steady state, noise levels are correct in relation to mean FRs.
 	# the numbers 1,2,3 do refer to time periods where spont responses are
 	# allowed to settle before recalibration.
 	expParams.startPreNoiseSpontMean1 = -25
