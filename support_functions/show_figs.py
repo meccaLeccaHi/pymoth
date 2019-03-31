@@ -1,3 +1,13 @@
+def getScreen():
+    # tkinter errors if run after matplotlib is loaded, so run it first
+    import tkinter as tk
+    root = tk.Tk()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.update()
+    root.destroy()
+    return (screen_width, screen_height)
+
 def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString ):
     # Show thumbnails of inputs used in the experiment.
     # Inputs:
@@ -8,19 +18,12 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     #   4. titleString = string
 
     # tkinter errors if run after matplotlib is loaded, so we run it first
-    import tkinter as tk
-    root = tk.Tk()
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    root.update()
-    root.destroy()
-    scrsz = [screen_width, screen_height]
+    import getScreen
+    scrsz = getScreen()
 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    #print('featureArray shape:',featureArray.shape)
-    #print('featureArray sum:',featureArray.sum(axis=2))
     # bookkeeping: change dim if needed
     # DEV NOTE: Clarify with CBD - this seems unnecessary
     if len(featureArray.shape)==2:

@@ -71,7 +71,11 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
 #-------------------------------------------------------------------------------
 
+    from support_functions.show_figs import getScreen
+    getScreen()
+
     import numpy as np
+    import matplotlib.pyplot as plt
 
     # if argin seedValue is nonzero, fix the rand seed for reproducible results
     if seedValue:
@@ -144,108 +148,123 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # make a list of Ts for which heb is active
     hebRegion = np.zeros(T.shape)
     for i in range(len(exP.hebStarts)):
-
-        print('exP.hebDurations shape:',exP.hebDurations.shape)
-        print('exP.hebDurations[i] shape:',exP.hebDurations[i].shape)
-        print('(exP.hebStarts[i] + exP.hebDurations[i]):',(exP.hebStarts[i] + exP.hebDurations[i]))
-        quit()
-        foo = exP.hebStarts[i]<=T<=(exP.hebStarts[i] + exP.hebDurations[i])
-        print('foo:',foo)
-
-        inds = (T >= exP.hebStarts[i]) & (T <= (exP.hebStarts[i] + exP.hebDurations[i]))
-        print('inds:',inds)
-        quit()
+        inds = np.logical_and(T >= exP.hebStarts[i], T <= (exP.hebStarts[i] + exP.hebDurations[i]))
         hebRegion[inds] = 1
 
-    print('exP.hebStarts type:',type(exP.hebStarts))
-    print('exP.hebStarts len:',len(exP.hebStarts))
-    quit()
-
-    ## make a list of Ts for which heb is active:
-    # hebRegion = np.zeros(size(T))
-    # for i = 1:length(exP.hebStarts)
-    #     hebRegion(T >= exP.hebStarts(i) & T <= exP.hebStarts(i) + exP.hebDurations(i) ) = 1
-    # end
-
     ## DEBUG STEP:
-    # # figure, plot(T, hebRegion), title('hebRegion vs T')
+    # fig, ax = plt.subplots()
+    # ax.plot(T, hebRegion)
+    # ax.set(title='hebRegion vs T')
+    # ax.grid() # fig.savefig("test.png")
+    # plt.show()
 
 #-------------------------------------------------------------------------------
 
-    # meanCalc1Done = False # flag to prevent redundant calcs of mean spont FRs
-    # meanCalc2Done = False
-    # meanCalc3Done = False
-    # meanSpontR = 0*ones(size(R(:,1)))
-    # meanSpontP = 0*ones(size(P(:,1)))
-    # meanSpontPI = 0*ones(size(PI(:,1))) # no PIs for mnist
-    # meanSpontL = 0*ones(size(L(:,1)))
-    # meanSpontK = 0*ones(size(K(:,1)))
-    # meanSpontE = 0*ones(size(E(:,1)))
-    # ssMeanSpontP = 0*ones(size(P(:,1)))
-    # ssStdSpontP = ones(size(P(:,1)))
+    meanCalc1Done = False # flag to prevent redundant calcs of mean spont FRs
+    meanCalc2Done = False
+    meanCalc3Done = False
 
-    # maxSpontP2KtimesPval = 10 # placeholder until we have an estimate based on spontaneous PN firing rates
-    # # The main evolution loop:
-    # # iterate through time steps to get the full evolution:
-    # for i = 1:N-1        # i = index of the time point
+    meanSpontP = np.zeros(nP)
+    meanSpontPI = np.zeros(mP.nPI) # no PIs for mnist
+    meanSpontL = np.zeros(nL)
+    meanSpontR = np.zeros(nR)
+    meanSpontK = np.zeros(mP.nK)
+    # meanSpontE = np.zeros(mP.nE)
+    # ssMeanSpontP = np.zeros(nP)
+    # ssStdSpontP = np.ones(nP)
 
-    #     step = time(2) - time(1)
+    maxSpontP2KtimesPval = 10 # placeholder until we have an estimate based on
+                                # spontaneous PN firing rates
 
-    #     if T(i) < exP.stopSpontMean3 + 5 || mP.saveAllNeuralTimecourses
-    #         oldR = R(:,i)
-    #         oldP = P(:,i)
-    #         oldPI = PI(:,i) # no PIs for mnist
-    #         oldL = L(:,i)
-    #         oldK = K(:,i)
-    #     else    # version to save memory:
-    #         oldR = R(:,end)
-    #         oldP = P(:,end)
-    #         oldPI = PI(:,end)
-    #         oldL = L(:,end)
-    #         oldK = K(:,end)
-    #     end
-    #     oldE = E(:,i)
-    #     oldT = T(i)
+    ## Main evolution loop:
+    # iterate through time steps to get the full evolution:
+    for i in range(N): # i = index of the time point
 
-    #     oldP2K = newP2K # these are inherited from the previous iteration
-    #     oldPI2K = newPI2K # no PIs for mnist
-    #     oldK2E = newK2E
+        # step = np.round(time[1] - time[0], 4)
+
+        # DEV NOTE: Clunky (below)- can we remove?
+        if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
+            oldP = P[:,i]
+            oldPI = PI[:,i] # no PIs for mnist
+            oldL = L[:,i]
+            oldR = R[:,i]
+            oldK = K[:,i]
+        else: # version to save memory:
+            oldP = P[:,end]
+            oldPI = PI[:,end]
+            oldL = L[:,end]
+            oldR = R[:,end]
+            oldK = K[:,end]
+        oldE = E[:,i]
+        oldT = T[i]
+
+        oldP2K = newP2K # these are inherited from the previous iteration
+        oldPI2K = newPI2K # no PIs for mnist
+        oldK2E = newK2E
 
 #-------------------------------------------------------------------------------
 
-    #     # set flags to say:
-    #     #   1. whether we are past the window where meanSpontFR is
-    #     #       calculated, so noise should be weighted according to a first
-    #     #       estimate of meanSpontFR (meanSpont1)
-    #     #   2. whether we are past the window where meanSpontFR is recalculated to meanSpont2 and
-    #     #   3. whether we are past the window where final stdSpontFR can be calculated.
+        # set flags to say:
+        #   1. whether we are past the window where meanSpontFR is
+        #       calculated, so noise should be weighted according to a first
+        #       estimate of meanSpontFR (meanSpont1)
+        #   2. whether we are past the window where meanSpontFR is recalculated
+        #       to meanSpont2 and
+        #   3. whether we are past the window where final stdSpontFR can be calculated.
 
-    #     adjustNoiseFlag1 = oldT > exP.stopPreNoiseSpontMean1
-    #     adjustNoiseFlag2 = oldT > exP.stopSpontMean2
-    #     adjustNoiseFlag3 = oldT > exP.stopSpontMean3
+        adjustNoiseFlag1 = oldT > exP.stopPreNoiseSpontMean1
+        adjustNoiseFlag2 = oldT > exP.stopSpontMean2
+        adjustNoiseFlag3 = oldT > exP.stopSpontMean3
 
-    #     if adjustNoiseFlag1 && ~meanCalc1Done  # ie we have not yet calc'ed
-    #   the noise weight vectors:
-    #         inds = find(T > exP.startPreNoiseSpontMean1 & T < exP.stopPreNoiseSpontMean1)
-    #         meanSpontP = mean(P(:,inds),2)
-    #         meanSpontR = mean(R(:,inds),2)
-    #         meanSpontPI = mean(PI(:,inds),2)
-    #         meanSpontL = mean(L(:,inds),2)
-    #         meanSpontK = mean(K(:,inds), 2)
-    #         meanSpontE = mean(E(:,inds), 2 )
-    #         meanCalc1Done = 1 # so we don't calc this again
-    #     end
-    #     if adjustNoiseFlag2 && ~meanCalc2Done  # ie we want to calc new noise weight vectors. This stage is surplus.
-    #         inds = find(T > exP.startSpontMean2 & T < exP.stopSpontMean2)
-    #         meanSpontP = mean(P(:,inds),2)
-    #         meanSpontR = mean(R(:,inds),2)
-    #         meanSpontPI = mean(PI(:,inds),2)
-    #         meanSpontL = mean(L(:,inds),2)
-    #         meanSpontK = mean(K(:,inds), 2)
-    #         meanSpontE = mean(E(:,inds), 2)
-    #         stdSpontP = std(P(:,inds),0, 2) # for checking progress
-    #         meanCalc2Done = 1
-    #     end
+        if adjustNoiseFlag1 and not(meanCalc1Done):
+            # ie we have not yet calc'ed the noise weight vectors
+            inds = np.nonzero(np.logical_and(T > exP.startPreNoiseSpontMean1,
+                T < exP.stopPreNoiseSpontMean1))[0]
+            meanSpontP = P[:,inds].mean(axis=1)
+            meanSpontPI = PI[:,inds].mean(axis=1)
+            meanSpontL = L[:,inds].mean(axis=1)
+            meanSpontR = R[:,inds].mean(axis=1)
+            meanSpontK = K[:,inds].mean(axis=1)
+            # meanSpontE = E[:,inds].mean(axis=1)
+            meanCalc1Done = 1 # so we don't calc this again
+
+
+        if adjustNoiseFlag2 and not(meanCalc2Done):
+            # ie we want to calc new noise weight vectors. This stage is surplus
+            inds = np.nonzero(np.logical_and(T > exP.startSpontMean2,
+                T < exP.stopSpontMean2))[0]
+            meanSpontP = P[:,inds].mean(axis=1)
+            meanSpontPI = PI[:,inds].mean(axis=1)
+            meanSpontL = L[:,inds].mean(axis=1)
+            meanSpontR = R[:,inds].mean(axis=1)
+            meanSpontK = K[:,inds].mean(axis=1)
+            # meanSpontE = E[:,inds].mean(axis=1)
+            # stdSpontP = P[:,inds].std(axis=1) # for checking progress
+            meanCalc2Done = 1 # so we don't calc this again
+
+        if adjustNoiseFlag3 and not(meanCalc3Done):
+            # we want to calc stdSpontP for use with LH channel and maybe for use in heb
+            # maybe we should also use this for noise calcs (eg dWP). But the difference is slight.
+            inds = np.nonzero(np.logical_and(T > exP.startSpontMean3,
+                T < exP.stopSpontMean3))[0]
+            ssMeanSpontP = P[:,inds].mean(axis=1) # 'ss' means steady state
+            ssStdSpontP = P[:,inds].std(axis=1)
+            ssMeanSpontPI = PI[:,inds].mean(axis=1) # no PIs for mnist
+            ssStdSpontPI = PI[:,inds].std(axis=1) # no PIs for mnist
+            meanCalc3Done = 1 # so we don't calc this again
+
+            # set a minimum damping on KCs based on spontaneous PN activity,
+            # sufficient to silence the MB silent absent odor:
+            print('mP.P2K:',mP.P2K)
+            print('ssMeanSpontP:',ssMeanSpontP)
+            temp = np.sort(mP.P2K.dot(ssMeanSpontP))
+            print('max temp:', np.max(temp))
+            print('foo shape:', temp.shape)
+            # print('mP.P2K shape:', mP.P2K.shape)
+            # print('ssMeanSpontP shape:', ssMeanSpontP.shape)
+            quit()
+            # NOTE: FIGURE OUT WHY ssMeanSpontP is full of zeros while the ML version is not.
+
     #     if adjustNoiseFlag3 && ~meanCalc3Done  # we want to calc stdSpontP for use with LH channel and maybe for use in heb:
     #         # maybe we should also use this for noise calcs (eg dWP). But the difference is slight.
     #         inds = find(T > exP.startSpontMean3 & T < exP.stopSpontMean3)
