@@ -113,7 +113,7 @@ cK = C
 # stdmoid slope param for the diff eqns
 # slope of stdmoid at zero = C*slopeParam/4
 desiredSlope = 1 # 'desiredSlope' is the one to adjust.
-slopeParam = div(desiredSlope, C) # a convenience variable.
+slopeParam = div(desiredSlope*4, C) # a convenience variable.
 # slope of sigmoid at 0 = slopeParam*c/4, where c = mP.cR, mP.cP, mP.cL, etc
 
 # stdmoid param to make range 0:C or -C/2:C/2

@@ -1,81 +1,96 @@
+def piecewiseLinearPseudoSigmoid(x, span, slope):
+    '''
+    Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns
+    '''
+    import numpy as np
+
+    y = x*slope
+    y[y<(-span/2)] = -span/2 # replace values below -span/2
+    y[y>(span/2)] = span/2 # replace values above span/2
+
+    return y
+
 def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     octoHits, mP, exP, seedValue):
-    # To include neural noise, evolve the differential equations using euler-
-    # maruyama, milstein version (see Higham's Algorithmic introduction to
-    # numerical simulation of SDE)
-    # Called by sdeWrapper. For use with MNIST experiments.
-    # Inputs:
-    #   1. tspan: 1 x 2 vector = start and stop timepoints (sec)
-    #   2. initCond: n x 1 vector = starting FRs for all neurons, order-specific
-    #   3. time: vector of timepoints for stepping
-    #   4. classMagMatrix: 10 x n matrix of stimulus magnitudes.
-    #      Each row contains mags of digits from a given class
-    #   5. featureArray: numFeatures x numStimsPerClass x numClasses array
-    #   6. octoHits: 1 x length(t) vector with octopamine strengths at each timepoint
-    #   7. mP: modelParams, including connection matrices, learning rates, etc
-    #   8. exP: experiment parameters with some timing info
-    #   9. seedValue: for random number generation. 0 means start a new seed.
-    # Output:
-    #   thisRun: object with attributes Y (vectors of all neural timecourses as rows); T = t;
-    #                 and final mP.P2K and mP.K2E connection matrices.
+    '''
+    To include neural noise, evolve the differential equations using euler-
+    maruyama, milstein version (see Higham's Algorithmic introduction to
+    numerical simulation of SDE)
+    Called by sdeWrapper. For use with MNIST experiments.
+    Inputs:
+      1. tspan: 1 x 2 vector = start and stop timepoints (sec)
+      2. initCond: n x 1 vector = starting FRs for all neurons, order-specific
+      3. time: vector of timepoints for stepping
+      4. classMagMatrix: 10 x n matrix of stimulus magnitudes.
+         Each row contains mags of digits from a given class
+      5. featureArray: numFeatures x numStimsPerClass x numClasses array
+      6. octoHits: 1 x length(t) vector with octopamine strengths at each timepoint
+      7. mP: modelParams, including connection matrices, learning rates, etc
+      8. exP: experiment parameters with some timing info
+      9. seedValue: for random number generation. 0 means start a new seed.
+    Output:
+      thisRun: object with attributes Y (vectors of all neural timecourses as rows); T = t;
+                    and final mP.P2K and mP.K2E connection matrices.
 
-#-------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
 
-    # comment: for mnist, the book-keeping differs from the odor experiment set-up.
-    #           Let nC = number of classes (1 - 10 for mnist).
-    #           The class may change with each new digit, so there is
-    #           be a counter that increments when stimMag changes from nonzero
-    #           to zero. there are nC counters.
+    comment: for mnist, the book-keeping differs from the odor experiment set-up.
+              Let nC = number of classes (1 - 10 for mnist).
+              The class may change with each new digit, so there is
+              be a counter that increments when stimMag changes from nonzero
+              to zero. there are nC counters.
 
-    # inputs:
-    #       1. tspan = 1 x 2 vector with start and stop times
-    #       2. initCond = col vector with all starting values for P, L, etc
-    #       3. time = start:step:stop; these are the time points for the evolution.
-    #          Note we assume that noise and FRs have the same step size (based on Milstein's method)
-    #       4. classMagMatrix = nC x N matrix where nC = # different classes (for digits, up to 10), N = length(time =
-    #          vector of time points). Each entry is the strength of a digit presentation.
-    #       5. featureArray = mP.nF x kk x nC array, where mP.nF = numFeatures, kk >= number of
-    #           puffs for that stim, and c = # classes.
-    #       6. octoHits = 1 x N matrix. Each entry is a strength of octopamine
-    #       7. mP = modelParams, a struct that contains values of all connectivity matrices, noise
-    #            parameters, and timing params (eg when octo, stim and heb occur)
-    #       8. exP = struct with timing params
-    #       9. seedVal = starting seed value for reproducibility. optional arg
-    # outputs:
-    #       1. T = m x 1 vector, timepoints used in evolution
-    #       2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
-    #                  each row is the FR at a given timepoint
+    inputs:
+          1. tspan = 1 x 2 vector with start and stop times
+          2. initCond = col vector with all starting values for P, L, etc
+          3. time = start:step:stop; these are the time points for the evolution.
+             Note we assume that noise and FRs have the same step size (based on Milstein's method)
+          4. classMagMatrix = nC x N matrix where nC = # of different classes (for
+               digits, up to 10), N = length(time = vector of time points). Each
+               entry is the strength of a digit presentation.
+          5. featureArray = mP.nF x kk x nC array, where mP.nF = numFeatures, kk >= number of
+              puffs for that stim, and nC = # of classes.
+          6. octoHits = 1 x N matrix. Each entry is a strength of octopamine
+          7. mP = modelParams, a struct that contains values of all connectivity matrices, noise
+               parameters, and timing params (eg when octo, stim and heb occur)
+          8. exP = struct with timing params
+          9. seedVal = starting seed value for reproducibility. optional arg
+    outputs:
+          1. T = m x 1 vector, timepoints used in evolution
+          2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
+                     each row is the FR at a given timepoint
 
-    # The function uses the noise params to create a Wiener process, then
-    # evolves the FR equations with the added noise
+    The function uses the noise params to create a Wiener process, then
+    evolves the FR equations with the added noise
 
-    # Inside the difference equations we use a piecewise linear pseudo sigmoid,
-    # rather than a true sigmoid, for speed.
+    Inside the difference equations we use a piecewise linear pseudo sigmoid,
+    rather than a true sigmoid, for speed.
 
-    # Note re-calculating added noise:
-    #   We want noise to be proportional to the mean spontFR of each neuron. So
-    #   we need to get an estimate of this mean spont FR first. Noise is not
-    #   added while neurons settle to initial SpontFR
-    #   values. Then noise is added, proportional to spontFR. After this  noise
-    #   begins, meanSpontFRs converge to new values.
-    #  So there is a 'stepped' system, as follows:
-    #       1. no noise, neurons converge to initial meanSpontFRs = ms1
-    #       2. noise proportional to ms1. neurons converge to new meanSpontFRs = ms2
-    #       3. noise is proportional to ms2. neurons may converge to new
-    #          meanSpontFRs = ms3, but noise is not changed. stdSpontFRs are
-    #          calculated from ms3 time period.
-    #   This has the following effects on simResults:
-    #       1. In the heat maps and time-courses this will give a period of uniform FRs.
-    #       2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
-    #          the exP.stopSpontMean3 timepoint.
+    Note re-calculating added noise:
+      We want noise to be proportional to the mean spontFR of each neuron. So
+      we need to get an estimate of this mean spont FR first. Noise is not
+      added while neurons settle to initial SpontFR
+      values. Then noise is added, proportional to spontFR. After this  noise
+      begins, meanSpontFRs converge to new values.
+     So there is a 'stepped' system, as follows:
+          1. no noise, neurons converge to initial meanSpontFRs = ms1
+          2. noise proportional to ms1. neurons converge to new meanSpontFRs = ms2
+          3. noise is proportional to ms2. neurons may converge to new
+             meanSpontFRs = ms3, but noise is not changed. stdSpontFRs are
+             calculated from ms3 time period.
+      This has the following effects on simResults:
+          1. In the heat maps and time-courses this will give a period of uniform FRs.
+          2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
+             the exP.stopSpontMean3 timepoint.
+    '''
 
-#-------------------------------------------------------------------------------
-
+    # needs to run before creating matplotlib figure(s)
     from support_functions.show_figs import getScreen
     getScreen()
 
     import numpy as np
     import matplotlib.pyplot as plt
+    #import piecewiseLinearPseudoSigmoid
 
     # if argin seedValue is nonzero, fix the rand seed for reproducible results
     if seedValue:
@@ -114,6 +129,15 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     dt = time[1] - time[0] # this is determined by start, stop and step in calling function
     N = int( (tspan[1] - tspan[0]) / dt ) # number of steps in noise evolution
     T = np.linspace(tspan[0], tspan[1], N) # the time vector
+
+    def wiener(w_sig, meanSpont_, old_, tau_, inputs_):
+        d_ = dt*(-old_*tau_ + inputs_)
+
+        # Wiener noise:
+        dW_ = np.sqrt(dt)*w_sig.squeeze()*meanSpont_*np.random.randn(*d_.shape)
+
+        # combine them:
+        return old_ + d_ + dW_
 
 #-------------------------------------------------------------------------------
 
@@ -190,11 +214,11 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             oldR = R[:,i]
             oldK = K[:,i]
         else: # version to save memory:
-            oldP = P[:,end]
-            oldPI = PI[:,end]
-            oldL = L[:,end]
-            oldR = R[:,end]
-            oldK = K[:,end]
+            oldP = P[:,-1]
+            oldPI = PI[:,-1]
+            oldL = L[:,-1]
+            oldR = R[:,-1]
+            oldK = K[:,-1]
         oldE = E[:,i]
         oldT = T[i]
 
@@ -255,119 +279,98 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
             # set a minimum damping on KCs based on spontaneous PN activity,
             # sufficient to silence the MB silent absent odor:
-            print('mP.P2K:',mP.P2K)
-            print('ssMeanSpontP:',ssMeanSpontP)
-            temp = np.sort(mP.P2K.dot(ssMeanSpontP))
-            print('max temp:', np.max(temp))
-            print('foo shape:', temp.shape)
-            # print('mP.P2K shape:', mP.P2K.shape)
-            # print('ssMeanSpontP shape:', ssMeanSpontP.shape)
-            quit()
-            # NOTE: FIGURE OUT WHY ssMeanSpontP is full of zeros while the ML version is not.
+            temp = np.sort(mP.P2K.dot(ssMeanSpontP)) # 'ascending' by default
+            ignoreTopN = 1 # ie ignore this many of the highest vals
+            temp = temp[:-ignoreTopN] # ignore the top few outlier K inputs
+            maxSpontP2KtimesPval = temp.max() # The minimum global damping on the MB.
+            print('maxSpontP2KtimesPval:', maxSpontP2KtimesPval)
+            meanCalc3Done = 1
 
-    #     if adjustNoiseFlag3 && ~meanCalc3Done  # we want to calc stdSpontP for use with LH channel and maybe for use in heb:
-    #         # maybe we should also use this for noise calcs (eg dWP). But the difference is slight.
-    #         inds = find(T > exP.startSpontMean3 & T < exP.stopSpontMean3)
-    #         ssMeanSpontP = mean(P(:,inds),2) # 'ss' means steady state
-    #         ssStdSpontP = std(P(:,inds),0, 2)
-    #         ssMeanSpontPI = mean(PI(:,inds),2) # no PIs for mnist
-    #         ssStdSpontPI = std(PI(:,inds),0, 2) # no PIs for mnist
-    #         meanCalc3Done = 1
-    #         # set a minimum damping on KCs based on spontaneous PN activity, sufficient to silence the MB silent absent odor:
-    #         temp = mP.P2K*ssMeanSpontP
-    #         temp = sort(temp,'ascend')
-    #         ignoreTopN = 1 # ie ignore this many of the highest vals
-    #         temp = temp(1:end - ignoreTopN) # ignore the top few outlier K inputs.
-    #         maxSpontP2KtimesPval = max(temp) # The minimum global damping on the MB.
-    #         meanCalc3Done = 1
-    #     end
+        # update classCounter
+        if i: # if i is not zero
+            for j in range(nC):
+                if (classMagMatrix[j,i-1] == 0) and (classMagMatrix[j,i] > 0):
+                    classCounter[j] += 1
 
-    #     # update classCounter:
-    #     if i > 1
-    #         for j = 1:nC
-    #             if classMagMatrix(j,i-1) == 0 && classMagMatrix(j,i) > 0
-    #                 classCounter(j) = classCounter(j) + 1
-    #             end
-    #         end
-    #     end
 
-    #     # get values of feature inputs at time index i, as a col vector.
-    #     # This allows for simultaneous inputs by different classes, but current
-    #     # experiments apply only one class at a time.
-    #     thisInput = np.zeros(mP.nF)
-    #     thisStimClassInd = []
-    #     for j = 1:nC
-    #         if classMagMatrix(j,i) > 0
-    #             thisInput = thisInput + classMagMatrix(j,i)*featureArray(:, classCounter(j), j)
-    #             thisStimClassInd = [ thisStimClassInd, j ]
-    #         end
-    #     end
+        # get values of feature inputs at time index i, as a col vector.
+        # This allows for simultaneous inputs by different classes, but current
+        # experiments apply only one class at a time.
+        thisInput = np.zeros(mP.nF)
+        thisStimClassInd = []
+        for j in range(nC):
+            if classMagMatrix[j,i]: # if classMagMatrix[j,i] is not zero
+                thisInput += classMagMatrix[j,i]*featureArray[:,classCounter[j],j]
+                thisStimClassInd.append(j)
 
 #-------------------------------------------------------------------------------
 
-    #     # get value at t for octopamine:
-    #     thisOctoHit = octoHits(i) # octoHits is a vector with an octopamine magnitude for each time point.
+        # get value at t for octopamine:
+        thisOctoHit = octoHits[i]
+        # octoHits is a vector with an octopamine magnitude for each time point
 
 #-------------------------------------------------------------------------------
 
-    #     # dR:
-    #     # inputs: S = stim,  L = lateral neurons, mP.Rspont = spontaneous FR
-    #     # NOTE: octo does not affect mP.Rspont. It affects R's response to input odors.
-    #     Rinputs = -mP.L2R*oldL.*max( 0, (ones(mP.nG,1) - thisOctoHit*mP.octo2R*mP.octoNegDiscount ) )   + ...
-    #         (mP.F2R*thisInput).*RspontRatios.*( ones(mP.nG,1) + thisOctoHit*mP.octo2R ) + mP.Rspont
+        # dR:
+        # inputs: S = stim,  L = lateral neurons, mP.Rspont = spontaneous FR
+        # NOTE: octo does not affect mP.Rspont. It affects R's response to input odors.
+        Rinputs = (1 - thisOctoHit*mP.octo2R*mP.octoNegDiscount).squeeze()
+        Rinputs[Rinputs<0] = 0 # pos. rectify Rinputs
+        Rinputs *= -mP.L2R.dot(oldL)
+        neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
+        neur_act = neur_act*(1 + thisOctoHit*mP.octo2R).squeeze()
+        Rinputs = Rinputs + neur_act + mP.Rspont.squeeze()
+        # DEV NOTE: Rinputs values seem higher than their ML version, even though
+        # the inputs (octoMax, etc.) look the same - check if it's a problem.
+        Rinputs = piecewiseLinearPseudoSigmoid(Rinputs, mP.cR, rSlope)
 
-    #     Rinputs = piecewiseLinearPseudoSigmoid_fn (Rinputs, mP.cR, rSlope)
-
-    #     dR = dt*( -oldR*mP.tauR + Rinputs )
-
-#-------------------------------------------------------------------------------
-
-    #     # Wiener noise:
-    #     dWR = sqrt(dt)*wRsig.*meanSpontR.*randn(size(dR))
-    #     # combine them:
-    #     newR = oldR + dR + dWR
-
-#-------------------------------------------------------------------------------
-
-    #     # dP:
-    #     Pinputs = -mP.L2P*oldL.*max( 0, (1 - thisOctoHit*mP.octo2P*mP.octoNegDiscount) ) + (mP.R2P.*oldR).*(1 + thisOctoHit*mP.octo2P)
-    #     # ie octo increases responsivity to positive inputs and to spont firing, and
-    #     # decreases (to a lesser degree) responsivity to neg inputs.
-    #     Pinputs = piecewiseLinearPseudoSigmoid_fn (Pinputs, mP.cP, pSlope)
-
-    #     dP = dt*( -oldP*mP.tauP + Pinputs )
-    #     # Wiener noise:
-    #     dWP = sqrt(dt)*wPsig.*meanSpontP.*randn(size(dP))
-    #     # combine them:
-    #     newP = oldP + dP + dWP
+        # Wiener noise
+        newR = wiener(wRsig, meanSpontR, oldR, mP.tauR, Rinputs)
 
 #-------------------------------------------------------------------------------
 
-    #     # dPI:                                 # no PIs for mnist
-    #     PIinputs = -mP.L2PI*oldL.*max( 0, (1 - thisOctoHit*mP.octo2PI*mP.octoNegDiscount) ) + (mP.R2PI*oldR).*(1 + thisOctoHit*mP.octo2PI)
+        ## DEV NOTE: Check w/ CBD - dP, dPI, and dL all do the same thing at this point, correct?
+        # dP:
+        Pinputs = (1 - thisOctoHit*mP.octo2P*mP.octoNegDiscount).squeeze()
+        Pinputs[Pinputs<0] = 0 # pos. rectify
+        Pinputs *= -mP.L2P.dot(oldL)
+        Pinputs += (mP.R2P.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2P).squeeze()
+        # ie octo increases responsivity to positive inputs and to spont firing, and
+        # decreases (to a lesser degree) responsivity to neg inputs.
+        Pinputs = piecewiseLinearPseudoSigmoid(Pinputs, mP.cP, pSlope)
 
-    #     PIinputs = piecewiseLinearPseudoSigmoid_fn (PIinputs, mP.cPI, piSlope)
-
-    #     dPI = dt*( -oldPI*mP.tauPI + PIinputs )
-    #     # Wiener noise:
-    #     dWPI = sqrt(dt)*wPIsig.*meanSpontPI.*randn(size(dPI))
-    #     # combine them:
-    #     newPI = oldPI + dPI + dWPI
+        # Wiener noise
+        newP = wiener(wPsig, meanSpontP, oldP, mP.tauP, Pinputs)
+        print('newP shape:', newP.shape)
 
 #-------------------------------------------------------------------------------
 
-    #     # dL:
-    #     Linputs = -mP.L2L*oldL.*max( 0, (1 - thisOctoHit*mP.octo2L*mP.octoNegDiscount ) )...
-    #         + (mP.R2L.*oldR).*(1 + thisOctoHit*mP.octo2L )
+        # dPI: # no PIs for mnist
+        PIinputs = (1 - thisOctoHit*mP.octo2PI*mP.octoNegDiscount).squeeze()
+        PIinputs[PIinputs<0] = 0 # pos. rectify
+        PIinputs *= -mP.L2PI.dot(oldL)
+        PIinputs += mP.R2PI.dot(oldR)*(1 + thisOctoHit*mP.octo2PI).squeeze()
+        # ie octo increases responsivity to positive inputs and to spont firing, and
+        # decreases (to a lesser degree) responsivity to neg inputs.
+        PIinputs = piecewiseLinearPseudoSigmoid(PIinputs, mP.cPI, piSlope)
 
+        # Wiener noise
+        newPI = wiener(wPIsig, meanSpontPI, oldPI, mP.tauPI, PIinputs)
+        print('newPI shape:', newPI.shape)
 
-    #     Linputs = piecewiseLinearPseudoSigmoid_fn (Linputs, mP.cL, lSlope)
+#-------------------------------------------------------------------------------
 
-    #     dL = dt*( -oldL*mP.tauL + Linputs )
-    #     # Wiener noise:
-    #     dWL = sqrt(dt)*wLsig.*meanSpontL.*randn(size(dL))
-    #     # combine them:
-    #     newL = oldL + dL + dWL
+        # dL:
+        Linputs = (1 - thisOctoHit*mP.octo2L*mP.octoNegDiscount).squeeze()
+        Linputs[Linputs<0] = 0 # pos. rectify
+        Linputs *= -mP.L2L.dot(oldL)
+        Linputs += (mP.R2L.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2L).squeeze()
+        Linputs = piecewiseLinearPseudoSigmoid(Linputs, mP.cL, lSlope)
+
+        # Wiener noise
+        newL = wiener(wLsig, meanSpontL, oldL, mP.tauL, Linputs)
+        print('newL shape:', newL.shape)
+        quit()
 
 #-------------------------------------------------------------------------------
 
