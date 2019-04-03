@@ -69,8 +69,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     Note re-calculating added noise:
       We want noise to be proportional to the mean spontFR of each neuron. So
       we need to get an estimate of this mean spont FR first. Noise is not
-      added while neurons settle to initial SpontFR
-      values. Then noise is added, proportional to spontFR. After this  noise
+      added while neurons settle to initial SpontFR values.
+      Then noise is added, proportional to spontFR. After this noise
       begins, meanSpontFRs converge to new values.
      So there is a 'stepped' system, as follows:
           1. no noise, neurons converge to initial meanSpontFRs = ms1
@@ -89,8 +89,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     getScreen()
 
     import numpy as np
+    from scipy.special import erfinv
     import matplotlib.pyplot as plt
-    #import piecewiseLinearPseudoSigmoid
 
     # if argin seedValue is nonzero, fix the rand seed for reproducible results
     if seedValue:
@@ -341,7 +341,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # Wiener noise
         newP = wiener(wPsig, meanSpontP, oldP, mP.tauP, Pinputs)
-        print('newP shape:', newP.shape)
 
 #-------------------------------------------------------------------------------
 
@@ -356,7 +355,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # Wiener noise
         newPI = wiener(wPIsig, meanSpontPI, oldPI, mP.tauPI, PIinputs)
-        print('newPI shape:', newPI.shape)
 
 #-------------------------------------------------------------------------------
 
@@ -369,66 +367,76 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # Wiener noise
         newL = wiener(wLsig, meanSpontL, oldL, mP.tauL, Linputs)
-        print('newL shape:', newL.shape)
-        quit()
 
 #-------------------------------------------------------------------------------
 
-    ## Enforce sparsity on the KCs:
-    #     # Global damping on KCs is controlled by mP.sparsityTarget (during
-    #     # octopamine, by octSparsityTarget). Assume that inputs to KCs form a
-    #     # gaussian, and use a threshold calculated via std devs to enforce the correct sparsity.
+        # Enforce sparsity on the KCs:
+        # Global damping on KCs is controlled by mP.sparsityTarget
+        # (during octopamine, by octSparsityTarget).
+        # Assume that inputs to KCs form a gaussian, and use a threshold
+        # calculated via std devs to enforce the correct sparsity.
 
-    #     # Delays from AL -> MB and AL -> LH -> MB (~30 mSec) are ignored.
+        # Delays from AL -> MB and AL -> LH -> MB (~30 mSec) are ignored.
 
-    #     numNoOctoStds = sqrt(2)*erfinv(1 - 2*mP.sparsityTarget) # the # st devs to give the correct sparsity
-    #     numOctoStds = sqrt(2)*erfinv(1 - 2*mP.octoSparsityTarget)
-    #     numStds = (1-thisOctoHit)*numNoOctoStds + thisOctoHit*numOctoStds # selects for either octo or no-octo
-    #     minDamperVal = 1.2*maxSpontP2KtimesPval # a minimum damping based on spontaneous PN activity, so that the MB is silent absent odor
-    #     thisKinput = oldP2K*oldP - oldPI2K*oldPI # (no PIs for mnist, only Ps)
-    #     damper = unique( mean(thisKinput) + numStds*std(thisKinput) )
-    #     damper = max(damper, minDamperVal)
+        # the # st devs to give the correct sparsity
+        numNoOctoStds = np.sqrt(2)*erfinv(1 - 2*mP.sparsityTarget)
+        numOctoStds = np.sqrt(2)*erfinv(1 - 2*mP.octoSparsityTarget)
+        # select for either octo or no-octo
+        numStds = (1-thisOctoHit)*numNoOctoStds + thisOctoHit*numOctoStds
+        # set a minimum damping based on spontaneous PN activity, so that
+        # the MB is silent absent odor
+        minDamperVal = 1.2*maxSpontP2KtimesPval
+        thisKinput = oldP2K.dot(oldP) - oldPI2K.dot(oldPI) # (no PIs for mnist, only Ps)
 
-    #     Kinputs = oldP2K*oldP.*(1 + mP.octo2K*thisOctoHit) ...    # but note that mP.octo2K == 0
-    #       - ( damper*mP.kGlobalDampVec + oldPI2K*oldPI ).*max( 0, (1 - mP.octo2K*thisOctoHit) ) # but no PIs for mnist
+        # DEV NOTE: This value is different than the Matlab version -- clarify w/ CBD
+        damper = thisKinput.mean() + numStds*thisKinput.std()
+        damper = max(damper, minDamperVal)
 
-    #     Kinputs = piecewiseLinearPseudoSigmoid_fn (Kinputs, mP.cK, kSlope)
+        dampening = (damper*mP.kGlobalDampVec).squeeze() + oldPI2K.dot(oldPI)
+        pos_octo = np.maximum(1 - mP.octo2K*thisOctoHit, 0).squeeze()
 
-    #     dK = dt*( -oldK*mP.tauK + Kinputs )
-    #     # Wiener noise:
-    #     dWK = sqrt(dt)*wKsig.*meanSpontK.*randn(size(dK))
-    #     # combine them:
-    #     newK = oldK + dK + dWK
+        Kinputs = oldP2K.dot(oldP)*(1 + thisOctoHit*mP.octo2K).squeeze() # but note that mP.octo2K == 0
+        Kinputs -= dampening*pos_octo # but no PIs for mnist
+        Kinputs = piecewiseLinearPseudoSigmoid(Kinputs, mP.cK, kSlope)
+
+        # Wiener noise
+        newK = wiener(wKsig, meanSpontK, oldK, mP.tauK, Kinputs)
 
 #-------------------------------------------------------------------------------
 
-    #     # readout neurons E (EN = 'extrinsic neurons'):
-    #     # These are readouts, so there is no sigmoid.
-    #     # mP.octo2E == 0, since we are not stimulating ENs with octo.
-    #     # dWE == 0 since we assume no noise in ENs.
+        # Readout neurons E (EN = 'extrinsic neurons'):
+        # These are readouts, so there is no sigmoid.
+        # mP.octo2E == 0, since we are not stimulating ENs with octo.
+        # dWE == 0 since we assume no noise in ENs.
+        Einputs = oldK2E.dot(oldK)
+        # oldK2E.dot(oldK)*(1 + thisOctoHit*mP.octo2E) # mP.octo2E == 0
+        dE = dt*( -oldE*mP.tauE + Einputs )
 
-    #     Einputs = oldK2E*oldK # (oldK2E*oldK).*(1 + thisOctoHit*mP.octo2E) # mP.octo2E == 0
-
-    #     dE = dt*( -oldE*mP.tauE + Einputs )
-    #     # Wiener noise:
-    #     dWE = 0 #  sqrt(dt)*wEsig.*meanSpontE.*randn(size(dE)) # noise = 0 => dWE == 0
-    #     # combine them:
-    #     newE = oldE + dE + dWE # always non-neg
+        # Wiener noise
+        dWE = 0 # noise = 0 => dWE == 0
+        # combine them
+        newE = oldE + dE + dWE # always non-neg
 
 #-------------------------------------------------------------------------------
 
     ## HEBBIAN UPDATES:
 
-    #     # Apply Hebbian learning to mP.P2K, mP.K2E:
-    #     # For ease, use 'newK' and 'oldP', 'newE' and 'oldK', ie 1 timestep of delay.
-    #     # We restrict hebbian growth in mP.K2E to connections into the EN of the training stimulus
+        # Apply Hebbian learning to mP.P2K, mP.K2E:
+        # For ease, use 'newK' and 'oldP', 'newE' and 'oldK', ie 1 timestep of delay.
+        # We restrict hebbian growth in mP.K2E to connections into the EN of the
+        # training stimulus.
 
-    #     if hebRegion(i)   # Hebbian updates are active for about half the duration of each stimulus
-
-    #         # the PN contribution to hebbian is based on raw FR:
-    #         tempP = oldP
-    #         tempPI = oldPI # no PIs for mnist
-    #         nonNegNewK = max(0,newK) # since newK has not yet been made non-neg
+        # Hebbian updates are active for about half the duration of each stimulus
+        print('hebRegion shape:',hebRegion.shape)
+        print('hebRegion[i]:',hebRegion[i])
+        quit()
+        if hebRegion[i]:
+            # the PN contribution to hebbian is based on raw FR
+            tempP = oldP
+            tempPI = oldPI # no PIs for mnist
+            print('newK shape:',newK.shape)
+            quit()
+            # nonNegNewK = max(0,newK) # since newK has not yet been made non-neg
 
     ## dP2K:
     #         dp2k = (1/mP.hebTauPK) *nonNegNewK * (tempP')

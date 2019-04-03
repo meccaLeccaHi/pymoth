@@ -128,7 +128,7 @@ def initializeConnectionMatrices(mP):
     mP.P2K = pos_rect( mP.P2Kmu + mP.P2Kstd*r.rand(mP.nK, mP.nP) ) # all >= 0
     mP.P2K *= P2KconnMatrix
     # cap P2K values at hebMaxP2K, so that hebbian training never decreases wts:
-    mP.P2K[mP.P2K < mP.hebMaxPK] = mP.hebMaxPK
+    mP.P2K[mP.P2K > mP.hebMaxPK] = mP.hebMaxPK
     # PKwt maps from the Ps to the Ks. Given firing rates P, PKwt gives the
     # effect on the various Ks
     # It is nK x nP with entries >= 0.
@@ -161,7 +161,7 @@ def initializeConnectionMatrices(mP):
         mP.PI2Kconn = r.rand(mP.nK, mP.nPI) < mP.KperPIfrMu # step 2a
         mP.PI2K = pos_rect(mP.PI2Kmu + mP.PI2Kstd*r.rand(mP.nK, mP.nPI)) # step 2b
         mP.PI2K *= mP.PI2Kconn # mask
-        mP.PI2K[mP.PI2K < mP.hebMaxPIK] = mP.hebMaxPIK
+        mP.PI2K[mP.PI2K > mP.hebMaxPIK] = mP.hebMaxPIK
         # no PIs for mnist
         # 1. G2PI maps the Gs to the PIs. It is nPI x nG, doubles.
         #    The weights are used to find the net PI firing rate
@@ -176,7 +176,7 @@ def initializeConnectionMatrices(mP):
 
     mP.K2E = pos_rect( mP.K2Emu + mP.K2Estd*r.rand(mP.nE, mP.nK) ) # all >= 0
     mP.K2E = np.multiply(mP.K2E, mP.K2EconnMatrix)
-    mP.K2E[mP.K2E < mP.hebMaxKE] = mP.hebMaxKE
+    mP.K2E[mP.K2E > mP.hebMaxKE] = mP.hebMaxKE
     # K2E maps from the KCs to the ENs. Given firing rates KC, K2E gives the effect on the various ENs.
     # It is nE x nK with entries >= 0.
 
