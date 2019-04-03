@@ -427,81 +427,77 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         # training stimulus.
 
         # Hebbian updates are active for about half the duration of each stimulus
-        print('hebRegion shape:',hebRegion.shape)
-        print('hebRegion[i]:',hebRegion[i])
-        quit()
-        if hebRegion[i]:
+        if True: #########REPLACE LATER!!!!!!!!! if hebRegion[i]:
             # the PN contribution to hebbian is based on raw FR
             tempP = oldP
             tempPI = oldPI # no PIs for mnist
-            print('newK shape:',newK.shape)
-            quit()
-            # nonNegNewK = max(0,newK) # since newK has not yet been made non-neg
+            nonNegNewK = np.maximum(newK,0) # since newK has not yet been made non-neg
 
-    ## dP2K:
-    #         dp2k = (1/mP.hebTauPK) *nonNegNewK * (tempP')
-    #         dp2k = dp2k.*P2Kmask # if original synapse does not exist, it will never grow.
+            ## dP2K:
+            dp2k = (1/mP.hebTauPK) * nonNegNewK.reshape(-1, 1).dot(tempP.reshape(-1, 1).T)
+            dp2k *= P2Kmask #  if original synapse does not exist, it will never grow
 
-    #         # decay some mP.P2K connections if wished: (not used for mnist experiments)
-    #         if mP.dieBackTauPK > 0
-    #             oldP2K = oldP2K - oldP2K*(1/mP.dieBackTauPK)*dt
-    #         end
+            # decay some P2K connections if wished: (not used for mnist experiments)
+            if mP.dieBackTauPK > 0:
+                oldP2K -= oldP2K*(1/dieBackTauPK)*dt
 
-    #         newP2K = oldP2K + dp2k
-    #         newP2K = max(0, newP2K)
-    #         newP2K = min(newP2K, mP.hebMaxPK*ones(size(newP2K)))
+            newP2K = np.maximum(oldP2K + dp2k, 0)
+            newP2K = np.minimum(newP2K, mP.hebMaxPK)
 
 #-------------------------------------------------------------------------------
 
-    ## dPI2K: # no PIs for mnist
-    #         dpi2k = (1/mP.hebTauPIK) *nonNegNewK *(tempPI')
-    #         dpi2k = dpi2k.*PI2Kmask # if original synapse does not exist, it will never grow.
-    #         # kill small increases:
-    #         temp = oldPI2K # this detour prevents dividing by zero
-    #         temp(temp == 0) = 1
-    #         keepMask = dpi2k./temp
-    #         keepMask = reshape(keepMask, size(dpi2k))
-    #         dpi2k = dpi2k.*keepMask
-    #         if mP.dieBackTauPIK > 0
-    #             oldPI2K = oldPI2K - oldPI2K*(1/mP.dieBackTauPIK)*dt
-    #         end
-    #         newPI2K = oldPI2K + dpi2k
-    #         newPI2K = max(0, newPI2K)
-    #         newPI2K = min(newPI2K, mP.hebMaxPIK*ones(size(newPI2K)))
+            ## dPI2K: # no PIs for mnist
+            dpi2k = (1/mP.hebTauPIK) * nonNegNewK.reshape(-1, 1).dot(tempPI.reshape(-1, 1).T)
+            dpi2k *= PI2Kmask # if original synapse does not exist, it will never grow
+
+            # kill small increases:
+            temp = oldPI2K # this detour prevents dividing by zero
+            temp[temp == 0] = 1
+            keepMask = dpi2k/temp
+            keepMask = keepMask.reshape(dpi2k.shape)
+            dpi2k *= keepMask
+            if mP.dieBackTauPIK > 0:
+                oldPI2K -= oldPI2K*(1/dieBackTauPIK)*dt
+            newPI2K = np.maximum(oldPI2K + dpi2k, 0)
+            newPI2K = np.minimum(newPI2K, mP.hebMaxPIK)
 
 #-------------------------------------------------------------------------------
 
-    ## dK2E:
-    #         tempK = oldK
-    #         dk2e = (1/mP.hebTauKE) * newE* (tempK')  # oldK is already nonNeg
-    #         dk2e = dk2e.*K2Emask
+            ## dK2E:
+            tempK = oldK
+            # oldK is already nonNeg
+            dk2e = (1/mP.hebTauKE) * newE.reshape(-1, 1).dot(tempK.reshape(-1, 1).T)
+            dk2e *= K2Emask
 
-    #         # restrict changes to just the i'th row of mP.K2E, where i = ind of training stim
-    #         restrictK2Emask = np.zeros(size(mP.K2E))
-    #         restrictK2Emask(thisStimClassInd,:) = 1
-    #         dk2e = dk2e.*restrictK2Emask
+            # restrict changes to just the i'th row of mP.K2E, where i = ind of training stim
+            restrictK2Emask = np.zeros(mP.K2E.shape)
+            restrictK2Emask[thisStimClassInd,:] = 1
+            dk2e *= restrictK2Emask
 
 #-------------------------------------------------------------------------------
 
-    # inactive connections for this EN die back:
-    #         if mP.dieBackTauKE > 0
-    #             # restrict dieBacks to only the trained EN:
-    #             targetMask = np.zeros(size(dk2e(:)))
-    #             targetMask( dk2e(:) == 0 ) = 1
-    #             targetMask = reshape(targetMask, size(dk2e))
-    #             targetMask = targetMask.*restrictK2Emask
-    #             oldK2E = oldK2E - targetMask.*(oldK2E + 2)*(1/mP.dieBackTauKE)*dt # the '+1' allows weights to die to absolute 0
-    #         end
+            # inactive connections for this EN die back:
+            if mP.dieBackTauKE:
+                pass
+                print('ni!',dk2e.shape)
+                quit()
+            #             # restrict dieBacks to only the trained EN:
+            #             targetMask = np.zeros(size(dk2e(:)))
+            #             targetMask( dk2e(:) == 0 ) = 1
+            #             targetMask = reshape(targetMask, size(dk2e))
+            #             targetMask = targetMask.*restrictK2Emask
+            #             oldK2E = oldK2E - targetMask.*(oldK2E + 2)*(1/mP.dieBackTauKE)*dt # the '+1' allows weights to die to absolute 0
+            #         end
 
-    #         newK2E = oldK2E + dk2e
-    #         newK2E = max(0,newK2E)
-    #         newK2E = min(newK2E, mP.hebMaxKE*ones(size(newK2E)))
+            #         newK2E = oldK2E + dk2e
+            #         newK2E = max(0,newK2E)
+            #         newK2E = min(newK2E, mP.hebMaxKE*ones(size(newK2E)))
 
-    #     else                       # case: no heb or no octo
-    #         newP2K = oldP2K
-    #         newPI2K = oldPI2K # no PIs for mnist
-    #         newK2E = oldK2E
-    #     end
+            #     else                       # case: no heb or no octo
+            #         newP2K = oldP2K
+            #         newPI2K = oldPI2K # no PIs for mnist
+            #         newK2E = oldK2E
+            #     end
 
 #-------------------------------------------------------------------------------
 
