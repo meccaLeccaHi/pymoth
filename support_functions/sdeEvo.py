@@ -478,20 +478,20 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
             # inactive connections for this EN die back:
             if mP.dieBackTauKE:
-                pass
-                print('ni!',dk2e.shape)
-                quit()
-            #             # restrict dieBacks to only the trained EN:
-            #             targetMask = np.zeros(size(dk2e(:)))
-            #             targetMask( dk2e(:) == 0 ) = 1
-            #             targetMask = reshape(targetMask, size(dk2e))
-            #             targetMask = targetMask.*restrictK2Emask
-            #             oldK2E = oldK2E - targetMask.*(oldK2E + 2)*(1/mP.dieBackTauKE)*dt # the '+1' allows weights to die to absolute 0
-            #         end
+                # restrict dieBacks to only the trained EN
+                targetMask = np.zeros(dk2e.shape)
+                targetMask[ dk2e == 0 ] = 1
+                targetMask *= restrictK2Emask
+                dieBack = (oldK2E + 2)*(1/mP.dieBackTauKE)*dt
+                # the '+1' allows weights to die to absolute 0
+                oldK2E -= targetMask*dieBack
 
-            #         newK2E = oldK2E + dk2e
-            #         newK2E = max(0,newK2E)
-            #         newK2E = min(newK2E, mP.hebMaxKE*ones(size(newK2E)))
+            newK2E = oldK2E + dk2e
+            newK2E = np.maximum(0,newK2E)
+            newK2E = np.minimum(newK2E, mP.hebMaxKE)
+
+            print('ni!',targetMask.shape)
+            quit()
 
             #     else                       # case: no heb or no octo
             #         newP2K = oldP2K
