@@ -104,29 +104,27 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     # Run the SDE evolution:
     thisRun = sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         octoHits, modelParams, expParams, seedValue )
-    # # Run the SDE evolution:
-    # thisRun= sdeEvolutionMnist_fn(tspan, initCond, time,...
-    #   classMagMatrix, featureArray, octoHits, modelParams, expParams, seedValue )
-    # # Time stepping is now done.
-    #
-    # ## Unpack Y and save results :
-    # # Y is a matrix numTimePoints x nG. Each col is a PN, each row holds values for a single timestep
-    # Y = thisRun.Y
-    #
-    # # save some inputs and outputs to a struct for argout:
-    # simResults.T = thisRun.T # timing information
-    # simResults.E =  thisRun.E
-    # simResults.octoHits = octoHits
-    # simResults.K2Efinal = thisRun.K2Efinal
-    # simResults.P2Kfinal = thisRun.P2Kfinal
-    #
-    # if modelParams.saveAllNeuralTimecourses
-    #   simResults.P = Y(:,1:nP)
-    #   simResults.K = Y(:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK)
-    # end
-    # ## other neural timecourses:
-    # #   simResults.PI = Y(:,nP + 1:nP + nPI)
-    # #   simResults.L = Y(:, nP + nPI + 1:nP + nPI + nG)
-    # #   simResults.R =  Y(:, nP + nPI + nG + 1: nP + nPI + nG + nR)
+    # Time stepping is now done.
+
+    ## Unpack Y and save results:
+    # Y is a matrix numTimePoints x nG. Each col is a PN, each row holds values for a single timestep
+    Y = thisRun['Y']
+
+    # save some inputs and outputs to a struct for argout:
+    simResults = dict()
+    simResults['T']= thisRun['T'] # timing information
+    simResults['E'] =  thisRun['E']
+    simResults['octoHits'] = octoHits
+    simResults['K2Efinal'] = thisRun['K2Efinal']
+    simResults['P2Kfinal'] = thisRun['P2Kfinal']
+
+    if modelParams.saveAllNeuralTimecourses:
+        simResults['P'] = Y[:,:nP]
+        simResults['K'] = Y[:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
+
+        # other neural timecourses
+        # simResults['PI'] = Y[:,nP + 1:nP + nPI]
+        # simResults['L'] = Y[:, nP + nPI + 1:nP + nPI + nG]
+        # simResults['R'] = Y[:, nP + nPI + nG + 1: nP + nPI + nG + nR]
 
     return simResults

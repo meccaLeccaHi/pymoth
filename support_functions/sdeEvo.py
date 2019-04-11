@@ -96,6 +96,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     if seedValue:
         np.random.seed(seedValue)  # Reset random state
 
+    spin = '/-\|' # create spinner for progress bar
+
     # numbers of objects
     (nC,_) = classMagMatrix.shape
     nP = mP.nG
@@ -203,10 +205,13 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     ## Main evolution loop:
     # iterate through time steps to get the full evolution:
     for i in range(N): # i = index of the time point
+        prog = int(15*(i/N))
+        remain = 15-prog-1
+        print(f"{spin[i%4]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
 
         # step = np.round(time[1] - time[0], 4)
 
-        # DEV NOTE: Clunky (below)- can we remove?
+        # DEV NOTE: Confused by this. What is purpose?
         if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
             oldP = P[:,i]
             oldPI = PI[:,i] # no PIs for mnist
@@ -214,11 +219,11 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             oldR = R[:,i]
             oldK = K[:,i]
         else: # version to save memory:
-            oldP = P[:,-1]
-            oldPI = PI[:,-1]
-            oldL = L[:,-1]
-            oldR = R[:,-1]
-            oldK = K[:,-1]
+            oldP = P.reshape(P.shape[0], -1)[:,-1]
+            oldPI = PI.reshape(PI.shape[0], -1)[:,-1]
+            oldL = L.reshape(L.shape[0], -1)[:,-1]
+            oldR = R.reshape(R.shape[0], -1)[:,-1]
+            oldK = K.reshape(K.shape[0], -1)[:,-1]
         oldE = E[:,i]
         oldT = T[i]
 
@@ -292,7 +297,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
                 if (classMagMatrix[j,i-1] == 0) and (classMagMatrix[j,i] > 0):
                     classCounter[j] += 1
 
-
         # get values of feature inputs at time index i, as a col vector.
         # This allows for simultaneous inputs by different classes, but current
         # experiments apply only one class at a time.
@@ -300,7 +304,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         thisStimClassInd = []
         for j in range(nC):
             if classMagMatrix[j,i]: # if classMagMatrix[j,i] is not zero
-                thisInput += classMagMatrix[j,i]*featureArray[:,classCounter[j],j]
+                thisInput += classMagMatrix[j,i]*featureArray[:,int(classCounter[j]),j]
                 thisStimClassInd.append(j)
 
 #-------------------------------------------------------------------------------
@@ -431,7 +435,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             # the PN contribution to hebbian is based on raw FR
             tempP = oldP
             tempPI = oldPI # no PIs for mnist
-            nonNegNewK = np.maximum(newK,0) # since newK has not yet been made non-neg
+            nonNegNewK = np.maximum(newK, 0) # since newK has not yet been made non-neg
 
             ## dP2K:
             dp2k = (1/mP.hebTauPK) * nonNegNewK.reshape(-1, 1).dot(tempP.reshape(-1, 1).T)
@@ -487,56 +491,50 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
                 oldK2E -= targetMask*dieBack
 
             newK2E = oldK2E + dk2e
-            newK2E = np.maximum(0,newK2E)
+            newK2E = np.maximum(newK2E, 0)
             newK2E = np.minimum(newK2E, mP.hebMaxKE)
 
-            print('ni!',targetMask.shape)
-            quit()
-
-            #     else                       # case: no heb or no octo
-            #         newP2K = oldP2K
-            #         newPI2K = oldPI2K # no PIs for mnist
-            #         newK2E = oldK2E
-            #     end
+        else: # case: no heb or no octo
+            newP2K = oldP2K
+            newPI2K = oldPI2K # no PIs for mnist
+            newK2E = oldK2E
 
 #-------------------------------------------------------------------------------
 
-    # update the evolution matrices, disallowing negative FRs.
-    #     if T(i) < exP.stopSpontMean3 + 5 || mP.saveAllNeuralTimecourses
-    #         R(:,i+1) = max( 0, newR)
-    #         P(:,i+1) = max( 0, newP)
-    #         PI(:,i+1) = max( 0, newPI) # no PIs for mnist
-    #         L(:,i+1) = max( 0, newL)
-    #         K(:,i+1) = max( 0, newK)
-    #         E(:,i+1) = newE
-    #     # case: do not save AL and MB neural timecourses after the noise calibration is done, to save on memory
-    #     else
-    #         R = max( 0, newR)
-    #         P = max( 0, newP)
-    #         PI = max( 0, newPI) # no PIs for mnist
-    #         L  = max( 0, newL)
-    #         K  = max( 0, newK)
-    #     end
+        # update the evolution matrices, disallowing negative FRs.
+        if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
+            # case: do not save AL and MB neural timecourses after the noise calibration is done, to save on memory
+            R[:,i] = np.maximum(newR, 0)
+            P[:,i] = np.maximum(newP, 0)
+            PI[:,i] = np.maximum(newPI, 0) # no PIs for mnist
+            L[:,i] = np.maximum(newL, 0)
+            K[:,i] = np.maximum(newK, 0)
+            # DEV NOTE: delete following line. redundant with below
+            # E[,i+1] = newE
+        else:
+            R = np.maximum(newR, 0)
+            P = np.maximum(newP, 0)
+            PI = np.maximum(newPI, 0) # no PIs for mnist
+            L = np.maximum(newL, 0)
+            K = np.maximum(newK, 0)
 
-    #     E(:,i+1) = newE # always save full EN timecourses
+        E[:,i] = newE # always save full EN timecourses
 
-    # end # for i = 1:N
-    # # Time-step simulation is now over.
+    print()
+    # Time-step simulation is now over.
 
+    thisRun = dict() # pre-allocate
+    ### FIGURE OUT WHY THE VARIABLE 'E' HAS A DIFFERENT SHAPE THAN THE OTHERS
     # # combine so that each row of fn output Y is a col of [P; PI; L; R; K]:
-    # if mP.saveAllNeuralTimecourses
-    #     Y = vertcat(P, PI, L, R, K, E)
-    #     Y = Y'
-    #     thisRun.Y = single(Y) # convert to singles to save memory
-    # else
-    #     thisRun.Y = []
-    # end
+    if mP.saveAllNeuralTimecourses:
+        Y = np.vstack((P, PI, L, R, K, E))
+        thisRun['Y'] = Y.T.astype('float32') # convert to singles to save memory
+    else:
+        thisRun['Y'] = []
 
-    # thisRun.T = single(T') # store T as a col
-    # thisRun.E = single(E') # length(T) x mP.nE matrix
-    # thisRun.P2Kfinal = single(oldP2K)
-    # thisRun.K2Efinal = single(oldK2E)
-    # end
-
+    thisRun['T'] = T.T.astype('float32') # store T as a col
+    thisRun['E'] = E.T.astype('float32') # length(T) x mP.nE matrix
+    thisRun['P2Kfinal'] = oldP2K.T.astype('float32')
+    thisRun['K2Efinal'] = oldK2E.T.astype('float32')
 
     return thisRun

@@ -25,6 +25,7 @@ Order of events:
 
 # import packages
 import numpy as np
+import os
 
 # Experiment details
 from support_functions.setMNISTExpParams import setMNISTExperimentParams
@@ -216,19 +217,18 @@ for run in range(numRuns):
 	print('Step 2: ...')
 	print('Step 3: Greatness')
 
-	## 3. run this experiment as sde time-step evolution:
+	# 3. run this experiment as sde time-step evolution:
 
 	simResults = sdeWrapper( modelParams, experimentParams, digitQueues )
-#
+
 #-------------------------------------------------------------------------------
 
-#    ## Experiment Results: EN behavior, classifier calculations:
-#
-#    if ~isempty(saveResultsImageFolder)
-#        if ~exist(saveResultsImageFolder)
-#            mkdir(saveResultsImageFolder)
-#        end
-#    end
+	# Experiment Results: EN behavior, classifier calculations:
+
+	if saveResultsImageFolder:
+		if not os.path.isdir(saveResultsImageFolder):
+			os.mkdir(saveResultsImageFolder)
+
 #    # Process the sim results to group EN responses by class and time:
 #    r = viewENresponses_fn( simResults, modelParams, experimentParams, ...
 #                                            showENPlots, classLabels, resultsFilename, saveResultsImageFolder )
