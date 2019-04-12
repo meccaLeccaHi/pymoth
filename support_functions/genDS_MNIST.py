@@ -1,26 +1,32 @@
 def generateDownsampledMNISTSet( preP ):
-	# Loads the MNIST dataset (from Yann LeCun's website),
-	# then applies various preprocessing steps to reduce the number of pixels (each pixel will
-	# be a feature).
-	# The 'receptive field' step destroys spatial relationships, so to reconstruct a
-	# 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices can be embedded in a
-	# 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
-	# Modify the path for the MNIST data file as needed.
-	#
-	# Inputs:
-	#   1. preP = preprocessingParams = dictionary with keys corresponding to relevant variables
-	#
-	# Outputs:
-	#   1. featureArray = n x m x 10 array. n = #active pixels, m = #digits from each class that
-	#	will be used. The 3rd dimension gives the class, 1:10   where 10 = '0'.
-	#   2. activePixelInds: list of pixel indices to allow re-embedding into empty thumbnail for viewing.
-	#   3. lengthOfSide: allows reconstruction of thumbnails given from the  feature vectors.
-#-------------------------------------------------------------------------------
-	# Preprocessing includes:
-	#   1. Load MNIST set.generateDownsampledMnistSet_fn
-	#   2. cropping and downsampling
-	#   3. mean-subtract, make non-negative, normalize pixel sums
-	#   4. select active pixels (receptive field)
+	'''
+	Loads the MNIST dataset (from Yann LeCun's website),
+	then applies various preprocessing steps to reduce the number of pixels
+	(each pixel will be a feature).
+	
+	The 'receptive field' step destroys spatial relationships, so to reconstruct
+	a 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices
+	can be embedded in a 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
+	Modify the path for the MNIST data file as needed.
+
+	Inputs:
+		1. preP = preprocessingParams = dictionary with keys corresponding to relevant variables
+
+	Outputs:
+		1. featureArray = n x m x 10 array. n = #active pixels, m = #digits from
+			each class that will be used.
+			The 3rd dimension gives the class, 1:10 where 10 = '0'.
+		2. activePixelInds: list of pixel indices to allow re-embedding into empty
+			thumbnail for viewing.
+	  	3. lengthOfSide: allows reconstruction of thumbnails given from the
+			feature vectors.
+	#---------------------------------------------------------------------------
+	Preprocessing includes:
+		1. Load MNIST set.generateDownsampledMnistSet_fn
+		2. cropping and downsampling
+		3. mean-subtract, make non-negative, normalize pixel sums
+		4. select active pixels (receptive field)
+	'''
 
 	import os
 	import numpy as np

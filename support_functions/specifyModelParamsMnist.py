@@ -1,42 +1,46 @@
-# This Python module contains the parameters for a samlpe moth, ie the template
-# that is used to populate connection matrices and to control behavior.
-# Input:
-#   1. nF = number of features. This determines the number of neurons in each layer.
-#   2. goal = measure of learning rate: goal = N means we expect the moth to
-#       hit max accuracy when trained on N samples per class. So goal = 1 gives
-#       a fast learner, goal = 20 gives a slower learner.
-# Output:
-#   1. modelParams = struct ready to pass to 'initializeConnectionMatrices'
-#
+'''
+This Python module contains the parameters for a samlpe moth, ie the template
+that is used to populate connection matrices and to control behavior.
+
+Input:
+    1. nF = number of features. This determines the number of neurons in each layer.
+    2. goal = measure of learning rate: goal = N means we expect the moth to
+        hit max accuracy when trained on N samples per class. So goal = 1 gives
+        a fast learner, goal = 20 gives a slower learner.
+
+Output:
+    1. modelParams = struct ready to pass to 'initializeConnectionMatrices'
+
 #-------------------------------------------------------------------------------
-#
-# # The following abbreviations are used:
-# # n* = number of *
-# # G = glomerulus (so eg nG = number of glomeruli)
-# # R = response neuron (from antennae): this concept is not used. We
-# #           use the stim -> glomeruli connections directly
-# # P = excitatory projection neuron. note sometimes P's stand in for gloms
-# #       in indexing, since they are 1 to 1
-# # PI = inhibitory projection neuron
-# # L = lateral neuron (inhibitory)
-# # K = kenyon cell (in MB)
-# # F = feature   (this is a change from the original moth/odor regime, where
-# # each stim/odor was identified with its own single feature).
-# # S (not used in this function) = stimulus class.
-# # fr = fraction%
-# # mu = mean
-# # std = standard deviation
-# # _2_ = synapse connection to, eg P2Kmu = mean synapse strength from PN to KC
-# # octo = octopamine delivery neuron
-#
-# # General structure of synaptic strength matrices:
-# # rows give the 'from' a synapse
-# # cols give the 'to'.
-# # so M(i,j) is the strength from obj(i) to obj(j)
-#
-# # below, 'G' stands for glomerulus. Glomeruli are not explicitly part of the equations, but
-# # the matrices for LN interconnections,
-# # PNs, and RNs are indexed according to the G
+
+The following abbreviations are used:
+n* = number of *
+G = glomerulus (so eg nG = number of glomeruli)
+R = response neuron (from antennae): this concept is not used.
+    We use the stim -> glomeruli connections directly
+P = excitatory projection neuron. note sometimes P's stand in for gloms
+    in indexing, since they are 1 to 1
+PI = inhibitory projection neuron
+L = lateral neuron (inhibitory)
+K = kenyon cell (in MB)
+F = feature (this is a change from the original moth/odor regime, where each
+stim/odor was identified with its own single feature)
+S (not used in this function) = stimulus class
+fr = fraction%
+mu = mean
+std = standard deviation
+_2_ = synapse connection to, eg P2Kmu = mean synapse strength from PN to KC
+octo = octopamine delivery neuron
+
+General structure of synaptic strength matrices:
+rows give the 'from' a synapse
+cols give the 'to'.
+so M(i,j) is the strength from obj(i) to obj(j)
+
+below, 'G' stands for glomerulus. Glomeruli are not explicitly part of the equations,
+but the matrices for LN interconnections,
+PNs, and RNs are indexed according to the G
+'''
 
 # DEV NOTE: using decimal type in arithmetic to avoid representation errors
 from decimal import Decimal

@@ -1,22 +1,24 @@
 def extractMNISTFeatureArray( mnist, labels, image_indices, phase_label ):
-    # Extract a subset of the samples from each class, convert the images to doubles on [0 1], and
-    #     return a 4-D array: 1, 2 = im. 3 indexes images within a class, 4 is the class.
-    #
-    # Inputs:
-    #   mnist = struct loaded by 'load mnistAll_plusSubsets'
-    #      with fields = training_images, test_images, training_labels, test_labels
-    #      trI = mnist.train_images;
-    #      teI = mnist.test_images;
-    #      trL = mnist.train_labels;
-    #      teL = mnist.test_labels;
-    #   labels = vector of the classes (digits) you want to extract
-    #   image_indices = list of which images you want from each class
-    #   phase_label = 'train' or 'test'. Determines which images you draw from
-    #      (since we only need a small subset, one or the other is fine)
-    #
-    # Outputs:
-    #   im_array = numberImages x h x w x numberClasses 4-D array
+    '''
+    Extract a subset of the samples from each class, convert the images to doubles on [0 1], and
+        return a 4-D array: 1, 2 = im. 3 indexes images within a class, 4 is the class.
 
+    Inputs:
+        mnist = dict loaded by 'MNIST_all.npy'
+            with fields = training_images, test_images, training_labels, test_labels
+        trI = mnist['train_images']
+        teI = mnist['test_images']
+        trL = mnist['train_labels']
+        teL = mnist['test_labels']
+        labels = vector of the classes (digits) you want to extract
+        image_indices = list of which images you want from each class
+        phase_label = 'train' or 'test'. Determines which images you draw from
+            (since we only need a small subset, one or the other is fine)
+
+    Outputs:
+        im_array = numberImages x h x w x numberClasses 4-D array
+    '''
+    
     import numpy as np
 
     # get some dimensions:

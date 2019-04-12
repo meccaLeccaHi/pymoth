@@ -1,13 +1,15 @@
 def selectActivePixels( featureArray, numFeatures, showImages ):
-    # Select the most active pixels, considering all class average images, to use as features.
-    # Inputs:
-    #    1. featureArray: 3-D array nF x nS x nC, where nF = # of features, nS = # samples per class, nC = number of classes.
-    #        As created by genDS_MNIST
-    #    2. numFeatures: The number of active pixels to use (these form the receptive field).
-    #    3. showImages:  1 means show average class images, 0 = don't show.
-    # Output:
-    #   1. activePixelInds: 1 x nF vector of indices to use as features.
-    #       Indices are relative to the vectorized thumbnails (so between 1 and 144).
+    '''
+    Select the most active pixels, considering all class average images, to use as features.
+    Inputs:
+        1. featureArray: 3-D array nF x nS x nC, where nF = # of features,
+        nS = # samples per class, nC = number of classes. As created by genDS_MNIST.
+        2. numFeatures: The number of active pixels to use (these form the receptive field).
+        3. showImages:  1 means show average class images, 0 = don't show.
+    Output:
+        1. activePixelInds: 1 x nF vector of indices to use as features.
+        Indices are relative to the vectorized thumbnails (so between 1 and 144).
+    '''
 
     # make a classAves matrix, each col a class ave 1 to 10 (ie 0), and add a col for the overallAve
     import numpy as np

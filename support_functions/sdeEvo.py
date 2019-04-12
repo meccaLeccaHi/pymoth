@@ -18,47 +18,47 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     numerical simulation of SDE)
     Called by sdeWrapper. For use with MNIST experiments.
     Inputs:
-      1. tspan: 1 x 2 vector = start and stop timepoints (sec)
-      2. initCond: n x 1 vector = starting FRs for all neurons, order-specific
-      3. time: vector of timepoints for stepping
-      4. classMagMatrix: 10 x n matrix of stimulus magnitudes.
-         Each row contains mags of digits from a given class
-      5. featureArray: numFeatures x numStimsPerClass x numClasses array
-      6. octoHits: 1 x length(t) vector with octopamine strengths at each timepoint
-      7. mP: modelParams, including connection matrices, learning rates, etc
-      8. exP: experiment parameters with some timing info
-      9. seedValue: for random number generation. 0 means start a new seed.
+        1. tspan: 1 x 2 vector = start and stop timepoints (sec)
+        2. initCond: n x 1 vector = starting FRs for all neurons, order-specific
+        3. time: vector of timepoints for stepping
+        4. classMagMatrix: 10 x n matrix of stimulus magnitudes.
+        Each row contains mags of digits from a given class.
+        5. featureArray: numFeatures x numStimsPerClass x numClasses array
+        6. octoHits: 1 x length(t) vector with octopamine strengths at each timepoint
+        7. mP: modelParams, including connection matrices, learning rates, etc
+        8. exP: experiment parameters with some timing info
+        9. seedValue: for random number generation. 0 means start a new seed.
     Output:
-      thisRun: object with attributes Y (vectors of all neural timecourses as rows); T = t;
-                    and final mP.P2K and mP.K2E connection matrices.
+        thisRun: object with attributes Y (vectors of all neural timecourses as rows);
+                    T = t; and final mP.P2K and mP.K2E connection matrices.
 
     #---------------------------------------------------------------------------
 
     comment: for mnist, the book-keeping differs from the odor experiment set-up.
-              Let nC = number of classes (1 - 10 for mnist).
-              The class may change with each new digit, so there is
-              be a counter that increments when stimMag changes from nonzero
-              to zero. there are nC counters.
+        Let nC = number of classes (1 - 10 for mnist).
+        The class may change with each new digit, so there is be a counter
+        that increments when stimMag changes from nonzero to zero.
+        There are nC counters.
 
     inputs:
-          1. tspan = 1 x 2 vector with start and stop times
-          2. initCond = col vector with all starting values for P, L, etc
-          3. time = start:step:stop; these are the time points for the evolution.
-             Note we assume that noise and FRs have the same step size (based on Milstein's method)
-          4. classMagMatrix = nC x N matrix where nC = # of different classes (for
-               digits, up to 10), N = length(time = vector of time points). Each
-               entry is the strength of a digit presentation.
-          5. featureArray = mP.nF x kk x nC array, where mP.nF = numFeatures, kk >= number of
-              puffs for that stim, and nC = # of classes.
-          6. octoHits = 1 x N matrix. Each entry is a strength of octopamine
-          7. mP = modelParams, a struct that contains values of all connectivity matrices, noise
-               parameters, and timing params (eg when octo, stim and heb occur)
-          8. exP = struct with timing params
-          9. seedVal = starting seed value for reproducibility. optional arg
+        1. tspan = 1 x 2 vector with start and stop times
+        2. initCond = col vector with all starting values for P, L, etc
+        3. time = start:step:stop; these are the time points for the evolution.
+            Note we assume that noise and FRs have the same step size (based on Milstein's method)
+        4. classMagMatrix = nC x N matrix where nC = # of different classes (for
+            digits, up to 10), N = length(time = vector of time points). Each
+            entry is the strength of a digit presentation.
+        5. featureArray = mP.nF x kk x nC array, where mP.nF = numFeatures,
+            kk >= number of puffs for that stim, and nC = # of classes.
+        6. octoHits = 1 x N matrix. Each entry is a strength of octopamine
+        7. mP = modelParams, a struct that contains values of all connectivity matrices,
+            noise parameters, and timing params (eg when octo, stim and heb occur)
+        8. exP = struct with timing params
+        9. seedVal = starting seed value for reproducibility. optional arg
     outputs:
-          1. T = m x 1 vector, timepoints used in evolution
-          2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
-                     each row is the FR at a given timepoint
+        1. T = m x 1 vector, timepoints used in evolution
+        2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
+            each row is the FR at a given timepoint
 
     The function uses the noise params to create a Wiener process, then
     evolves the FR equations with the added noise
@@ -67,21 +67,21 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     rather than a true sigmoid, for speed.
 
     Note re-calculating added noise:
-      We want noise to be proportional to the mean spontFR of each neuron. So
-      we need to get an estimate of this mean spont FR first. Noise is not
-      added while neurons settle to initial SpontFR values.
-      Then noise is added, proportional to spontFR. After this noise
-      begins, meanSpontFRs converge to new values.
-     So there is a 'stepped' system, as follows:
-          1. no noise, neurons converge to initial meanSpontFRs = ms1
-          2. noise proportional to ms1. neurons converge to new meanSpontFRs = ms2
-          3. noise is proportional to ms2. neurons may converge to new
-             meanSpontFRs = ms3, but noise is not changed. stdSpontFRs are
-             calculated from ms3 time period.
-      This has the following effects on simResults:
-          1. In the heat maps and time-courses this will give a period of uniform FRs.
-          2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
-             the exP.stopSpontMean3 timepoint.
+        We want noise to be proportional to the mean spontFR of each neuron. So
+        we need to get an estimate of this mean spont FR first. Noise is not
+        added while neurons settle to initial SpontFR values.
+        Then noise is added, proportional to spontFR. After this noise
+        begins, meanSpontFRs converge to new values.
+    So there is a 'stepped' system, as follows:
+        1. no noise, neurons converge to initial meanSpontFRs = ms1
+        2. noise proportional to ms1. neurons converge to new meanSpontFRs = ms2
+        3. noise is proportional to ms2. neurons may converge to new
+            meanSpontFRs = ms3, but noise is not changed. stdSpontFRs are
+            calculated from ms3 time period.
+    This has the following effects on simResults:
+        1. In the heat maps and time-courses this will give a period of uniform FRs.
+        2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
+        the exP.stopSpontMean3 timepoint.
     '''
 
     # needs to run before creating matplotlib figure(s)

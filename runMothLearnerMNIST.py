@@ -1,5 +1,5 @@
 
-"""
+'''
 runMothLearnerOnReducedMnist
 
 Main script to train a moth brain model on a crude (downsampled) MNIST set.
@@ -21,7 +21,7 @@ Order of events:
 	4. Load the experiment parameters.
 	5. Run the simulation with 'sdeWrapper_fn'
 	6. Plot results, print results to console
-"""
+'''
 
 # import packages
 import numpy as np
@@ -31,7 +31,7 @@ import os
 from support_functions.setMNISTExpParams import setMNISTExperimentParams
 from support_functions.genDS_MNIST import generateDownsampledMNISTSet
 from MNIST_all.MNIST_read import MNIST_read
-from support_functions.show_figs import showFeatureArrayThumbnails
+from support_functions.show_figs import showFeatureArrayThumbnails, viewENresponses
 import support_functions.specifyModelParamsMnist as model_params
 from support_functions.connect_mat import initializeConnectionMatrices
 from support_functions.sdeWrap import sdeWrapper
@@ -229,11 +229,11 @@ for run in range(numRuns):
 		if not os.path.isdir(saveResultsImageFolder):
 			os.mkdir(saveResultsImageFolder)
 
-#    # Process the sim results to group EN responses by class and time:
-#    r = viewENresponses_fn( simResults, modelParams, experimentParams, ...
-#                                            showENPlots, classLabels, resultsFilename, saveResultsImageFolder )
-#
-#    # Calculate the classification accuracy:
+	# Process the sim results to group EN responses by class and time:
+   	r = viewENresponses(simResults, modelParams, experimentParams,
+           showENPlots, classLabels, resultsFilename, saveResultsImageFolder)
+
+	# Calculate the classification accuracy:
 #    # for baseline accuracy function argin, substitute pre- for post-values in r:
 #    rNaive = r
 #    for i = 1:length(r)
@@ -244,7 +244,7 @@ for run in range(numRuns):
 #
 #    # 1. Using Log-likelihoods over all ENs:
 #    #     Baseline accuracy:
-#    outputNaiveLogL = classifyDigitsViaLogLikelihood_fn ( rNaive )
+#    outputNaiveLogL = classifyDigitsViaLogLikelihood_fn( rNaive )
 #    # disp(  'LogLikelihood: ')
 #        disp( [ 'Naive  Accuracy: ' num2str(round(outputNaiveLogL.totalAccuracy)),...
 #         '#, by class: ' num2str(round(outputNaiveLogL.accuracyPercentages)),    ' #.   ' ])

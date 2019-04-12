@@ -1,22 +1,24 @@
 def initializeConnectionMatrices(mP):
-    # Generates the various connection matrices, given a modelParams object,
-    # and appends them to modelParams.
-    # Input: 'mP', model params object
-    # Output: 'params', a struct that includes connection matrices and other model
-    # info necessary to FR evolution and plotting
+    '''
+    Generates the various connection matrices, given a modelParams object,
+    and appends them to modelParams.
+    Input: 'mP', model params object
+    Output: 'params', a struct that includes connection matrices and other model
+        info necessary to FR evolution and plotting
 
-#-------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
 
-    # step 1: build the matrices
-    # step 2: pack the matrices into a struct 'params' for output
-    # These steps are kept separate for clarity of step 2
+    step 1: build the matrices
+    step 2: pack the matrices into a struct 'params' for output
+        These steps are kept separate for clarity of step 2
 
-#-------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
 
-    ## Step 1: Generate connection matrices
-    # Comment: Since there are many zero connections (ie matrices are usually
-    # not all-to-all) we often need to apply masks to preserve the zero connections
-
+    Step 1: Generate connection matrices
+    Comment: Since there are many zero connections (ie matrices are usually
+        not all-to-all) we often need to apply masks to preserve the zero connections
+    '''
+    
     import numpy as np
     import numpy.random as r
     from decimal import Decimal, getcontext

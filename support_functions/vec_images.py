@@ -1,14 +1,17 @@
 def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsampleMethod ):
-    # For each image in a stack of images: Crop, then downsample, then make into a col vector.
-    # Inputs:
-    #   1. imStack = numImages x width x height array
-    #   2. cropVal = number of pixels to shave off each side. can be a scalar or a
-    #       4 x 1 vector: top, bottom, left, right.
-    #   3. downsampleVal = amount to downsample
-    #   4. downsampleMethod: if 0, do downsampling by summing square patches. If 1, use bicubic interpolation.
-    # Output:
-    #   1. imArray = a x numImages array, where a = number of pixels in the cropped and downsampled images
-
+    '''
+    For each image in a stack of images: Crop, then downsample, then make into a col vector.
+    Inputs:
+        1. imStack = numImages x width x height array
+        2. cropVal = number of pixels to shave off each side. can be a scalar or a
+            4 x 1 vector: top, bottom, left, right.
+        3. downsampleVal = amount to downsample
+        4. downsampleMethod: if 0, do downsampling by summing square patches.
+            If 1, use bicubic interpolation.
+    Output:
+        1. imArray = a x numImages array, where a = number of pixels in the cropped and downsampled images
+    '''
+    
     from scipy.misc import imresize
     import numpy as np
 

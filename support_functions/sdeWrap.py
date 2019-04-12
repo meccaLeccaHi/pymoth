@@ -1,21 +1,23 @@
 def sdeWrapper( modelParams, expParams, featureArray ):
-    # Prepares for and runs the SDE time-stepped evolution of neural firing rates.
-    # Inputs:
-    #   1. modelParams: struct with connection matrices etc
-    #   2. expParams: struct with timing info about experiment, eg when stimuli are given.
-    #   3. featureArray: numFeatures x numStimsPerClass x numClasses array of stimuli
-    # Output:
-    #   1. simResults: EN timecourses and final P2K and K2E connection matrices.
-    #       Note that other neurons' timecourses (outputted from sdeEvolutionMnist)
-    #       are not retained in simResults.
+    '''
+    Prepares for and runs the SDE time-stepped evolution of neural firing rates.
+    Inputs:
+        1. modelParams: struct with connection matrices etc
+        2. expParams: struct with timing info about experiment, eg when stimuli are given.
+        3. featureArray: numFeatures x numStimsPerClass x numClasses array of stimuli
+    Output:
+        1. simResults: EN timecourses and final P2K and K2E connection matrices.
+          Note that other neurons' timecourses (outputted from sdeEvolutionMnist)
+          are not retained in simResults.
 
-#-------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
 
-    # 4 sections:
-    # 1. load various params needed for pre-evolution prep
-    # 2. specify stim and octo courses
-    # 3. interaction equations and step through simulation
-    # 4. unpack evolution output and export
+    4 sections:
+        1. load various params needed for pre-evolution prep
+        2. specify stim and octo courses
+        3. interaction equations and step through simulation
+        4. unpack evolution output and export
+    '''
 
     import numpy as np
     from support_functions.sdeEvo import sdeEvoMNIST
