@@ -212,11 +212,6 @@ for run in range(numRuns):
 
 #-------------------------------------------------------------------------------
 
-	print('NEXT STEPS')
-	print('Step 1: Run this experiment')
-	print('Step 2: ...')
-	print('Step 3: Greatness')
-
 	# 3. run this experiment as sde time-step evolution:
 
 	simResults = sdeWrapper( modelParams, experimentParams, digitQueues )
@@ -230,8 +225,8 @@ for run in range(numRuns):
 			os.mkdir(saveResultsImageFolder)
 
 	# Process the sim results to group EN responses by class and time:
-   	r = viewENresponses(simResults, modelParams, experimentParams,
-           showENPlots, classLabels, resultsFilename, saveResultsImageFolder)
+	r = viewENresponses(simResults, modelParams, experimentParams,
+    	showENPlots, classLabels, resultsFilename, saveResultsImageFolder)
 
 	# Calculate the classification accuracy:
 #    # for baseline accuracy function argin, substitute pre- for post-values in r:

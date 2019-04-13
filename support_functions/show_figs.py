@@ -84,7 +84,7 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     plt.xlabel(titleString, fontweight='bold')
     plt.show()
 
-def viewENresponses( simResults, modelParams, experimentParams,
+def viewENresponses( simResults, modelParams, expP,
     showPlots, classLabels, resultsFilename=[], saveImageFolder=[] ):
     '''
     View readout neurons (EN):
@@ -95,8 +95,9 @@ def viewENresponses( simResults, modelParams, experimentParams,
 
     Inputs:
         1. simResults: output of sdeWrapper_fn.m
-        2. modelParams: struct of this moth's parameters
-        3. experimentParams: struct with timing and digit class info from the experiment.
+        2. modelParams: dictionary containing model parameters for this moth
+        3. expP: dictionary containing experiment parameters with timing
+            and digit class info from the experiment.
         4. showPlots: 1 x 2 vector. First entry: show changes in accuracy. 2nd entry: show EN timecourses.
         5. classLabels: 1 to 10
         6. resultsFilename:  to generate image filenames if saving. Optional argin
@@ -116,72 +117,76 @@ def viewENresponses( simResults, modelParams, experimentParams,
     pass
 
     if saveImageFolder:
-        if not os.path.isdir(saveImageFolder)
+        if not os.path.isdir(saveImageFolder):
             os.mkdir(saveImageFolder)
 
     # nE = modelParams.nE;
 
     # pre- and post-heb spont stats
-    # preHebSpontStart = experimentParams.preHebSpontStart;
-    # preHebSpontStop = experimentParams.preHebSpontStop;
-    # postHebSpontStart =  experimentParams.postHebSpontStart;
-    # postHebSpontStop =  experimentParams.postHebSpontStop;
+    # preHebSpontStart = expP.preHebSpontStart;
+    # preHebSpontStop = expP.preHebSpontStop;
+    # postHebSpontStart =  expP.postHebSpontStart;
+    # postHebSpontStop =  expP.postHebSpontStop;
 
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
         (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
     # concurrent octopamine will be marked with yellow x's
 
-    if simResults['octoHits'].max() > 0:
-        octoTimes = simResults['T'](simResults['octoHits'] > 0)
-    else:
-        octoTimes = []
-
     # E = simResults.E;   % # timesteps x #ENs
     # T = simResults.T;   % # timesteps x 1
     # octoHits = simResults.octoHits;
-    # if max(octoHits) > 0
-    #     octoTimes = T(octoHits > 0);
-    # else
-    #     octoTimes = [];
-    # end
+
+    if simResults['octoHits'].max() > 0:
+        octoTimes = simResults['T'][ simResults['octoHits'] > 0 ]
+    else:
+        octoTimes = []
+
+    print('ni!',type(simResults['E']))
+    # print('ni!',(simResults['T'] > expP.preHebSpontStart).shape)
+    print('ni!',simResults['T'].shape)
+    print('ni!',simResults['E'].shape)
+    print('ni!',type(expP.preHebSpontStart))
+
+    # calc spont stats
+    preSpont = simResults['E'][ expP.preHebSpontStart < simResults['T'] < expP.preHebSpontStop ]
+    postSpont = simResults['E'][ expP.postHebSpontStart < simResults['T'] < expP.postHebSpontStop ]
+    print('foo!',type(preSpont))
+    quit()
+
+    preHebMean = preSpont.mean()
+    preHebStd = preSpont.std()
+    postHebMean = postSpont.mean()
+    postHebStd = postSpont.std()
+
+    ## Set regions to examine:
+    # 1. data from expP
+    # simStart = expP.simStart;
+    # classMags = expP.classMags;
+    # stimStarts = expP.stimStarts; % to get timeSteps from very start of sim
+    stimStarts = expP.stimStarts*(expP.classMags > 0) # ie only use non-zero puffs
+    # whichClass = expP.whichClass;
+    whichClass = expP.whichClass*(expP.classMags > 0)
+    # startTrain = expP.startTrain;
+    # endTrain = expP.endTrain;
     #
-    # % calc spont stats:
-    # preSpont = E( T> preHebSpontStart & T < preHebSpontStop );
-    # postSpont = E( T > postHebSpontStart & T < postHebSpontStop );
-    # preHebMean = mean(preSpont);
-    # preHebStd = std(preSpont);
-    # postHebMean = mean(postSpont);
-    # postHebStd = std(postSpont);
-    #
-    # % Set regions to examine:
-    # % 1. data from experimentParams:
-    # simStart = experimentParams.simStart;
-    # classMags = experimentParams.classMags;
-    # stimStarts = experimentParams.stimStarts; % to get timeSteps from very start of sim
-    # stimStarts = stimStarts.*(classMags > 0);  % ie only use non-zero puffs
-    # whichClass = experimentParams.whichClass;
-    # whichClass = whichClass.*(classMags > 0);
-    # startTrain = experimentParams.startTrain;
-    # endTrain = experimentParams.endTrain;
-    #
-    # classList = sort(unique(whichClass));
+    classList = whichClass.unique().sort()
     # numClasses = length(classList);
     #
-    # % Make one stats plot per EN. Loop through ENs:
+    ## Make one stats plot per EN. Loop through ENs:
     #
-    # for enInd = 1:nE
-    #     thisEnResponse = E(:, enInd );
-    #     %% Calculate pre- and post-train odor response stats:
-    #     % Assumes that there is at least 1 sec on either side of an odor without octo
+    # for enInd in range(nE):
+    #     thisEnResponse = E[:, enInd]
+    #     # Calculate pre- and post-train odor response stats:
+    #     # Assumes that there is at least 1 sec on either side of an odor without octo
     #
-    #     for i = 1:length(stimStarts)
-    #         t = stimStarts(i);
-    #         % Note: to find no-octo stimStarts, there is a certain amount of machinery in order to mesh with the timing data from the experiment.
-    #         % For some reason octoTimes are not recorded exactly as listed in format short mode. So we need to
-    #         %                              use abs difference > small thresh, rather than ~ismember(t, octoTimes):
+    #     for i in range(len(stimStarts)):
+    #         t = stimStarts[i]
+    #         # Note: to find no-octo stimStarts, there is a certain amount of machinery in order to mesh with the timing data from the experiment.
+    #         # For some reason octoTimes are not recorded exactly as listed in format short mode. So we need to
+    #         # use abs difference > small thresh, rather than ~ismember(t, octoTimes):
     #         small = 1e-8;
-    #         % assign no-octo, PRE-train response val (or -1):
-    #         preTrainOdorResp(i) = -1;  % as flag
+    #         # assign no-octo, PRE-train response val (or -1):
+    #         preTrainOdorResp[i] = -1 # as flag
     #         if isempty(octoTimes)
     #             preTrainOdorResp(i) = max( thisEnResponse ( T > t-1 & T < t+1 ) );
     #         elseif min(abs(octoTimes - t)) > small && t < startTrain
