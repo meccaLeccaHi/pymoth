@@ -84,7 +84,7 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     plt.xlabel(titleString, fontweight='bold')
     plt.show()
 
-def viewENresponses( simResults, modelParams, expP,
+def viewENresponses( simRes, modelParams, expP,
     showPlots, classLabels, resultsFilename=[], saveImageFolder=[] ):
     '''
     View readout neurons (EN):
@@ -94,9 +94,9 @@ def viewENresponses( simResults, modelParams, expP,
         'Pre' = naive. 'Post' = post-training
 
     Inputs:
-        1. simResults: output of sdeWrapper_fn.m
-        2. modelParams: dictionary containing model parameters for this moth
-        3. expP: dictionary containing experiment parameters with timing
+        1. simRes: dictionary containing simulation results (output from sdeWrapper)
+        2. modelParams: object containing model parameters for this moth
+        3. expP: object containing experiment parameters with timing
             and digit class info from the experiment.
         4. showPlots: 1 x 2 vector. First entry: show changes in accuracy. 2nd entry: show EN timecourses.
         5. classLabels: 1 to 10
@@ -114,7 +114,8 @@ def viewENresponses( simResults, modelParams, expP,
         8. postSpontMean = mean(postSpont)
         9. postSpontStd = std(postSpont)
     '''
-    pass
+    import numpy as np
+    import os
 
     if saveImageFolder:
         if not os.path.isdir(saveImageFolder):
@@ -125,33 +126,27 @@ def viewENresponses( simResults, modelParams, expP,
     # pre- and post-heb spont stats
     # preHebSpontStart = expP.preHebSpontStart;
     # preHebSpontStop = expP.preHebSpontStop;
-    # postHebSpontStart =  expP.postHebSpontStart;
-    # postHebSpontStop =  expP.postHebSpontStop;
+    # postHebSpontStart = expP.postHebSpontStart;
+    # postHebSpontStop = expP.postHebSpontStop;
 
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
         (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
     # concurrent octopamine will be marked with yellow x's
 
-    # E = simResults.E;   % # timesteps x #ENs
-    # T = simResults.T;   % # timesteps x 1
-    # octoHits = simResults.octoHits;
+    # E = simRes.E;   % # timesteps x #ENs
+    # T = simRes.T;   % # timesteps x 1
+    # octoHits = simRes.octoHits;
 
-    if simResults['octoHits'].max() > 0:
-        octoTimes = simResults['T'][ simResults['octoHits'] > 0 ]
+    if simRes['octoHits'].max() > 0:
+        octoTimes = simRes['T'][ simRes['octoHits'] > 0 ]
     else:
         octoTimes = []
 
-    print('ni!',type(simResults['E']))
-    # print('ni!',(simResults['T'] > expP.preHebSpontStart).shape)
-    print('ni!',simResults['T'].shape)
-    print('ni!',simResults['E'].shape)
-    print('ni!',type(expP.preHebSpontStart))
-
     # calc spont stats
-    preSpont = simResults['E'][ expP.preHebSpontStart < simResults['T'] < expP.preHebSpontStop ]
-    postSpont = simResults['E'][ expP.postHebSpontStart < simResults['T'] < expP.postHebSpontStop ]
-    print('foo!',type(preSpont))
-    quit()
+    preSpont = simRes['E'][ np.logical_and(expP.preHebSpontStart < simRes['T'],
+                                    simRes['T'] < expP.preHebSpontStop) ]
+    postSpont = simRes['E'][ np.logical_and(expP.postHebSpontStart < simRes['T'],
+                                    simRes['T'] < expP.postHebSpontStop) ]
 
     preHebMean = preSpont.mean()
     preHebStd = preSpont.std()
@@ -168,82 +163,90 @@ def viewENresponses( simResults, modelParams, expP,
     whichClass = expP.whichClass*(expP.classMags > 0)
     # startTrain = expP.startTrain;
     # endTrain = expP.endTrain;
-    #
-    classList = whichClass.unique().sort()
+
+    classList = np.unique(whichClass)
     # numClasses = length(classList);
-    #
-    ## Make one stats plot per EN. Loop through ENs:
-    #
-    # for enInd in range(nE):
-    #     thisEnResponse = E[:, enInd]
-    #     # Calculate pre- and post-train odor response stats:
-    #     # Assumes that there is at least 1 sec on either side of an odor without octo
-    #
-    #     for i in range(len(stimStarts)):
-    #         t = stimStarts[i]
-    #         # Note: to find no-octo stimStarts, there is a certain amount of machinery in order to mesh with the timing data from the experiment.
-    #         # For some reason octoTimes are not recorded exactly as listed in format short mode. So we need to
-    #         # use abs difference > small thresh, rather than ~ismember(t, octoTimes):
-    #         small = 1e-8;
-    #         # assign no-octo, PRE-train response val (or -1):
-    #         preTrainOdorResp[i] = -1 # as flag
-    #         if isempty(octoTimes)
-    #             preTrainOdorResp(i) = max( thisEnResponse ( T > t-1 & T < t+1 ) );
-    #         elseif min(abs(octoTimes - t)) > small && t < startTrain
-    #             preTrainOdorResp(i) = max( thisEnResponse ( T > t-1 & T < t+1 ) );
-    #         end
-    #         % assign no-octo, POST-train response val (or -1):
-    #         postTrainOdorResp(i) = -1;
-    #         if ~isempty(octoTimes)
-    #             if min(abs(octoTimes - t)) > small && t > endTrain
-    #                 postTrainOdorResp(i) = max( thisEnResponse ( T > t-1 & T < t+1 ) );
-    #             end
-    #         end
-    #     end
-    #
-    #     % calc no-octo stats for each odor, pre and post train:
-    #     for k = 1:numClasses
-    #         preFull = preTrainOdorResp( preTrainOdorResp >=0 & whichClass == classList(k) );
-    #         postFull = postTrainOdorResp( postTrainOdorResp >=0 & whichClass == classList(k) );
-    #         % calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
-    #         preSA = zeros(1, length( preFull ) );    % this will contain the average responses over all sniffs for each sample
-    #         for i = 1:length(preSA)
-    #             preSA(i) = mean( preFull( (i-1) + 1 : i ) );
-    #         end
-    #         postSA = zeros( 1, length(postFull) );
-    #         for i = 1:length(postSA)
-    #             postSA(i) = mean( postFull( (i-1) + 1 : i ) );
-    #         end
-    #
-    #         if isempty(preSA)
-    #             preMeanResp(k) = -1;
-    #             preMedianResp(k) = -1;
-    #             preStdResp(k) = -1;
-    #             preNumPuffs(k) = 0;
-    #         else
-    #             preMeanResp(k) = mean(preSA);
-    #             preMedianResp(k) = median(preSA);
-    #             preStdResp(k) = std(preSA);
-    #             preNumPuffs(k) = length(preSA);
-    #         end
-    #         if isempty(postSA)
-    #             postMeanResp(k) = -1;
-    #             postMedianResp(k) = -1;
-    #             postStdResp(k) = -1;
-    #             postNumPuffs(k) = 0;
-    #         else
-    #             postMeanResp(k) = mean(postSA);
-    #             postMedianResp(k) = median(postSA);
-    #             postStdResp(k) = std(postSA);
-    #             postNumPuffs(k) = length(postSA);
-    #         end
-    #     end % for k
-    #
-    #     % to plot +/- 1 std of % change in meanResp, we want the std of our
-    #     % estimate of the mean = stdResp/sqrt(numPuffs). Make this calc:
-    #     preStdMeanEst = preStdResp./sqrt(preNumPuffs);
-    #     postStdMeanEst = postStdResp./sqrt(postNumPuffs);
-    #
+
+    # Make one stats plot per EN. Loop through ENs:
+    for enInd in range(modelParams.nE):
+
+        thisEnResponse = simRes['E'][:, enInd]
+
+        ## Calculate pre- and post-train odor response stats
+        # Assumes that there is at least 1 sec on either side of an odor without octo
+
+        # pre-allocate for loop
+        preTrainOdorResp = np.empty(len(stimStarts))
+        postTrainOdorResp = np.empty(len(stimStarts))
+
+        for i, t in enumerate(stimStarts):
+            # Note: to find no-octo stimStarts, there is a certain amount of machinery
+            # in order to mesh with the timing data from the experiment.
+            # For some reason octoTimes are not recorded exactly as listed in format
+            # short mode. So we need to use abs difference > small thresh, rather
+            # than ~ismember(t, octoTimes):
+            small = 1e-8 # .00000001
+            # assign no-octo, PRE-train response val (or -1)
+            preTrainOdorResp[i] = -1 # as flag
+            if (len(octoTimes)==0) or ((abs(octoTimes - t).min() > small) and (t < expP.startTrain)):
+                resp_ind = np.logical_and(t-1 < simRes['T'], simRes['T'] < t+1)
+                preTrainOdorResp[i] = thisEnResponse[resp_ind].max()
+
+            # assign no-octo, POST-train response val (or -1)
+            postTrainOdorResp[i] = -1
+            if len(octoTimes)!=0:
+                if (abs(octoTimes - t).min() > small) and (t > expP.endTrain):
+                    resp_ind = np.logical_and(t-1 < simRes['T'], simRes['T'] < t+1)
+                    postTrainOdorResp[i] = thisEnResponse[resp_ind].max()
+
+        # pre-allocate for loop
+        preMeanResp = preMedianResp = preStdResp = preNumPuffs = np.empty(len(classList))
+        postMeanResp = postMedianResp = postStdResp = postNumPuffs = np.empty(len(classList))
+
+        # calc no-octo stats for each odor, pre and post train:
+        for k, cl in enumerate(classList):
+            curCl = whichClass==cl
+            preFull = preTrainOdorResp[np.logical_and(preTrainOdorResp>=0, curCl)]
+            postFull = postTrainOdorResp[np.logical_and(postTrainOdorResp>=0, curCl)]
+            ## calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
+            # this will contain the average responses over all sniffs for each sample
+            # DEV NOTE: Changed pretty drastically, but should be the same.
+            # Check with CBD
+            preSA = preFull
+            postSA = postFull
+
+            if len(preSA)==0: # DEV NOTE: When would this occur? Remove?
+                preMeanResp[k] = -1
+                preMedianResp[k] = -1
+                preStdResp[k] = -1
+                preNumPuffs[k] = 0
+            else:
+                preMeanResp[k] = preSA.mean()
+                preMedianResp[k] = np.median(preSA)
+                preStdResp[k] = preSA.std()
+                preNumPuffs[k] = len(preSA)
+
+            if len(postSA)==0: # DEV NOTE: When would this occur? Remove?
+                postMeanResp[k] = -1
+                postMedianResp[k] = -1
+                postStdResp[k] = -1
+                postNumPuffs[k] = 0
+            else:
+                postMeanResp[k] = postSA.mean()
+                postMedianResp[k] = np.median(postSA)
+                postStdResp[k] = postSA.std()
+                postNumPuffs[k] = len(postSA)
+
+        # # to plot +/- 1 std of % change in meanResp, we want the std of our
+        # # estimate of the mean = stdResp/sqrt(numPuffs). Make this calc:
+        # preStdMeanEst = preStdResp/np.sqrt(preNumPuffs)
+        # postStdMeanEst = postStdResp/np.sqrt(postNumPuffs)
+
+        import pdb; pdb.set_trace()
+
+        (preNumPuffs > 0).nonzero()
+        preSA = [i for (i, val) in enumerate(preNumPuffs) if val>0]
+        postSA = [i for (i, val) in enumerate(postNumPuffs) if val>0]
     #     preSA = find(preNumPuffs > 0);
     #     postSA = find(postNumPuffs > 0);
     #     postOffset = postSA + 0.25;
@@ -455,9 +458,9 @@ def viewENresponses( simResults, modelParams, expP,
     #
     #         % plot ENs:
     #
-    #         plot( preTime, E(preTimeInds,enInd)/preMeanControl , 'b');    % normalized by the home class preMean
-    #         plot( postTime, E(postTimeInds,enInd)/postMeanControl, 'b');    % normalized by the home class postMean
-    #         plot( midTime, E(midTimeInds, enInd)/ 1, 'b')
+    #         plot( preTime, simRes['E'](preTimeInds,enInd)/preMeanControl , 'b');    % normalized by the home class preMean
+    #         plot( postTime, simRes['E'](postTimeInds,enInd)/postMeanControl, 'b');    % normalized by the home class postMean
+    #         plot( midTime, simRes['E'](midTimeInds, enInd)/ 1, 'b')
     #
     #         %             plot(preTime, preMean*ones(size(preTime)), 'color', colors{enInd},'lineStyle','-')
     #         %             plot(postTime, postMean*ones(size(postTime)), 'color', colors{enInd},'lineStyle','-')
@@ -477,7 +480,7 @@ def viewENresponses( simResults, modelParams, expP,
     #
     #         set(gca,'fontname', 'Arial','fontweight','bold','fontsize',12)
     #         % format:
-    #         ylim( [ 0, 1.2* max(E(postTimeInds,enInd))/postMeanControl ] )
+    #         ylim( [ 0, 1.2* max(simRes['E'](postTimeInds,enInd))/postMeanControl ] )
     #         rarrow = texlabel('/rarrow');
     #         title([ 'EN ' num2str(enInd) ' for class ' num2str( enInd ) ])
     #
