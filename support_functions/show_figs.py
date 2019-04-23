@@ -24,7 +24,6 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     '''
 
     # tkinter errors if run after matplotlib is loaded, so we run it first
-    import getScreen
     scrsz = getScreen()
 
     import numpy as np
@@ -46,7 +45,7 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     vert = 1/(numRows + 1) # vertical step size
     horiz = 1/(numCols + 1) # horizontal step size
 
-    print('screen size: ',scrsz)
+    print('screen size: ', scrsz)
     fig_sz = [np.floor((i/100)*0.5) for i in scrsz]
     thumbs = plt.figure(figsize=fig_sz, dpi=100)
 
@@ -114,8 +113,13 @@ def viewENresponses( simRes, modelParams, expP,
         8. postSpontMean = mean(postSpont)
         9. postSpontStd = std(postSpont)
     '''
-    import numpy as np
+
+    # tkinter errors if run after matplotlib is loaded, so we run it first
+    scrsz = getScreen()
+
     import os
+    import numpy as np
+    import matplotlib.pyplot as plt
 
     if saveImageFolder:
         if not os.path.isdir(saveImageFolder):
@@ -242,88 +246,92 @@ def viewENresponses( simRes, modelParams, expP,
         # preStdMeanEst = preStdResp/np.sqrt(preNumPuffs)
         # postStdMeanEst = postStdResp/np.sqrt(postNumPuffs)
 
-        import pdb; pdb.set_trace()
-
-        (preNumPuffs > 0).nonzero()
+        # could use: (preNumPuffs > 0).nonzero()
         preSA = [i for (i, val) in enumerate(preNumPuffs) if val>0]
         postSA = [i for (i, val) in enumerate(postNumPuffs) if val>0]
-    #     preSA = find(preNumPuffs > 0);
-    #     postSA = find(postNumPuffs > 0);
-    #     postOffset = postSA + 0.25;
-    #
-    #     % a key output:
-    #     percentChangeInMeanResp = 100*(postMeanResp(preSA) - preMeanResp(preSA) )./preMeanResp(preSA);
-    #     percentChangeInNoiseSubtractedMeanResp =...
-    #         100*(postMeanResp(preSA) - preMeanResp(preSA) - postHebMean)./preMeanResp(preSA);
-    #
-    #     percentChangeInMedianResp = 100*(postMedianResp(preSA) - preMedianResp(preSA) )./preMedianResp(preSA);
-    #     percentChangeInNoiseSubtractedMedianResp =...
-    #         100*(postMedianResp(preSA) - preMedianResp(preSA) - postHebMean)./preMedianResp(preSA);
-    #
-    #     % create cell of xticklabels:
-    #     trueXLabels = cell(size(classLabels));
-    #     for j = 1:length(classLabels)
-    #         trueXLabels{j} = num2str(mod(classLabels(j),10) );   % the 'mod' turns 10 into 0
-    #     end
-    #     %% plot stats if wished:
-    #     if showPlots(1)
-    #
-    #         del = texlabel('Delta');
-    #         scrsz = get(0,'ScreenSize');
-    #         thisFig = figure('Position',[scrsz(1), scrsz(2), scrsz(3)*0.8, scrsz(4)*0.8 ]);
-    #         % medians
-    #         subplot(2,3,1)
-    #         hold on,
-    #         grid on,
-    #
-    #         % raw median, pre and post:
-    #         plot(preSA, preMedianResp(preSA),'*b')
-    #         plot(postOffset, postMedianResp(postSA),'bo','markerfacecolor','b')
-    #         %     plot(pre, preMeanResp + preStdResp,'+g')
-    #         %     plot(post, postMeanResp + postStdResp,'+g')
-    #         %     plot(pre, preMeanResp - preStdResp,'+g')
-    #         %     plot(post, postMeanResp - postStdResp,'+g')
-    #
-    #         % make the home EN of this plot red:
-    #         plot(enInd, preMedianResp(enInd), 'ro')
-    #         plot(enInd + 0.25, postMedianResp(enInd), 'ro','markerfacecolor','r')
-    #         title(['EN ' num2str(enInd), ' median +/- std' ])
-    #         xlim([0,max(preSA) + 1])
-    #         xticks(preSA)
-    #         xticklabels(trueXLabels)
-    #         ylim( [0  1.1*max([ preMedianResp, postMedianResp ]) ] )
-    #
-    #         % connect pre to post with lines for clarity:
-    #         for j = 1:length(preSA)
-    #             lineColor = 'b';
-    #             if j == i, lineColor = 'r'; end
-    #             plot( [ preSA(j),postOffset(j) ], [ preMedianResp(preSA(j)), postMedianResp(preSA(j)) ], lineColor )
-    #         end
-    #
-    #         % percent change in medians:
-    #         subplot(2,3,2)
-    #         hold on,
-    #         grid on,
-    #         plot(preSA, 100*(postMedianResp(preSA) - preMedianResp(preSA) )./preMedianResp(preSA),...
-    #             'bo','markerfacecolor','b')
-    #         % mark the trained odors in red:
-    #         plot(enInd, 100*(postMedianResp(enInd) - preMedianResp(enInd) )./preMedianResp(enInd),...
-    #             'ro','markerfacecolor','r')
-    #         title( [ '% ' del ' median' ])
-    #         xlim([0,max(preSA) + 1])
-    #         % ylim([-50,400])
-    #         xticks(preSA)
-    #         xticklabels(trueXLabels)
-    #
-    #         % relative changes in median, ie control/trained:
-    #         subplot(2,3,3)
-    #         pn = sign( postMedianResp(enInd) - preMedianResp(enInd) );
-    #         hold on,
-    #         grid on,
-    #         plot(preSA, pn*( (postMedianResp(preSA) - preMedianResp(preSA) )./preMedianResp(preSA) ) / ...
-    #             ( (postMedianResp(enInd) - preMedianResp(enInd) )./preMedianResp(enInd) ),...
-    #             'bo','markerfacecolor','b')
-    #         % mark the trained odors in red:
+        postOffset = [i + 0.25 for i in postSA]
+
+        # a key output:
+        percentChangeInMeanResp = (100*(postMeanResp[preSA] - preMeanResp[preSA]))\
+                                    /preMeanResp[preSA]
+        percentChangeInNoiseSubtractedMeanResp = \
+                                (100*(postMeanResp[preSA] - preMeanResp[preSA] - postHebMean))\
+                                /preMeanResp[preSA]
+
+        percentChangeInMedianResp = (100*(postMedianResp[preSA] - preMedianResp[preSA]))\
+                                /preMedianResp[preSA]
+        percentChangeInNoiseSubtractedMedianResp = \
+                                (100*(postMedianResp[preSA] - preMedianResp[preSA] - postHebMean))\
+                                /preMedianResp[preSA]
+
+        import pdb; pdb.set_trace()
+        # create list of xticklabels
+        trueXLabels = classLabels
+        # trueXLabels = [None] * len(classLabels)
+        # for j,c in enumerate(classLabels):
+            # trueXLabels[j] = str(c % 10) # 'mod' turns 10 into 0
+
+        # plot stats if wished:
+        if showPlots[1]:
+            # del = texlabel('Delta');
+            fig_sz = [np.floor((i/100)*0.8) for i in scrsz]
+            thisFig = plt.figure(figsize=fig_sz, dpi=100)
+
+            # medians
+            fig, ax = plt.subplot(2, 3, 0)
+            ax.plot(preSA, preMedianResp(preSA), '*b')
+            ax.plot(postOffset, postMedianResp(postSA), 'bo') # ,'markerfacecolor','b'
+            #   ax.plot(pre, preMeanResp + preStdResp, '+g')
+            #   ax.plot(post, postMeanResp + postStdResp, '+g')
+            #   ax.plot(pre, preMeanResp - preStdResp, '+g')
+            #   ax.plot(post, postMeanResp - postStdResp, '+g')
+            ax.grid()
+
+            # make the home EN of this plot red
+            ax.plot(enInd, preMedianResp[enInd], 'ro')
+            ax.plot(enInd + 0.25, postMedianResp[enInd], 'ro') # ,'markerfacecolor','r'
+            ax.set(title=f'EN {enInd}\n median +/- std' )
+            ax.set_xlim([0, max(preSA) + 1])
+            ax.set_ylim([0, 1.1*max([ preMedianResp, postMedianResp ])])
+            ax.set_xticks(preSA, minor=False)
+            ax.set_xticklabels(trueXLabels)
+
+            # connect pre to post with lines for clarity
+            for j in range(len(preSA)):
+                if j==1:
+                    lineColor = 'r'
+                else:
+                    lineColor = 'b'
+                ax.plot(
+                        [preSA[j], postOffset[j]],
+                        [preMedianResp[preSA[j]], postMedianResp[preSA[j]]],
+                        lineColor
+                        )
+
+            # percent change in medians
+            fig, ax = plt.subplot(2, 3, 1)
+            ax.plot(
+                preSA,
+                (100*(postMedianResp[preSA] - preMedianResp[preSA]))/preMedianResp[preSA],
+                'bo') # ,'markerfacecolor','b'
+            # mark the trained odors in red:
+            ax.plot(
+                enInd,
+                (100*(postMedianResp(enInd) - preMedianResp(enInd)))/preMedianResp[enInd],
+                'ro') # ,'markerfacecolor','r'
+            ax.set(title=r'% \Delta median')
+            ax.set_xlim([0, max(preSA)+1])
+            ax.set_ylim([-50,400])
+            ax.set_xticks(preSA, minor=False)
+            ax.set_xticklabels(trueXLabels)
+
+            # relative changes in median, ie control/trained
+            fig, ax = plt.subplot(2, 3, 2)
+
+            y_vals = (pn *( (postMedianResp[preSA] - preMedianResp[preSA] )/preMedianResp[preSA] )) \
+                / ( (postMedianResp[enInd] - preMedianResp[enInd] ) / preMedianResp[enInd] )
+            ax.plot(preSA, y_vals, 'bo') # ,'markerfacecolor','b'
+            # mark the trained odors in red
     #         plot(enInd, pn*1, 'ro','markerfacecolor','r')
     #         title(['relative ' del ' median'])
     #         xlim([0,max(preSA) + 1])
