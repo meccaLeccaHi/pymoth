@@ -44,7 +44,7 @@ from support_functions.show_figs import showFeatureArrayThumbnails, viewENrespon
 import support_functions.specifyModelParamsMnist as model_params
 from support_functions.connect_mat import initializeConnectionMatrices
 from support_functions.sdeWrap import sdeWrapper
-from support_functions.classifyDigits import classifyDigitsViaLogLikelihood
+from support_functions.classifyDigits import classifyDigitsViaLogLikelihood, classifyDigitsViaThresholding
 
 ## USER ENTRIES (Edit parameters below):
 #-------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ showENPlots = [1, 1] # 1 to plot, 0 to ignore
 # To save results if wished:
 saveAllNeuralTimecourses = False # 0 -> save only EN (ie readout) timecourses.  Caution: 1 -> very high memory demands, hinders longer runs.
 resultsFilename = 'results'  # will get the run number appended to it.
-saveResultsDataFolder = [] # String. If non-empty, 'resultsFilename' will be saved here.
+saveResultsDataFolder = 'results/data' # String. If non-empty, 'resultsFilename' will be saved here.
 saveResultsImageFolder = 'results' # StrtempArraying. If non-empty, images will be saved here (if showENPlots also non-zero).
 
 #-------------------------------------------------------------------------------
@@ -245,56 +245,59 @@ for run in range(numRuns):
 		if not os.path.isdir(saveResultsImageFolder):
 			os.mkdir(saveResultsImageFolder)
 
-	#import pdb; pdb.set_trace()
-
 	# Process the sim results to group EN responses by class and time:
 	r = viewENresponses(simResults, modelParams, experimentParams,
 		showENPlots, classLabels, scrsz, resultsFilename, saveResultsImageFolder)
 
-	import pdb; pdb.set_trace()
 	# Calculate the classification accuracy:
-   	# for baseline accuracy function argin, substitute pre- for post-values in r:
+	# for baseline accuracy function argin, substitute pre- for post-values in r:
 	rNaive = r
 	for i, res in enumerate(r):
-		rNaive[i].postMeanResp = res.preMeanResp
-		rNaive[i].postStdResp = res.preStdResp
-		rNaive[i].postTrainOdorResp = res.preTrainOdorResp
+		rNaive[i]['postMeanResp'] = res['preMeanResp']
+		rNaive[i]['postStdResp'] = res['preStdResp']
+		rNaive[i]['postTrainOdorResp'] = res['preTrainOdorResp']
 
 	# 1. Using Log-likelihoods over all ENs:
-	#     Baseline accuracy:
+	#  Baseline accuracy:
 	outputNaiveLogL = classifyDigitsViaLogLikelihood( rNaive )
-	# disp(  'LogLikelihood: ')
-#        disp( [ 'Naive  Accuracy: ' num2str(round(outputNaiveLogL.totalAccuracy)),...
-#         '#, by class: ' num2str(round(outputNaiveLogL.accuracyPercentages)),    ' #.   ' ])
 
-#    #    Post-training accuracy using log-likelihood over all ENs:
-#    outputTrainedLogL = classifyDigitsViaLogLikelihood_fn ( r )
-#    disp([ 'Trained Accuracy: ' num2str(round(outputTrainedLogL.totalAccuracy)),...
-#        '#, by class: ' num2str(round(outputTrainedLogL.accuracyPercentages)),    ' #.   '  resultsFilename, '_', num2str(run) ])
+	print( 'LogLikelihood:' )
+	print( f"Naive Accuracy: {round(outputNaiveLogL['totalAccuracy'])}" + \
+		f"#, by class: {np.round(outputNaiveLogL['accuracyPercentages'])} #.   ")
 
-#    # 2. Using single EN thresholding:
-#    outputNaiveThresholding = classifyDigitsViaThresholding_fn ( rNaive, 1e9, -1, 10 )
-#    outputTrainedThresholding = classifyDigitsViaThresholding_fn ( r, 1e9, -1, 10 )
-##     disp( 'Thresholding: ')
-##     disp( [ 'Naive accuracy: ' num2str(round(outputNaiveThresholding.totalAccuracy)),...
-##               '#, by class: ' num2str(round(outputNaiveThresholding.accuracyPercentages)),    ' #.   ' ])
-##     disp([ ' Trained accuracy: ' num2str(round(outputTrainedThresholding.totalAccuracy)),...
-##               '#, by class: ' num2str(round(outputTrainedThresholding.accuracyPercentages)),    ' #.   ' ])
+	# Post-training accuracy using log-likelihood over all ENs:
+	outputTrainedLogL = classifyDigitsViaLogLikelihood( r )
+	print( f"Trained Accuracy: {round(outputTrainedLogL['totalAccuracy'])}" + \
+		f"#, by class: {np.round(outputTrainedLogL['accuracyPercentages'])} #.   " + \
+		f"{resultsFilename}_{run}" )
 
-#    # append the accuracy results, and other run data, to the first entry of r:
-#    r(1).modelParams = modelParams  # will include all connection weights of this moth
-#    r(1).outputNaiveLogL = outputNaiveLogL
-#    r(1).outputTrainedLogL = outputTrainedLogL
-#    r(1).outputNaiveThresholding = outputNaiveThresholding
-#    r(1).outputTrainedThresholding = outputTrainedThresholding
-#    r(1).matrixParamsFilename = matrixParamsFilename
-#    r(1).K2Efinal = simResults.K2Efinal
+	# 2. Using single EN thresholding:
+	outputNaiveThresholding = classifyDigitsViaThresholding( rNaive, 1e9, -1, 10 )
+	outputTrainedThresholding = classifyDigitsViaThresholding( r, 1e9, -1, 10 )
+	#     disp( 'Thresholding: ')
+	#     disp( [ 'Naive accuracy: ' num2str(round(outputNaiveThresholding.totalAccuracy)),...
+	#               '#, by class: ' num2str(round(outputNaiveThresholding.accuracyPercentages)),    ' #.   ' ])
+	#     disp([ ' Trained accuracy: ' num2str(round(outputTrainedThresholding.totalAccuracy)),...
+	#               '#, by class: ' num2str(round(outputTrainedThresholding.accuracyPercentages)),    ' #.   ' ])
 
-#    if ~isempty(saveResultsDataFolder)
-#        if ~exist(saveResultsDataFolder, 'dir' )
-#            mkdir(saveResultsDataFolder)
-#        end
-#        save( fullfile(saveResultsDataFolder, [resultsFilename, '_', num2str(run) ]) , 'r')
-#    end
+	# append the accuracy results, and other run data, to the first entry of r:
+	r[0]['modelParams'] = modelParams  # will include all connection weights of this moth
+	r[0]['outputNaiveLogL'] = outputNaiveLogL
+	r[0]['outputTrainedLogL'] = outputTrainedLogL
+	r[0]['outputNaiveThresholding'] = outputNaiveThresholding
+	r[0]['outputTrainedThresholding'] = outputTrainedThresholding
+	r[0]['matrixParamsFilename'] = matrixParamsFilename
+	r[0]['K2Efinal'] = simResults['K2Efinal']
 
-#end # for run
+	import pdb; pdb.set_trace()
+	if saveResultsDataFolder:
+		if not os.path.isdir(saveResultsDataFolder):
+			os.mkdir(saveResultsDataFolder)
+
+		results_fname = os.path.join(saveResultsDataFolder, f'{resultsFilename}_{run}')
+		np.save(results_fname, r)
+		print(f'Results saved to: {results_fname}')
+		print('         -------------All done-------------         ')
+
+
+	# import pdb; pdb.set_trace()

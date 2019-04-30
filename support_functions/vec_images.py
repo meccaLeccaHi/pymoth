@@ -11,7 +11,7 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
     Output:
         1. imArray = a x numImages array, where a = number of pixels in the cropped and downsampled images
     '''
-    
+
     from scipy.misc import imresize
     import numpy as np
 
@@ -39,7 +39,6 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
         # crop image
         ixgrid = np.ix_(width, height)
         t = t[ixgrid]
-
 
         if downsampleMethod: # bicubic
             t2 = imresize(t,1/downsampleVal, interp='bicubic')
