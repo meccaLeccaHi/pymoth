@@ -84,13 +84,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         the exP.stopSpontMean3 timepoint.
     '''
 
-    # needs to run before creating matplotlib figure(s)
-    from support_functions.show_figs import getScreen
-    getScreen()
-
     import numpy as np
     from scipy.special import erfinv
-    import matplotlib.pyplot as plt
 
     # if argin seedValue is nonzero, fix the rand seed for reproducible results
     if seedValue:
@@ -178,6 +173,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         hebRegion[inds] = 1
 
     ## DEBUG STEP:
+    # import matplotlib.pyplot as plt
     # fig, ax = plt.subplots()
     # ax.plot(T, hebRegion)
     # ax.set(title='hebRegion vs T')

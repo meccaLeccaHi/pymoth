@@ -23,6 +23,15 @@ Order of events:
 	6. Plot results, print results to console
 '''
 
+#from support_functions.show_figs import getScreen
+# #scrsz = getScreen()
+#
+# import tkinter as tk
+# root = tk.Tk()
+# scrsz = root.winfo_screenwidth(), root.winfo_screenheight()
+# #root.update()
+# root.destroy()
+
 # import packages
 import numpy as np
 import os
@@ -35,9 +44,11 @@ from support_functions.show_figs import showFeatureArrayThumbnails, viewENrespon
 import support_functions.specifyModelParamsMnist as model_params
 from support_functions.connect_mat import initializeConnectionMatrices
 from support_functions.sdeWrap import sdeWrapper
-
+from support_functions.classifyDigits import classifyDigitsViaLogLikelihood
 
 ## USER ENTRIES (Edit parameters below):
+#-------------------------------------------------------------------------------
+scrsz = (1920, 1080) # screen size (width, height)
 
 useExistingConnectionMatrices = False
 # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
@@ -65,11 +76,20 @@ showENPlots = [1, 1] # 1 to plot, 0 to ignore
 saveAllNeuralTimecourses = False # 0 -> save only EN (ie readout) timecourses.  Caution: 1 -> very high memory demands, hinders longer runs.
 resultsFilename = 'results'  # will get the run number appended to it.
 saveResultsDataFolder = [] # String. If non-empty, 'resultsFilename' will be saved here.
-saveResultsImageFolder = [] # StrtempArraying. If non-empty, images will be saved here (if showENPlots also non-zero).
+saveResultsImageFolder = 'results' # StrtempArraying. If non-empty, images will be saved here (if showENPlots also non-zero).
 
 #-------------------------------------------------------------------------------
 
 ## Misc book-keeping
+
+# # DEV NOTE: retrieving screen-size just once since it's trickier in python
+# # get screensize, if that's useful
+# if (showAverageImages + showThumbnailsUsed + sum(showENPlots)):
+# 	# tkinter errors if run after matplotlib is loaded, so we run it first
+#
+# 	from support_functions.show_figs import getScreen
+# 	scrsz = getScreen()
+# 	print(f'screen size: {scrsz}')
 
 classLabels = np.array(range(10))  # For MNIST. '0' is labeled as 10
 valPerClass = 15  # number of digits used in validation sets and in baseline sets
@@ -181,7 +201,8 @@ for run in range(numRuns):
 		tempArray[activePixelInds,:,:] = digitQueues
 		normalize = 1
 		titleStr = 'Input thumbnails'
-		showFeatureArrayThumbnails(tempArray, showThumbnailsUsed, normalize, titleStr)
+		showFeatureArrayThumbnails(tempArray, showThumbnailsUsed, normalize,
+									titleStr, scrsz)
 
 #-------------------------------------------------------------------------------
 
@@ -205,7 +226,7 @@ for run in range(numRuns):
 	modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
 
 	# Define the experiment parameters, including book-keeping for time-stepped evolutions, eg
-	#       when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
+	# 	when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
 	experimentParams = setMNISTExperimentParams( trClasses, classLabels, valPerClass )
 	# experimentParams = experimentFn( trClasses, classLabels, valPerClass )
 	# RESTORE LATER
@@ -224,23 +245,25 @@ for run in range(numRuns):
 		if not os.path.isdir(saveResultsImageFolder):
 			os.mkdir(saveResultsImageFolder)
 
+	#import pdb; pdb.set_trace()
+
 	# Process the sim results to group EN responses by class and time:
 	r = viewENresponses(simResults, modelParams, experimentParams,
-    	showENPlots, classLabels, resultsFilename, saveResultsImageFolder)
+		showENPlots, classLabels, scrsz, resultsFilename, saveResultsImageFolder)
 
+	import pdb; pdb.set_trace()
 	# Calculate the classification accuracy:
-#    # for baseline accuracy function argin, substitute pre- for post-values in r:
-#    rNaive = r
-#    for i = 1:length(r)
-#        rNaive(i).postMeanResp = r(i).preMeanResp
-#        rNaive(i).postStdResp = r(i).preStdResp
-#        rNaive(i).postTrainOdorResp = r(i).preTrainOdorResp
-#    end
-#
-#    # 1. Using Log-likelihoods over all ENs:
-#    #     Baseline accuracy:
-#    outputNaiveLogL = classifyDigitsViaLogLikelihood_fn( rNaive )
-#    # disp(  'LogLikelihood: ')
+   	# for baseline accuracy function argin, substitute pre- for post-values in r:
+	rNaive = r
+	for i, res in enumerate(r):
+		rNaive[i].postMeanResp = res.preMeanResp
+		rNaive[i].postStdResp = res.preStdResp
+		rNaive[i].postTrainOdorResp = res.preTrainOdorResp
+
+	# 1. Using Log-likelihoods over all ENs:
+	#     Baseline accuracy:
+	outputNaiveLogL = classifyDigitsViaLogLikelihood( rNaive )
+	# disp(  'LogLikelihood: ')
 #        disp( [ 'Naive  Accuracy: ' num2str(round(outputNaiveLogL.totalAccuracy)),...
 #         '#, by class: ' num2str(round(outputNaiveLogL.accuracyPercentages)),    ' #.   ' ])
 

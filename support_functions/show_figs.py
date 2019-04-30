@@ -11,7 +11,7 @@ def getScreen():
     root.destroy()
     return (screen_width, screen_height)
 
-def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString ):
+def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString, scrsz ):
     '''
     Show thumbnails of inputs used in the experiment.
     Inputs:
@@ -23,8 +23,8 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
         4. titleString = string
     '''
 
-    # tkinter errors if run after matplotlib is loaded, so we run it first
-    scrsz = getScreen()
+    # # tkinter errors if run after matplotlib is loaded, so we run it first
+    # scrsz = getScreen()
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -45,7 +45,6 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     vert = 1/(numRows + 1) # vertical step size
     horiz = 1/(numCols + 1) # horizontal step size
 
-    print('screen size: ', scrsz)
     fig_sz = [np.floor((i/100)*0.5) for i in scrsz]
     thumbs = plt.figure(figsize=fig_sz, dpi=100)
 
@@ -84,7 +83,7 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     plt.show()
 
 def viewENresponses( simRes, modelParams, expP,
-    showPlots, classLabels, resultsFilename=[], saveImageFolder=[] ):
+    showPlots, classLabels, scrsz, resultsFilename=[], saveImageFolder=[] ):
     '''
     View readout neurons (EN):
         Color-code them dots by class and by concurrent octopamine.
@@ -114,16 +113,17 @@ def viewENresponses( simRes, modelParams, expP,
         9. postSpontStd = std(postSpont)
     '''
 
-    # tkinter errors if run after matplotlib is loaded, so we run it first
-    scrsz = getScreen()
+    # # tkinter errors if run after matplotlib is loaded, so we run it first
+    # scrsz = getScreen()
 
     import os
     import numpy as np
     import matplotlib.pyplot as plt
 
-    if saveImageFolder:
-        if not os.path.isdir(saveImageFolder):
-            os.mkdir(saveImageFolder)
+    # DEV NOTE: redundant - remove?
+    # if saveImageFolder:
+    #     if not os.path.isdir(saveImageFolder):
+    #         os.mkdir(saveImageFolder)
 
     # nE = modelParams.nE;
 
@@ -169,7 +169,10 @@ def viewENresponses( simRes, modelParams, expP,
     # endTrain = expP.endTrain;
 
     classList = np.unique(whichClass)
-    # numClasses = length(classList);
+    # numClasses = len(classList)
+
+    # pre-allocate list of empty dicts
+    results = r = [dict() for i in range(modelParams.nE)]
 
     # Make one stats plot per EN. Loop through ENs:
     for enInd in range(modelParams.nE):
@@ -180,8 +183,8 @@ def viewENresponses( simRes, modelParams, expP,
         # Assumes that there is at least 1 sec on either side of an odor without octo
 
         # pre-allocate for loop
-        preTrainOdorResp = np.empty(len(stimStarts))
-        postTrainOdorResp = np.empty(len(stimStarts))
+        preTrainOdorResp = np.full(len(stimStarts), np.nan)
+        postTrainOdorResp = np.full(len(stimStarts), np.nan)
 
         for i, t in enumerate(stimStarts):
             # Note: to find no-octo stimStarts, there is a certain amount of machinery
@@ -204,8 +207,9 @@ def viewENresponses( simRes, modelParams, expP,
                     postTrainOdorResp[i] = thisEnResponse[resp_ind].max()
 
         # pre-allocate for loop
-        preMeanResp = preMedianResp = preStdResp = preNumPuffs = np.empty(len(classList))
-        postMeanResp = postMedianResp = postStdResp = postNumPuffs = np.empty(len(classList))
+        preMeanResp, preMedianResp, preStdResp, preNumPuffs, postMeanResp, \
+            postMedianResp, postStdResp, postNumPuffs = \
+            [np.full(len(classList), np.nan) for _ in range(8)]
 
         # calc no-octo stats for each odor, pre and post train:
         for k, cl in enumerate(classList):
@@ -264,23 +268,23 @@ def viewENresponses( simRes, modelParams, expP,
                                 (100*(postMedianResp[preSA] - preMedianResp[preSA] - postHebMean))\
                                 /preMedianResp[preSA]
 
-        import pdb; pdb.set_trace()
         # create list of xticklabels
         trueXLabels = classLabels
+        # DEV NOTE: the following lines should not be necessary since python uses
+        # 0-based indexing. Delete?
         # trueXLabels = [None] * len(classLabels)
         # for j,c in enumerate(classLabels):
             # trueXLabels[j] = str(c % 10) # 'mod' turns 10 into 0
 
         # plot stats if wished:
-        if showPlots[1]:
-            # del = texlabel('Delta');
+        if showPlots[0]:
             fig_sz = [np.floor((i/100)*0.8) for i in scrsz]
             thisFig = plt.figure(figsize=fig_sz, dpi=100)
 
             # medians
-            fig, ax = plt.subplot(2, 3, 0)
-            ax.plot(preSA, preMedianResp(preSA), '*b')
-            ax.plot(postOffset, postMedianResp(postSA), 'bo') # ,'markerfacecolor','b'
+            ax = thisFig.add_subplot(2, 3, 1)
+            ax.plot(preSA, preMedianResp[preSA], '*b')
+            ax.plot(postOffset, postMedianResp[postSA], 'bo') # , markerfacecolor='b'
             #   ax.plot(pre, preMeanResp + preStdResp, '+g')
             #   ax.plot(post, postMeanResp + postStdResp, '+g')
             #   ax.plot(pre, preMeanResp - preStdResp, '+g')
@@ -290,9 +294,9 @@ def viewENresponses( simRes, modelParams, expP,
             # make the home EN of this plot red
             ax.plot(enInd, preMedianResp[enInd], 'ro')
             ax.plot(enInd + 0.25, postMedianResp[enInd], 'ro') # ,'markerfacecolor','r'
-            ax.set(title=f'EN {enInd}\n median +/- std' )
+            ax.set_title(f'EN {enInd}\n median +/- std')
             ax.set_xlim([0, max(preSA) + 1])
-            ax.set_ylim([0, 1.1*max([ preMedianResp, postMedianResp ])])
+            ax.set_ylim([0, 1.1*max(np.concatenate((preMedianResp, postMedianResp)))])
             ax.set_xticks(preSA, minor=False)
             ax.set_xticklabels(trueXLabels)
 
@@ -309,196 +313,196 @@ def viewENresponses( simRes, modelParams, expP,
                         )
 
             # percent change in medians
-            fig, ax = plt.subplot(2, 3, 1)
+            ax = thisFig.add_subplot(2, 3, 2)
             ax.plot(
                 preSA,
                 (100*(postMedianResp[preSA] - preMedianResp[preSA]))/preMedianResp[preSA],
-                'bo') # ,'markerfacecolor','b'
+                'bo') # , markerfacecolor='b'
             # mark the trained odors in red:
             ax.plot(
                 enInd,
-                (100*(postMedianResp(enInd) - preMedianResp(enInd)))/preMedianResp[enInd],
-                'ro') # ,'markerfacecolor','r'
-            ax.set(title=r'% \Delta median')
+                (100*(postMedianResp[enInd] - preMedianResp[enInd]))/preMedianResp[enInd],
+                'ro') # , markerfacecolor='r'
+            ax.set_title(r'% $\Delta$ median')
             ax.set_xlim([0, max(preSA)+1])
             ax.set_ylim([-50,400])
             ax.set_xticks(preSA, minor=False)
             ax.set_xticklabels(trueXLabels)
 
             # relative changes in median, ie control/trained
-            fig, ax = plt.subplot(2, 3, 2)
-
-            y_vals = (pn *( (postMedianResp[preSA] - preMedianResp[preSA] )/preMedianResp[preSA] )) \
+            ax = thisFig.add_subplot(2, 3, 3)
+            pn = np.sign(postMedianResp[enInd] - preMedianResp[enInd])
+            y_vals = (pn * ( (postMedianResp[preSA] - preMedianResp[preSA] )/preMedianResp[preSA] )) \
                 / ( (postMedianResp[enInd] - preMedianResp[enInd] ) / preMedianResp[enInd] )
-            ax.plot(preSA, y_vals, 'bo') # ,'markerfacecolor','b'
+            ax.plot(preSA, y_vals, 'bo') # , markerfacecolor='b'
             # mark the trained odors in red
-    #         plot(enInd, pn*1, 'ro','markerfacecolor','r')
-    #         title(['relative ' del ' median'])
-    #         xlim([0,max(preSA) + 1])
-    #         % ylim([0,2])
-    #         xticks(preSA)
-    #         xticklabels(trueXLabels)
-    #
-    #         %------------------------------------------------------------------------
-    #         % means
-    #         % raw means, pre and post:
-    #         subplot(2,3,4)
-    #         hold on,
-    #         grid on,
-    #         errorbar(preSA, preMeanResp(preSA), preStdResp(preSA), 'bo')
-    #         errorbar(postOffset, postMeanResp(postSA), postStdResp(postSA),'bo','markerfacecolor','b')
-    #         errorbar(enInd, preMeanResp(enInd), preStdResp(enInd), 'ro')
-    #         errorbar(enInd + 0.25, postMeanResp(enInd),  postStdResp(enInd), 'ro','markerfacecolor','r')
-    #         title(['EN ' num2str(enInd), ' mean +/- std'])
-    #         xlim([0,max(preSA) + 1])
-    #         xticks(preSA)
-    #         xticklabels(trueXLabels)
-    #         ylim( [0  1.1*max([ preMeanResp, postMeanResp ]) + max([preStdResp, postStdResp]) ] )
-    #
-    #         % plot spont:
-    #         errorbar(preSA(1), preHebMean, preHebStd,'mo')
-    #         errorbar(postOffset(1), postHebMean, postHebStd,'mo','markerfacecolor','m')
-    #
-    #         % percent change in means
-    #         subplot(2,3,5)
-    #         hold on,
-    #         grid on,
-    #         plot(preSA, percentChangeInMeanResp,'bo','markerfacecolor','b')
-    #         % mark the trained odors in red:
-    #         plot(enInd, percentChangeInMeanResp(enInd),'ro','markerfacecolor','r')
-    #         title([ '% ' del ' mean' ] )
-    #         xlim([0,max(preSA) + 1])
-    #         % ylim([-50,1000])
-    #         xticks(preSA)
-    #         xticklabels(trueXLabels)
-    #
-    #         % relative percent changes
-    #         subplot(2,3,6)
-    #         pn = sign( postMeanResp(enInd) - preMeanResp(enInd) );
-    #         hold on,
-    #         grid on,
-    #         plot(preSA, pn*percentChangeInMeanResp  / percentChangeInMeanResp(enInd),'bo','markerfacecolor','b')
-    #         % mark the trained odors in red:
-    #         plot(enInd, pn*1, 'ro','markerfacecolor','r')
-    #         title(['relative ' del ' mean' ])
-    #         xlim([0,max(preSA) + 1])
-    #         % ylim([0,2])
-    #         xticks(preSA)
-    #         xticklabels(trueXLabels)
-    #
-    #     end % if showPlots
-    #  % Save plot code:
-    #     if ~isempty(saveImageFolder) && showPlots(1)
-    #         saveas( thisFig, fullfile(saveImageFolder,[resultsFilename '_en' num2str(enInd) '.png']), 'png')
-    #     end
-    #
-    #     %---------------------------------------------------------------------------------
-    #
-    #     % store results in a struct:
-    #     r(enInd).preTrainOdorResp = preTrainOdorResp;  % preserves all the sniffs for each stimulus
-    #     r(enInd).postTrainOdorResp = postTrainOdorResp;
-    #     r(enInd).preRespSniffsAved = preSA;   % the averaged sniffs for each stimulus
-    #     r(enInd).postRespSniffsAved = postSA;
-    #     r(enInd).odorClass = whichClass;
-    #     r(enInd).percentChangeInMeanResp = percentChangeInMeanResp;  % key stat
-    #     r(enInd).percentChangeInNoiseSubtractedMeanResp = percentChangeInNoiseSubtractedMeanResp;
-    #     r(enInd).relativeChangeInNoiseSubtractedMeanResp = ...
-    #         percentChangeInNoiseSubtractedMeanResp / percentChangeInNoiseSubtractedMeanResp(enInd);
-    #     r(enInd).percentChangeInMedianResp = percentChangeInMedianResp;
-    #     r(enInd).percentChangeInNoiseSubtractedMedianResp = percentChangeInNoiseSubtractedMedianResp;
-    #     r(enInd).relativeChangeInNoiseSubtractedMedianResp = ...
-    #         ( (postMedianResp - preMedianResp - postHebMean )./preMedianResp ) / ...
-    #         ( (postMedianResp(enInd) - preMedianResp(enInd) - postHebMean )./preMedianResp(enInd) );
-    #     r(enInd).trained = enInd;
-    #     % EN odor responses, pre and post training.
-    #     % these should be vectors of length numStims
-    #     r(enInd).preMeanResp = preMeanResp;
-    #     r(enInd).preStdResp = preStdResp;
-    #     r(enInd).postMeanResp = postMeanResp;
-    #     r(enInd).postStdResp = postStdResp;
-    #     % spont responses, pre and post training:
-    #     r(enInd).preSpontMean = mean(preSpont);
-    #     r(enInd).preSpontStd = std(preSpont);
-    #     r(enInd).postSpontMean = mean(postSpont);
-    #     r(enInd).postSpontStd = std(postSpont);
-    #
-    #     results = r;
-    #
-    # end % for enInd = 1:numClasses
-    #
-    # %% Plot EN timecourses normalized by mean digit response:
-    #
-    # labels = whichClass;
-    #
-    # if showPlots(2)
-    #     scrsz = get(0,'ScreenSize');
-    #     % go through each EN:
-    #     for enInd = 1:nE           % recal EN1 targets digit class 1, EN2 targets digit class 2, etc
-    #         if mod(enInd - 1,3) == 0
-    #             enFig2 = figure('Position',[scrsz(1), scrsz(2), scrsz(3)*1, scrsz(4)*1 ]); % make a new figure at ENs 4, 7, 10
-    #         end
-    #
-    #         subplot(3, 1, mod(enInd - 1, 3) + 1 )
-    #         hold on
-    #
-    #         xlim([-30, max(T)])
-    #
-    #         % plot octo
-    #         plot( octoTimes, zeros(size(octoTimes)), 'yx')
-    #
-    #         % plot mean pre and post training of trained digit:
-    #         preMean = r(enInd).preMeanResp;
-    #         preMeanTr = preMean(enInd);
-    #         preMeanControl = mean(preMean( [ 1:enInd-1, enInd+1:numClasses ]));
-    #         preStd = r(enInd).preStdResp;
-    #         preStd = preStd(enInd);
-    #         postMean = r(enInd).postMeanResp;
-    #         postMeanTr = postMean(enInd);
-    #         postMeanControl = mean(postMean( [ 1:enInd-1, enInd+1:numClasses ]));
-    #         postStd = r(enInd).postStdResp;
-    #         postStd = postStd(enInd);
-    #         preTime = T(T < startTrain);
-    #         preTimeInds = find(T < startTrain);
-    #         postTime = T(T > endTrain);
-    #         postTimeInds = find(T > endTrain);
-    #         midTime = T(T > startTrain & T < endTrain);
-    #         midTimeInds = find(T > startTrain & T < endTrain);
-    #
-    #         % plot ENs:
-    #
-    #         plot( preTime, simRes['E'](preTimeInds,enInd)/preMeanControl , 'b');    % normalized by the home class preMean
-    #         plot( postTime, simRes['E'](postTimeInds,enInd)/postMeanControl, 'b');    % normalized by the home class postMean
-    #         plot( midTime, simRes['E'](midTimeInds, enInd)/ 1, 'b')
-    #
-    #         %             plot(preTime, preMean*ones(size(preTime)), 'color', colors{enInd},'lineStyle','-')
-    #         %             plot(postTime, postMean*ones(size(postTime)), 'color', colors{enInd},'lineStyle','-')
-    #         %             plot(preTime, (preMean-preStd)*ones(size(preTime)), 'color', colors{enInd},'lineStyle',':')
-    #         %             plot(postTime, (postMean-postStd)*ones(size(postTime)), 'color', colors{enInd},'lineStyle',':')
-    #         % plot stims by color
-    #         for i = 1:numClasses
-    #             plot( stimStarts(whichClass == classList(i)), zeros(size(stimStarts(whichClass == classList(i)))),...
-    #                 'color', colors{i},'marker','.' ,'markersize',24, 'markerfacecolor', colors{i} ),
-    #             % reinforce trained color:
-    #             if i == enInd
-    #                 plot( stimStarts(whichClass == classList(i)),...
-    #                     0.001*ones(size(stimStarts(whichClass == classList(i)))),...
-    #                     'color', colors{i},'marker','.' ,'markersize',24, 'markerfacecolor', colors{i} ),
-    #             end
-    #         end
-    #
-    #         set(gca,'fontname', 'Arial','fontweight','bold','fontsize',12)
-    #         % format:
-    #         ylim( [ 0, 1.2* max(simRes['E'](postTimeInds,enInd))/postMeanControl ] )
-    #         rarrow = texlabel('/rarrow');
-    #         title([ 'EN ' num2str(enInd) ' for class ' num2str( enInd ) ])
-    #
-    #  % Save EN timecourse:
-    #         if ~isempty(saveImageFolder)  && (mod(enInd, 3) == 0 || enInd == 10)
-    #             saveas( enFig2, fullfile(saveImageFolder,[resultsFilename '_enTimecourses' num2str(enInd) '.png']), 'png')
-    #         end
-    #
-    #     end  % for enInd = 1:nE
-    #
-    # end % if showPlots
+            ax.plot(enInd, pn, 'ro') # , markerfacecolor='r'
+            ax.set_title(r'relative $\Delta$ median')
+            ax.set_xlim([0, max(preSA)+1])
+            # ax.set_ylim([0,2])
+            ax.set_xticks(preSA, minor=False)
+            ax.set_xticklabels(trueXLabels)
+
+            #-------------------------------------------------------------------
+            ## means
+            # raw means, pre and post
+            ax = thisFig.add_subplot(2, 3, 4)
+
+            ax.errorbar(preSA, preMeanResp[preSA], yerr=preStdResp[preSA],
+                fmt='bo', markerfacecolor='b')
+            ax.errorbar(enInd, preMeanResp[enInd], yerr=preStdResp[enInd], fmt='ro')
+            ax.errorbar(enInd + 0.25, postMeanResp[enInd], yerr=postStdResp[enInd],
+                fmt='ro', markerfacecolor='r')
+            ax.set_title(f'EN {enInd}\n median +/- std')
+            ax.set_xlim([0, max(preSA)+1])
+            ax.set_ylim([0, 1.1*np.concatenate((preMeanResp, postMeanResp)).max() + np.concatenate((preStdResp, postStdResp)).max()])
+            ax.set_xticks(preSA, minor=False)
+            ax.set_xticklabels(trueXLabels)
+
+            # plot spont
+            ax.errorbar(preSA[0], preHebMean, yerr=preHebStd, fmt='mo')
+            ax.errorbar(postOffset[0], postHebMean, yerr=postHebStd, fmt='mo', markerfacecolor='m')
+
+            # percent change in means
+            ax = thisFig.add_subplot(2, 3, 5)
+            ax.plot(preSA, percentChangeInMeanResp, 'bo', markerfacecolor='b')
+            # mark the trained odors in red
+            ax.plot(enInd, percentChangeInMeanResp[enInd], 'ro', markerfacecolor='r')
+            ax.set_title(r'% $\Delta$ mean')
+            ax.set_xlim([0, max(preSA)+1])
+            # ax.set_ylim([-50, 1000])
+            ax.set_xticks(preSA)
+            ax.set_xticklabels(trueXLabels)
+
+            # relative percent changes
+            ax = thisFig.add_subplot(2, 3, 6)
+            pn = np.sign(postMeanResp[enInd] - preMeanResp[enInd])
+            ax.plot(preSA, (pn*percentChangeInMeanResp)/percentChangeInMeanResp[enInd],
+                'bo', markerfacecolor='b')
+            # mark the trained odors in red
+            ax.plot(enInd, pn*1, 'ro', markerfacecolor='r')
+            ax.set_title(r'relative $\Delta$ mean')
+            ax.set_xlim([0, max(preSA)+1])
+            ax.set_ylim([0, 2])
+            ax.set_xticks(preSA)
+            ax.set_xticklabels(trueXLabels)
+
+
+        # Save plot
+        if saveImageFolder and os.path.isdir(saveImageFolder) and showPlots[0]:
+            thisFig.savefig(os.path.join(saveImageFolder,f'{resultsFilename}_en{enInd}.png'))
+
+        #-----------------------------------------------------------------------
+
+        # store results in a list of dicts
+        r[enInd]['preTrainOdorResp'] = preTrainOdorResp # preserves all the sniffs for each stimulus
+        r[enInd]['postTrainOdorResp'] = postTrainOdorResp
+        r[enInd]['preRespSniffsAved'] = preSA # the averaged sniffs for each stimulus
+        r[enInd]['postRespSniffsAved'] = postSA
+        r[enInd]['odorClass'] = whichClass
+        r[enInd]['percentChangeInMeanResp'] = percentChangeInMeanResp # key stat
+        r[enInd]['percentChangeInNoiseSubtractedMeanResp'] = percentChangeInNoiseSubtractedMeanResp
+        r[enInd]['relativeChangeInNoiseSubtractedMeanResp'] = \
+                percentChangeInNoiseSubtractedMeanResp / percentChangeInNoiseSubtractedMeanResp[enInd]
+        r[enInd]['percentChangeInMedianResp'] = percentChangeInMedianResp
+        r[enInd]['percentChangeInNoiseSubtractedMedianResp'] = percentChangeInNoiseSubtractedMedianResp
+        r[enInd]['relativeChangeInNoiseSubtractedMedianResp'] = \
+                ( (postMedianResp - preMedianResp - postHebMean )/preMedianResp ) / \
+                ( (postMedianResp[enInd] - preMedianResp[enInd] - postHebMean )/preMedianResp[enInd] )
+        r[enInd]['trained'] = enInd
+        # EN odor responses, pre and post training.
+        # these should be vectors of length numStims
+        r[enInd]['preMeanResp'] = preMeanResp
+        r[enInd]['preStdResp'] = preStdResp
+        r[enInd]['postMeanResp'] = postMeanResp
+        r[enInd]['postStdResp'] = postStdResp
+        # spont responses, pre and post training
+        r[enInd]['preSpontMean'] = preSpont.mean()
+        r[enInd]['preSpontStd'] = preSpont.std()
+        r[enInd]['postSpontMean'] = postSpont.mean()
+        r[enInd]['postSpontStd'] = postSpont.std()
+
+    ## Plot EN timecourses normalized by mean digit response
+
+    # DEV NOTE: This whole loop (below) could be incorporated into the one above (I think?)
+    # labels = whichClass
+    if showPlots[1]:
+
+        # go through each EN
+        for enInd in range(modelParams.nE): # recal EN1 targets digit class 1, EN2 targets digit class 2, etc
+
+            if enInd%3 == 0:
+                # make a new figure at ENs 4, 7, 10
+                #? test this (below)
+                fig_sz = [np.floor(i/100) for i in scrsz]
+                enFig2 = plt.figure(figsize=fig_sz, dpi=100)
+
+            ax = enFig2.add_subplot(3, 1, (enInd%3)+1)
+            ax.set_xlim([-30, max(simRes['T'])])
+
+            # plot octo
+            ax.plot(octoTimes, np.zeros(octoTimes.shape), 'yx')
+
+            # select indices for control
+            controlInd = list(range(0, enInd)) + list(range(enInd+1, len(classList)))
+
+            # # plot mean pre and post training of trained digit
+            preMean = r[enInd]['preMeanResp']
+            # preMeanTr = preMean[enInd]
+            preMeanControl = preMean[controlInd].mean() # DEV NOTE: Why do we use these indices?
+            # preStd = r[enInd]['preStdResp']
+            # preStd = preStd[enInd]
+            postMean = r[enInd]['postMeanResp']
+            # postMeanTr = postMean[enInd]
+            postMeanControl = postMean[controlInd].mean()
+            # postStd = r[enInd]['postStdResp']
+            # postStd = postStd[enInd]
+            preT = simRes['T'] < expP.startTrain
+            preTime = simRes['T'][preT]
+            preTimeInds = np.nonzero(preT)[0]
+            postT = simRes['T'] > expP.endTrain
+            postTime = simRes['T'][postT]
+            postTimeInds = np.nonzero(postT)[0]
+            midT = np.logical_and(simRes['T'] > expP.startTrain, simRes['T'] < expP.endTrain)
+            midTime = simRes['T'][midT]
+            midTimeInds = np.nonzero(midT)[0]
+
+            # plot ENs
+
+            # normalized by the home class preMean
+            ax.plot(preTime, simRes['E'][preTimeInds,enInd] / preMeanControl, 'b')
+            # normalized by the home class postMean
+            ax.plot(postTime, simRes['E'][postTimeInds,enInd] / postMeanControl, 'b')
+            ax.plot(midTime, simRes['E'][midTimeInds,enInd] / 1, 'b')
+
+            # plot(preTime, preMean*ones(size(preTime)), 'color', colors{enInd},'lineStyle','-')
+            # plot(postTime, postMean*ones(size(postTime)), 'color', colors{enInd},'lineStyle','-')
+            # plot(preTime, (preMean-preStd)*ones(size(preTime)), 'color', colors{enInd},'lineStyle',':')
+            # plot(postTime, (postMean-postStd)*ones(size(postTime)), 'color', colors{enInd},'lineStyle',':')
+
+            # plot stims by color
+            for i,cl in enumerate(classList):
+                classStarts = stimStarts[whichClass == cl]
+                ax.plot(classStarts, np.zeros(classStarts.shape), '.', \
+                    color=colors[i], markersize=24) # , markerfacecolor=colors[i]
+
+                # reinforce trained color
+                if i == enInd:
+                    ax.plot(classStarts, 0.001*np.ones(classStarts.shape), '.', \
+                        color=colors[i], markersize=24) # , markerfacecolor=colors[i]
+
+            # DEV NOTE: Just too much of a pain to implement in pyplot (within a loop)
+            # ax.set(fontname='Arial', fontweight='bold', fontsize=12)
+
+            # format
+            ax.set_ylim( [0, 1.2* max(simRes['E'][postTimeInds,enInd])/postMeanControl] )
+            # rarrow = texlabel('/rarrow')
+            ax.set_title(f'EN {enInd} for class {enInd}')
+
+            # Save EN timecourse:
+            if saveImageFolder and os.path.isdir(saveImageFolder) and \
+            (enInd%3 == 2 or enInd == (modelParams.nE-1)):
+                enFig2.savefig(os.path.join(saveImageFolder, \
+                f'{resultsFilename}_enTimecourses{enInd}.png'))
 
     return results
