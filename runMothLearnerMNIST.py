@@ -35,6 +35,7 @@ Order of events:
 # import packages
 import numpy as np
 import os
+import dill
 
 # Experiment details
 from support_functions.setMNISTExpParams import setMNISTExperimentParams
@@ -289,15 +290,20 @@ for run in range(numRuns):
 	r[0]['matrixParamsFilename'] = matrixParamsFilename
 	r[0]['K2Efinal'] = simResults['K2Efinal']
 
-	import pdb; pdb.set_trace()
 	if saveResultsDataFolder:
 		if not os.path.isdir(saveResultsDataFolder):
 			os.mkdir(saveResultsDataFolder)
 
-		results_fname = os.path.join(saveResultsDataFolder, f'{resultsFilename}_{run}')
-		np.save(results_fname, r)
-		print(f'Results saved to: {results_fname}')
-		print('         -------------All done-------------         ')
+		# save results data
+		results_fname = os.path.join(saveResultsDataFolder, f'{resultsFilename}_{run}.pkl')
+		dill.dump(r, open(results_fname, 'wb'))
+		# open via:
+		# 	import dill as pickle
+		# 	with open(results_fname,'rb') as f:
+    	#   	B = pickle.load(f)
 
+		print(f'Results saved to: {results_fname}')
+
+	print('         -------------All done-------------         ')
 
 	# import pdb; pdb.set_trace()
