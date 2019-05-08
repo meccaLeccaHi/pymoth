@@ -2,8 +2,6 @@ def piecewiseLinearPseudoSigmoid(x, span, slope):
     '''
     Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns
     '''
-    import numpy as np
-
     y = x*slope
     y[y<(-span/2)] = -span/2 # replace values below -span/2
     y[y>(span/2)] = span/2 # replace values above span/2
@@ -203,8 +201,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     for i in range(N): # i = index of the time point
         prog = int(15*(i/N))
         remain = 15-prog-1
-        print(f"{spin[i%4]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
-
+        print(f"FOLLOW-UP[{__file__}] -{spin[i%4]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
+        # import pdb; pdb.set_trace()
         # step = np.round(time[1] - time[0], 4)
 
         # DEV NOTE: Confused by this. What is purpose?
@@ -284,7 +282,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             ignoreTopN = 1 # ie ignore this many of the highest vals
             temp = temp[:-ignoreTopN] # ignore the top few outlier K inputs
             maxSpontP2KtimesPval = temp.max() # The minimum global damping on the MB.
-            print('maxSpontP2KtimesPval:', maxSpontP2KtimesPval)
+            print(f'FOLLOW-UP[{__file__}] -maxSpontP2KtimesPval:', maxSpontP2KtimesPval)
+            # import pdb; pdb.set_trace()
             meanCalc3Done = 1
 
         # update classCounter
@@ -520,6 +519,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # Time-step simulation is now over.
 
     thisRun = dict() # pre-allocate
+    # import pdb; pdb.set_trace()
+    print(f"FOLLOW-UP[{__file__}]- why is 'E' shaped differently?")
     ### FIGURE OUT WHY THE VARIABLE 'E' HAS A DIFFERENT SHAPE THAN THE OTHERS
     # # combine so that each row of fn output Y is a col of [P; PI; L; R; K]:
     if mP.saveAllNeuralTimecourses:

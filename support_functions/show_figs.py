@@ -325,7 +325,7 @@ def viewENresponses( simRes, modelParams, expP,
                 'ro') # , markerfacecolor='r'
             ax.set_title(r'% $\Delta$ median')
             ax.set_xlim([0, max(preSA)+1])
-            ax.set_ylim([-50,400])
+            # ax.set_ylim([-50,400])
             ax.set_xticks(preSA, minor=False)
             ax.set_xticklabels(trueXLabels)
 
@@ -387,7 +387,6 @@ def viewENresponses( simRes, modelParams, expP,
             ax.set_xticks(preSA)
             ax.set_xticklabels(trueXLabels)
 
-
         # Save plot
         if saveImageFolder and os.path.isdir(saveImageFolder) and showPlots[0]:
             thisFig.savefig(os.path.join(saveImageFolder,f'{resultsFilename}_en{enInd}.png'))
@@ -424,7 +423,7 @@ def viewENresponses( simRes, modelParams, expP,
 
     ## Plot EN timecourses normalized by mean digit response
 
-    # DEV NOTE: This whole loop (below) could be incorporated into the one above (I think?)
+    # DEV NOTE: This whole loop (below) could be incorporated into the one above (right?)
     # labels = whichClass
     if showPlots[1]:
 
@@ -469,16 +468,18 @@ def viewENresponses( simRes, modelParams, expP,
 
             # plot ENs
 
-            # normalized by the home class preMean
-            ax.plot(preTime, simRes['E'][preTimeInds,enInd] / preMeanControl, 'b')
-            # normalized by the home class postMean
-            ax.plot(postTime, simRes['E'][postTimeInds,enInd] / postMeanControl, 'b')
-            ax.plot(midTime, simRes['E'][midTimeInds,enInd] / 1, 'b')
+            #import pdb; pdb.set_trace()
 
-            # plot(preTime, preMean*ones(size(preTime)), 'color', colors{enInd},'lineStyle','-')
-            # plot(postTime, postMean*ones(size(postTime)), 'color', colors{enInd},'lineStyle','-')
-            # plot(preTime, (preMean-preStd)*ones(size(preTime)), 'color', colors{enInd},'lineStyle',':')
-            # plot(postTime, (postMean-postStd)*ones(size(postTime)), 'color', colors{enInd},'lineStyle',':')
+            # normalized by the home class preMean
+            ax.plot(preTime, simRes['E'][preTimeInds,enInd] / preMeanControl, color='b')
+            # normalized by the home class postMean
+            ax.plot(postTime, simRes['E'][postTimeInds,enInd] / postMeanControl, color='b')
+            ax.plot(midTime, simRes['E'][midTimeInds,enInd] / 1, color='b')
+
+            # ax.plot(preTime, preMean*np.ones(preTime.shape), color=colors[enInd], '-')
+            # ax.plot(postTime, postMean*np.ones(postTime.shape), color=colors[enInd], '-')
+            # ax.plot(preTime, (preMean-preStd)*np.ones(preTime.shape), color=colors[enInd], ':')
+            # ax.plot(postTime, (postMean-postStd)*np.ones(postTime.shape), color=colors[enInd], ':')
 
             # plot stims by color
             for i,cl in enumerate(classList):

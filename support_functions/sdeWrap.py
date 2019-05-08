@@ -64,7 +64,8 @@ def sdeWrapper( modelParams, expParams, featureArray ):
             cols = (theseClassStarts[j] < time) & (time < (theseClassStarts[j] + theseDurations[j]))
             classMagMatrix[i, cols] = theseMags[j]
     # print('bar',np.where(cols)) # NEED TO FIX- doesn't exactly correspond to matlab output
-    print(f'fix me - {len(np.where(cols)[0])}') # Contains one element too many
+    print(f'FOLLOW-UP[{__file__}] - {len(np.where(cols)[0])}') # Contains one element too many
+    # import pdb; pdb.set_trace()
 
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
     lpParam = expParams.lpParam # default transition zone = 0.12 sec

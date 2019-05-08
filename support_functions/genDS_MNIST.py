@@ -3,7 +3,7 @@ def generateDownsampledMNISTSet( preP ):
 	Loads the MNIST dataset (from Yann LeCun's website),
 	then applies various preprocessing steps to reduce the number of pixels
 	(each pixel will be a feature).
-	
+
 	The 'receptive field' step destroys spatial relationships, so to reconstruct
 	a 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices
 	can be embedded in a 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
@@ -38,6 +38,7 @@ def generateDownsampledMNISTSet( preP ):
 
 	im_dir = 'MNIST_all'
 
+	# DEV NOTE: add test for npy file before loading. run creation script, if absent.
 	# 1. extract mnist:
 	mnist = np.load(os.path.join(im_dir,'MNIST_all.npy')).item()
 	# loads dictionary 'mnist' with keys:value pairs =

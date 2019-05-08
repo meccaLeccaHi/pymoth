@@ -15,11 +15,11 @@ Order of events:
 	Within the loop over number of simulations:
 	2. Select a subset of the dataset for this simulation (only a few samples are used).
 	3. Create a moth (neural net). Either select an existing moth file, or generate a new moth in 2 steps:
-		a) run 'specifyModelParamsMnist_fn' and
+		a) run 'specifyModelParamsMnist' and
 		   incorporate user entry edits such as 'goal'.
-		b) create connection matrices via 'initializeConnectionMatrices_fn'
+		b) create connection matrices via 'initializeConnectionMatrices'
 	4. Load the experiment parameters.
-	5. Run the simulation with 'sdeWrapper_fn'
+	5. Run the simulation with 'sdeWrapper'
 	6. Plot results, print results to console
 '''
 
@@ -35,15 +35,16 @@ Order of events:
 # import packages
 import numpy as np
 import os
-import dill
+import dill # for pickling module object (optional)
+import time
+start = time.time() # time execution duration
 
 # Experiment details
-from support_functions.setMNISTExpParams import setMNISTExperimentParams
 from support_functions.genDS_MNIST import generateDownsampledMNISTSet
-from MNIST_all.MNIST_read import MNIST_read
 from support_functions.show_figs import showFeatureArrayThumbnails, viewENresponses
 import support_functions.specifyModelParamsMnist as model_params
 from support_functions.connect_mat import initializeConnectionMatrices
+from support_functions.setMNISTExpParams import setMNISTExperimentParams
 from support_functions.sdeWrap import sdeWrapper
 from support_functions.classifyDigits import classifyDigitsViaLogLikelihood, classifyDigitsViaThresholding
 
@@ -226,11 +227,10 @@ for run in range(numRuns):
 	modelParams.trueClassLabels = classLabels # misc parameter tagging along
 	modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
 
-	# Define the experiment parameters, including book-keeping for time-stepped evolutions, eg
-	# 	when octopamine occurs, time regions to poll for digit responses, windowing of Firing rates, etc
-	experimentParams = setMNISTExperimentParams( trClasses, classLabels, valPerClass )
-	# experimentParams = experimentFn( trClasses, classLabels, valPerClass )
-	# RESTORE LATER
+	# Define the experiment parameters, including book-keeping for time-stepped
+	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
+	# 	responses, windowing of Firing rates, etc
+	experimentParams = experimentFn( trClasses, classLabels, valPerClass )
 
 #-------------------------------------------------------------------------------
 
@@ -277,9 +277,9 @@ for run in range(numRuns):
 	outputTrainedThresholding = classifyDigitsViaThresholding( r, 1e9, -1, 10 )
 	#     disp( 'Thresholding: ')
 	#     disp( [ 'Naive accuracy: ' num2str(round(outputNaiveThresholding.totalAccuracy)),...
-	#               '#, by class: ' num2str(round(outputNaiveThresholding.accuracyPercentages)),    ' #.   ' ])
+	#               '#, by class: ' num2str(round(outputNaiveThresholding.accuracyPercentages)), ' #.   ' ])
 	#     disp([ ' Trained accuracy: ' num2str(round(outputTrainedThresholding.totalAccuracy)),...
-	#               '#, by class: ' num2str(round(outputTrainedThresholding.accuracyPercentages)),    ' #.   ' ])
+	#               '#, by class: ' num2str(round(outputTrainedThresholding.accuracyPercentages)), ' #.   ' ])
 
 	# append the accuracy results, and other run data, to the first entry of r:
 	r[0]['modelParams'] = modelParams  # will include all connection weights of this moth
@@ -298,12 +298,14 @@ for run in range(numRuns):
 		results_fname = os.path.join(saveResultsDataFolder, f'{resultsFilename}_{run}.pkl')
 		dill.dump(r, open(results_fname, 'wb'))
 		# open via:
-		# 	import dill as pickle
-		# 	with open(results_fname,'rb') as f:
-    	#   	B = pickle.load(f)
+		# >>> import dill as pickle
+		# >>> with open(results_fname,'rb') as f:
+    	# >>> 	B = pickle.load(f)
 
 		print(f'Results saved to: {results_fname}')
 
-	print('         -------------All done-------------         ')
+# import pdb; pdb.set_trace()
 
-	# import pdb; pdb.set_trace()
+print('         -------------All done-------------         ')
+
+print(f'{__file__} executed in {((time.time() - start)/60):.3f} minutes')
