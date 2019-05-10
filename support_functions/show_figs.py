@@ -96,10 +96,12 @@ def viewENresponses( simRes, modelParams, expP,
         2. modelParams: object containing model parameters for this moth
         3. expP: object containing experiment parameters with timing
             and digit class info from the experiment.
-        4. showPlots: 1 x 2 vector. First entry: show changes in accuracy. 2nd entry: show EN timecourses.
+        4. showPlots: 1 x 2 vector. First entry: show changes in accuracy.
+            2nd entry: show EN timecourses.
         5. classLabels: 1 to 10
-        6. resultsFilename:  to generate image filenames if saving. Optional argin
-        7. saveImageFolder:  where to save images. If this = [], images will not be saved (ie its also a flag). Optional argin.
+        6. resultsFilename: to generate image filenames if saving. Optional argin
+        7. saveImageFolder: where to save images. If this = [], images will not
+            be saved (ie its also a flag). Optional argin.
 
     Outputs (as fields of resultsStruct):
         1. preMeanResp = numENs x numOdors matrix = mean of EN pre-training

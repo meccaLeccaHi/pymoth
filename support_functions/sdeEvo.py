@@ -100,10 +100,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # DEV NOTE: Remove this next section (lines 89:94)
     ## noise in individual neuron FRs
     # These are vectors, one vector for each type:
-    wRsig = mP.noiseRvec
     wPsig = mP.noisePvec
     wPIsig = mP.noisePIvec # no PIs for mnist
     wLsig = mP.noiseLvec
+    wRsig = mP.noiseRvec
     wKsig = mP.noiseKvec
     wEsig = mP.noiseEvec
 
@@ -113,23 +113,24 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # DEV NOTE: Are we worried about the precision of these values (below)?
     ## param for sigmoid that squashes inputs to neurons:
     # the slope at x = 0 = mP.slopeParam*span/4
-    kSlope = mP.slopeParam*mP.cK/4
     pSlope = mP.slopeParam*mP.cP/4
     piSlope = mP.slopeParam*mP.cPI/4 # no PIs for mnist
-    rSlope = mP.slopeParam*mP.cR/4
     lSlope = mP.slopeParam*mP.cL/4
+    rSlope = mP.slopeParam*mP.cR/4
+    kSlope = mP.slopeParam*mP.cK/4
 
 #-------------------------------------------------------------------------------
 
     dt = time[1] - time[0] # this is determined by start, stop and step in calling function
     N = int( (tspan[1] - tspan[0]) / dt ) # number of steps in noise evolution
-    T = np.linspace(tspan[0], tspan[1], N) # the time vector
+    T = np.linspace(tspan[0], tspan[1], N+1)[:-1] # the time vector
+    # T is made to correspond to the matlab version which doesn't include the endpoint
 
     def wiener(w_sig, meanSpont_, old_, tau_, inputs_):
         d_ = dt*(-old_*tau_ + inputs_)
 
         # Wiener noise:
-        dW_ = np.sqrt(dt)*w_sig.squeeze()*meanSpont_*np.random.randn(*d_.shape)
+        dW_ = np.sqrt(dt)*w_sig.squeeze()*meanSpont_*np.random.normal(0,1,(d_.shape))
 
         # combine them:
         return old_ + d_ + dW_
@@ -157,9 +158,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     P2Kmask = mP.P2K > 0
     PI2Kmask = mP.PI2K > 0 # no PIs for mnist
     K2Emask = mP.K2E > 0
-    newP2K = mP.P2K # initialize
-    newPI2K = mP.PI2K # no PIs for mnist
-    newK2E = mP.K2E
+    newP2K = mP.P2K.copy() # initialize
+    newPI2K = mP.PI2K.copy() # no PIs for mnist
+    newK2E = mP.K2E.copy()
 
     # initialize the counters for the various classes
     classCounter = np.zeros(nC)
@@ -167,7 +168,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # make a list of Ts for which heb is active
     hebRegion = np.zeros(T.shape)
     for i in range(len(exP.hebStarts)):
-        inds = np.logical_and(T >= exP.hebStarts[i], T <= (exP.hebStarts[i] + exP.hebDurations[i]))
+        inds = np.bitwise_and(T >= exP.hebStarts[i], T <= (exP.hebStarts[i] + exP.hebDurations[i]))
         hebRegion[inds] = 1
 
     ## DEBUG STEP:
@@ -198,11 +199,11 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
     ## Main evolution loop:
     # iterate through time steps to get the full evolution:
-    for i in range(N): # i = index of the time point
+    for i in range(N-1): # i = index of the time point
         prog = int(15*(i/N))
         remain = 15-prog-1
-        print(f"FOLLOW-UP[{__file__}] -{spin[i%4]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
-        # import pdb; pdb.set_trace()
+        print(f"{spin[i%4]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
+
         # step = np.round(time[1] - time[0], 4)
 
         # DEV NOTE: Confused by this. What is purpose?
@@ -221,9 +222,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         oldE = E[:,i]
         oldT = T[i]
 
-        oldP2K = newP2K # these are inherited from the previous iteration
-        oldPI2K = newPI2K # no PIs for mnist
-        oldK2E = newK2E
+        oldP2K = newP2K.copy() # these are inherited from the previous iteration
+        oldPI2K = newPI2K.copy() # no PIs for mnist
+        oldK2E = newK2E.copy()
 
 #-------------------------------------------------------------------------------
 
@@ -251,7 +252,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             # meanSpontE = E[:,inds].mean(axis=1)
             meanCalc1Done = 1 # so we don't calc this again
 
-
         if adjustNoiseFlag2 and not(meanCalc2Done):
             # ie we want to calc new noise weight vectors. This stage is surplus
             inds = np.nonzero(np.logical_and(T > exP.startSpontMean2,
@@ -267,7 +267,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         if adjustNoiseFlag3 and not(meanCalc3Done):
             # we want to calc stdSpontP for use with LH channel and maybe for use in heb
-            # maybe we should also use this for noise calcs (eg dWP). But the difference is slight.
+            # maybe we should also use this for noise calcs (eg dWP).
+            # But the difference is slight.
             inds = np.nonzero(np.logical_and(T > exP.startSpontMean3,
                 T < exP.stopSpontMean3))[0]
             ssMeanSpontP = P[:,inds].mean(axis=1) # 'ss' means steady state
@@ -281,9 +282,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             temp = np.sort(mP.P2K.dot(ssMeanSpontP)) # 'ascending' by default
             ignoreTopN = 1 # ie ignore this many of the highest vals
             temp = temp[:-ignoreTopN] # ignore the top few outlier K inputs
-            maxSpontP2KtimesPval = temp.max() # The minimum global damping on the MB.
-            print(f'FOLLOW-UP[{__file__}] -maxSpontP2KtimesPval:', maxSpontP2KtimesPval)
-            # import pdb; pdb.set_trace()
+            maxSpontP2KtimesPval = temp.max() # The minimum global damping on the MB
             meanCalc3Done = 1
 
         # update classCounter
@@ -294,7 +293,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # get values of feature inputs at time index i, as a col vector.
         # This allows for simultaneous inputs by different classes, but current
-        # experiments apply only one class at a time.
+        #   experiments apply only one class at a time.
         thisInput = np.zeros(mP.nF)
         thisStimClassInd = []
         for j in range(nC):
@@ -307,24 +306,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         # get value at t for octopamine:
         thisOctoHit = octoHits[i]
         # octoHits is a vector with an octopamine magnitude for each time point
-
-#-------------------------------------------------------------------------------
-
-        # dR:
-        # inputs: S = stim,  L = lateral neurons, mP.Rspont = spontaneous FR
-        # NOTE: octo does not affect mP.Rspont. It affects R's response to input odors.
-        Rinputs = (1 - thisOctoHit*mP.octo2R*mP.octoNegDiscount).squeeze()
-        Rinputs[Rinputs<0] = 0 # pos. rectify Rinputs
-        Rinputs *= -mP.L2R.dot(oldL)
-        neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
-        neur_act = neur_act*(1 + thisOctoHit*mP.octo2R).squeeze()
-        Rinputs = Rinputs + neur_act + mP.Rspont.squeeze()
-        # DEV NOTE: Rinputs values seem higher than their ML version, even though
-        # the inputs (octoMax, etc.) look the same - check if it's a problem.
-        Rinputs = piecewiseLinearPseudoSigmoid(Rinputs, mP.cR, rSlope)
-
-        # Wiener noise
-        newR = wiener(wRsig, meanSpontR, oldR, mP.tauR, Rinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -369,6 +350,24 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
 #-------------------------------------------------------------------------------
 
+        # dR:
+        # inputs: S = stim,  L = lateral neurons, mP.Rspont = spontaneous FR
+        # NOTE: octo does not affect mP.Rspont. It affects R's response to input odors.
+        Rinputs = (1 - thisOctoHit*mP.octo2R*mP.octoNegDiscount).squeeze()
+        Rinputs[Rinputs<0] = 0 # pos. rectify Rinputs
+        Rinputs *= -mP.L2R.dot(oldL)
+        neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
+        neur_act = neur_act*(1 + thisOctoHit*mP.octo2R).squeeze()
+        Rinputs = Rinputs + neur_act + mP.Rspont.squeeze()
+        # DEV NOTE: Rinputs values seem higher than their ML version, even though
+        # the inputs (octoMax, etc.) look the same - check if it's a problem.
+        Rinputs = piecewiseLinearPseudoSigmoid(Rinputs, mP.cR, rSlope)
+
+        # Wiener noise
+        newR = wiener(wRsig, meanSpontR, oldR, mP.tauR, Rinputs)
+
+#-------------------------------------------------------------------------------
+
         # Enforce sparsity on the KCs:
         # Global damping on KCs is controlled by mP.sparsityTarget
         # (during octopamine, by octSparsityTarget).
@@ -387,7 +386,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         minDamperVal = 1.2*maxSpontP2KtimesPval
         thisKinput = oldP2K.dot(oldP) - oldPI2K.dot(oldPI) # (no PIs for mnist, only Ps)
 
-        # DEV NOTE: This value is different than the Matlab version -- clarify w/ CBD
         damper = thisKinput.mean() + numStds*thisKinput.std()
         damper = max(damper, minDamperVal)
 
@@ -428,12 +426,12 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         # Hebbian updates are active for about half the duration of each stimulus
         if True: #########REPLACE LATER!!!!!!!!! if hebRegion[i]:
             # the PN contribution to hebbian is based on raw FR
-            tempP = oldP
-            tempPI = oldPI # no PIs for mnist
+            #tempP = oldP.copy()
+            #tempPI = oldPI.copy() # no PIs for mnist
             nonNegNewK = np.maximum(newK, 0) # since newK has not yet been made non-neg
 
             ## dP2K:
-            dp2k = (1/mP.hebTauPK) * nonNegNewK.reshape(-1, 1).dot(tempP.reshape(-1, 1).T)
+            dp2k = (1/mP.hebTauPK) * nonNegNewK.reshape(-1, 1).dot(oldP.reshape(-1, 1).T)
             dp2k *= P2Kmask #  if original synapse does not exist, it will never grow
 
             # decay some P2K connections if wished: (not used for mnist experiments)
@@ -446,11 +444,11 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 #-------------------------------------------------------------------------------
 
             ## dPI2K: # no PIs for mnist
-            dpi2k = (1/mP.hebTauPIK) * nonNegNewK.reshape(-1, 1).dot(tempPI.reshape(-1, 1).T)
+            dpi2k = (1/mP.hebTauPIK) * nonNegNewK.reshape(-1, 1).dot(oldPI.reshape(-1, 1).T)
             dpi2k *= PI2Kmask # if original synapse does not exist, it will never grow
 
             # kill small increases:
-            temp = oldPI2K # this detour prevents dividing by zero
+            temp = oldPI2K.copy() # this detour prevents dividing by zero
             temp[temp == 0] = 1
             keepMask = dpi2k/temp
             keepMask = keepMask.reshape(dpi2k.shape)
@@ -463,9 +461,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 #-------------------------------------------------------------------------------
 
             ## dK2E:
-            tempK = oldK
+            #tempK = oldK
             # oldK is already nonNeg
-            dk2e = (1/mP.hebTauKE) * newE.reshape(-1, 1).dot(tempK.reshape(-1, 1).T)
+            dk2e = (1/mP.hebTauKE) * newE.reshape(-1, 1).dot(oldK.reshape(-1, 1).T)
             dk2e *= K2Emask
 
             # restrict changes to just the i'th row of mP.K2E, where i = ind of training stim
@@ -498,31 +496,33 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # update the evolution matrices, disallowing negative FRs.
         if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
-            # case: do not save AL and MB neural timecourses after the noise calibration is done, to save on memory
-            R[:,i] = np.maximum(newR, 0)
-            P[:,i] = np.maximum(newP, 0)
-            PI[:,i] = np.maximum(newPI, 0) # no PIs for mnist
-            L[:,i] = np.maximum(newL, 0)
-            K[:,i] = np.maximum(newK, 0)
+            # case: do not save AL and MB neural timecourses after the noise
+            #   calibration is done, to save on memory
+            P[:,i+1] = np.maximum(newP, 0)
+            PI[:,i+1] = np.maximum(newPI, 0) # no PIs for mnist
+            L[:,i+1] = np.maximum(newL, 0)
+            R[:,i+1] = np.maximum(newR, 0)
+            K[:,i+1] = np.maximum(newK, 0)
             # DEV NOTE: delete following line. redundant with below
             # E[,i+1] = newE
         else:
-            R = np.maximum(newR, 0)
             P = np.maximum(newP, 0)
             PI = np.maximum(newPI, 0) # no PIs for mnist
             L = np.maximum(newL, 0)
+            R = np.maximum(newR, 0)
             K = np.maximum(newK, 0)
 
-        E[:,i] = newE # always save full EN timecourses
+        E[:,i+1] = newE # always save full EN timecourses
 
     print()
     # Time-step simulation is now over.
 
-    thisRun = dict() # pre-allocate
+    # FOLLOW-UP: Figure out why 'E' has a different shape than the others.
+    # Values are same for both versions, working fine.
     # import pdb; pdb.set_trace()
-    print(f"FOLLOW-UP[{__file__}]- why is 'E' shaped differently?")
-    ### FIGURE OUT WHY THE VARIABLE 'E' HAS A DIFFERENT SHAPE THAN THE OTHERS
-    # # combine so that each row of fn output Y is a col of [P; PI; L; R; K]:
+
+    thisRun = dict() # pre-allocate
+    # combine so that each row of fn output Y is a col of [P; PI; L; R; K]
     if mP.saveAllNeuralTimecourses:
         Y = np.vstack((P, PI, L, R, K, E))
         thisRun['Y'] = Y.T.astype('float32') # convert to singles to save memory

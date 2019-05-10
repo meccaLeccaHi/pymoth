@@ -18,16 +18,11 @@ def initializeConnectionMatrices(mP):
     Comment: Since there are many zero connections (ie matrices are usually
         not all-to-all) we often need to apply masks to preserve the zero connections
     '''
-    
+
     import numpy as np
     import numpy.random as r
     from decimal import Decimal, getcontext
     getcontext().prec = 4 # set Decimal type precision
-
-    def pos_rect(input):
-        '''Positive rectifier function'''
-        input[input < 0] = 0
-        return input
 
     # first make a binary mask S2Rbinary
     if mP.RperFFrMu > 0:
@@ -59,16 +54,16 @@ def initializeConnectionMatrices(mP):
                 mP.F2Rbinary[inds[a],j] = 1
 
     # now mask a matrix of gaussian weights
-    rand_mat = r.rand(*mP.F2Rbinary.shape)
+    rand_mat = r.normal(0,1,mP.F2Rbinary.shape)
     # Note: S (stimuli) for odor case is replaced by F (features) for MNIST version
     mP.F2R = ( mP.F2Rmu*mP.F2Rbinary + mP.F2Rstd*rand_mat )*mP.F2Rbinary # the last term ensures 0s stay 0s
-    mP.F2R = pos_rect(mP.F2R) # to prevent any negative weights
+    mP.F2R = np.maximum(0, mP.F2R) # to prevent any negative weights
 
     # spontaneous FRs for Rs
     if mP.spontRdistFlag==1: # case: gaussian distribution
         #  steady-state RN FR, base + noise:
-        mP.Rspont = mP.spontRmu*np.ones((mP.nG, 1)) + mP.spontRstd*r.rand(mP.nG, 1)
-        mP.Rspont = pos_rect(mP.Rspont)
+        mP.Rspont = mP.spontRmu*np.ones((mP.nG, 1)) + mP.spontRstd*r.normal(0,1,(mP.nG,1))
+        mP.Rspont = np.maximum(0, mP.Rspont)
     else: # case: 2 gamma distribution
         a = Decimal(mP.spontRmu)/Decimal(mP.spontRstd)
         b = Decimal(mP.spontRmu)/a # spontRstd
@@ -76,22 +71,22 @@ def initializeConnectionMatrices(mP):
         mP.Rspont = mP.spontRbase + g
 
     # R2G connection vector: nG x 1 col vector
-    mP.R2G = mP.R2Gmu*np.ones((mP.nG, 1)) + mP.R2Gstd*r.rand(mP.nG, 1) # col vector,
+    mP.R2G = mP.R2Gmu*np.ones((mP.nG, 1)) + mP.R2Gstd*r.normal(0,1,(mP.nG,1)) # col vector,
     # each entry is strength of an R in its G. the last term prevents negative R2G effects
 
     # now make R2P, etc, all are cols nG x 1
-    mP.R2P = ( mP.R2Pmult + mP.R2Pstd*r.rand(mP.nG, 1) )*mP.R2G
-    mP.R2L = ( mP.R2Lmult + mP.R2Lstd*r.rand(mP.nG, 1) )*mP.R2G
+    mP.R2P = ( mP.R2Pmult + mP.R2Pstd*r.normal(0,1,(mP.nG,1)) )*mP.R2G
+    mP.R2L = ( mP.R2Lmult + mP.R2Lstd*r.normal(0,1,(mP.nG,1)) )*mP.R2G
 
     # this interim nG x 1 col vector gives the effect of each R on any PI in the R's glom.
-    mP.R2PIcol = ( mP.R2PImult + mP.R2PIstd*r.rand(mP.nG, 1) )*mP.R2G
+    mP.R2PIcol = ( mP.R2PImult + mP.R2PIstd*r.normal(0,1,(mP.nG,1)) )*mP.R2G
     # It will be used below with G2PI to get full effect of Rs on PIs
 
     # Construct L2G = nG x nG matrix of lateral neurons. This is a precursor to L2P etc
     # DEV NOTE: Had to make this different than matlab version - in Python, scalars have no shape
     # Run by CBD
-    mP.L2G = mP.L2Gmu + mP.L2Gstd*r.rand(mP.nG, mP.nG)
-    mP.L2G = pos_rect(mP.L2G) # kill any vals < 0
+    mP.L2G = mP.L2Gmu + mP.L2Gstd*r.normal(0,1,(mP.nG, mP.nG))
+    mP.L2G = np.maximum(0, mP.L2G) # kill any vals < 0
     mP.L2G -= np.diag(np.diag(mP.L2G)) # set diagonal = 0
 
     # are enough of these values 0?
@@ -109,25 +104,25 @@ def initializeConnectionMatrices(mP):
 
     # gloms vary widely in their sensitivity to gaba (Hong, Wilson 2014).
     # multiply the L2* vectors by Gsens + GsensStd:
-    gabaSens = mP.GsensMu + mP.GsensStd*r.rand(mP.nG, 1)
+    gabaSens = mP.GsensMu + mP.GsensStd*r.normal(0,1,(mP.nG,1))
     L2GgabaSens = mP.L2G * np.tile( gabaSens, (1, mP.nG) ) # ie each row is multiplied by a different value,
         # since each row represents a destination glom
     # this version of L2G does not encode variable sens to gaba, but is scaled by GsensMu:
     mP.L2G *= mP.GsensMu
 
     # now generate all the L2etc matrices:
-    mP.L2R = pos_rect( mP.L2Rmult + mP.L2Rstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
+    mP.L2R = np.maximum(0,  mP.L2Rmult + mP.L2Rstd*r.normal(0,1,(mP.nG,mP.nG)) ) * L2GgabaSens
      # the last term will keep 0 entries = 0
-    mP.L2P = pos_rect( mP.L2Pmult + mP.L2Pstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
-    mP.L2L = pos_rect( mP.L2Lmult + mP.L2Lstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
-    mP.L2PI = pos_rect( mP.L2Lmult + mP.L2PIstd*r.rand(mP.nG,mP.nG) ) * L2GgabaSens
+    mP.L2P = np.maximum(0,  mP.L2Pmult + mP.L2Pstd*r.normal(0,1,(mP.nG,mP.nG)) ) * L2GgabaSens
+    mP.L2L = np.maximum(0,  mP.L2Lmult + mP.L2Lstd*r.normal(0,1,(mP.nG,mP.nG)) ) * L2GgabaSens
+    mP.L2PI = np.maximum(0,  mP.L2Lmult + mP.L2PIstd*r.normal(0,1,(mP.nG,mP.nG)) ) * L2GgabaSens
      # Masked by G2PI later (no PIs for mnist)
 
     # Ps (excitatory):
     P2KconnMatrix = r.rand(mP.nK, mP.nP) < mP.KperPfrMu # each col is a P, and a fraction of the entries will = 1
      # different cols (PNs) will have different numbers of 1's (~binomial dist)
 
-    mP.P2K = pos_rect( mP.P2Kmu + mP.P2Kstd*r.rand(mP.nK, mP.nP) ) # all >= 0
+    mP.P2K = np.maximum(0,  mP.P2Kmu + mP.P2Kstd*r.normal(0,1,(mP.nK, mP.nP)) ) # all >= 0
     mP.P2K *= P2KconnMatrix
     # cap P2K values at hebMaxP2K, so that hebbian training never decreases wts:
     mP.P2K[mP.P2K > mP.hebMaxPK] = mP.hebMaxPK
@@ -146,7 +141,7 @@ def initializeConnectionMatrices(mP):
 
     # In the moth, each PI is fed by many gloms
     mP.G2PIconn = r.rand(mP.nPI, mP.nG) < mP.GperPIfrMu # step 1a
-    mP.G2PI = pos_rect(mP.G2PIstd*r.rand(mP.nPI, mP.nG) + mP.G2PImu) # step 1b
+    mP.G2PI = np.maximum(0, mP.G2PIstd*r.normal(0,1,(mP.nPI,mP.nG)) + mP.G2PImu) # step 1b
     mP.G2PI *= mP.G2PIconn # mask with double values, step 1b (cont)
     mP.G2PI /= np.tile(mP.G2PI.sum(axis=1).reshape(-1, 1),(1, mP.G2PI.shape[1]))
     # no PIs for mnist
@@ -161,9 +156,10 @@ def initializeConnectionMatrices(mP):
 
     if mP.nPI>0:
         mP.PI2Kconn = r.rand(mP.nK, mP.nPI) < mP.KperPIfrMu # step 2a
-        mP.PI2K = pos_rect(mP.PI2Kmu + mP.PI2Kstd*r.rand(mP.nK, mP.nPI)) # step 2b
+        mP.PI2K = np.maximum(0, mP.PI2Kmu + mP.PI2Kstd*r.normal(0,1,(mP.nK,mP.nPI))) # step 2b
         mP.PI2K *= mP.PI2Kconn # mask
         mP.PI2K[mP.PI2K > mP.hebMaxPIK] = mP.hebMaxPIK
+
         # no PIs for mnist
         # 1. G2PI maps the Gs to the PIs. It is nPI x nG, doubles.
         #    The weights are used to find the net PI firing rate
@@ -176,45 +172,43 @@ def initializeConnectionMatrices(mP):
     mP.K2EconnMatrix = r.rand(mP.nE, mP.nK) < mP.KperEfrMu # each col is a K, and a fraction of the entries will = 1.
     #    different cols (KCs) will have different numbers of 1's (~binomial dist).
 
-    mP.K2E = pos_rect( mP.K2Emu + mP.K2Estd*r.rand(mP.nE, mP.nK) ) # all >= 0
+    mP.K2E = np.maximum(0,  mP.K2Emu + mP.K2Estd*r.normal(0,1,(mP.nE,mP.nK)) ) # all >= 0
     mP.K2E = np.multiply(mP.K2E, mP.K2EconnMatrix)
     mP.K2E[mP.K2E > mP.hebMaxKE] = mP.hebMaxKE
     # K2E maps from the KCs to the ENs. Given firing rates KC, K2E gives the effect on the various ENs.
     # It is nE x nK with entries >= 0.
 
     # octopamine to Gs and to Ks
-    mP.octo2G = pos_rect( mP.octo2Gmu + mP.octo2Gstd*r.rand(mP.nG, 1) ) # intermediate step
+    mP.octo2G = np.maximum(0,  mP.octo2Gmu + mP.octo2Gstd*r.normal(0,1,(mP.nG,1)) ) # intermediate step
     # uniform distribution (experiment)
-    mP.octo2G = pos_rect( mP.octo2Gmu + 4*mP.octo2Gstd*r.rand(mP.nG, 1) - 2*mP.octo2Gstd ) # 2*(linspace(0,1,nG) )' )
-    mP.octo2K = pos_rect( mP.octo2Kmu + mP.octo2Kstd*r.rand(mP.nK, 1) )
+    # mP.octo2G = np.maximum(0,  mP.octo2Gmu + 4*mP.octo2Gstd*r.rand(mP.nG, 1) - 2*mP.octo2Gstd ) # 2*(linspace(0,1,nG) )' )
+    mP.octo2K = np.maximum(0,  mP.octo2Kmu + mP.octo2Kstd*r.normal(0,1,(mP.nK, 1)) )
     # each of these is a col vector with entries >= 0
 
-    mP.octo2P = pos_rect( mP.octo2Pmult*mP.octo2G + mP.octo2Pstd*r.rand(mP.nG, 1) ) # effect of octo on P, includes gaussian variation from P to P
-    mP.octo2L = pos_rect( mP.octo2Lmult*mP.octo2G + mP.octo2Lstd*r.rand(mP.nG, 1) )
-    mP.octo2R = pos_rect( mP.octo2Rmult*mP.octo2G + mP.octo2Rstd*r.rand(mP.nG, 1) )
-    #  uniform distributions (experiments)
-    mP.octo2P = pos_rect( mP.octo2Pmult*mP.octo2G + 4*mP.octo2Pstd*r.rand(mP.nG, 1) - 2*mP.octo2Pstd )
-    mP.octo2L = pos_rect( mP.octo2Lmult*mP.octo2G + 4*mP.octo2Lstd*r.rand(mP.nG, 1) - 2*mP.octo2Lstd )
-    mP.octo2R = pos_rect( mP.octo2Rmult*mP.octo2G + 4*mP.octo2Rstd*r.rand(mP.nG, 1) - 2*mP.octo2Rstd )
+    mP.octo2P = np.maximum(0,  mP.octo2Pmult*mP.octo2G + mP.octo2Pstd*r.normal(0,1,(mP.nG,1)) ) # effect of octo on P, includes gaussian variation from P to P
+    mP.octo2L = np.maximum(0,  mP.octo2Lmult*mP.octo2G + mP.octo2Lstd*r.normal(0,1,(mP.nG,1)) )
+    mP.octo2R = np.maximum(0,  mP.octo2Rmult*mP.octo2G + mP.octo2Rstd*r.normal(0,1,(mP.nG,1)) )
+    # #  uniform distributions (experiments)
+    # mP.octo2P = np.maximum(0,  mP.octo2Pmult*mP.octo2G + 4*mP.octo2Pstd*r.rand(mP.nG,1) - 2*mP.octo2Pstd )
+    # mP.octo2L = np.maximum(0,  mP.octo2Lmult*mP.octo2G + 4*mP.octo2Lstd*r.rand(mP.nG,1) - 2*mP.octo2Lstd )
+    # mP.octo2R = np.maximum(0,  mP.octo2Rmult*mP.octo2G + 4*mP.octo2Rstd*r.rand(mP.nG,1) - 2*mP.octo2Rstd )
     # mask and weight octo2PI
     mP.octo2PIwts = mP.G2PI*( mP.octo2PImult*mP.octo2G.T ) # does not include a PI-varying std term
     # normalize this by taking average
     mP.octo2PI = mP.octo2PIwts.sum(axis=1)/mP.G2PIconn.sum(axis=1) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
     # no PIs for mnist
 
-    mP.octo2E = pos_rect( mP.octo2Emu + mP.octo2Estd*r.rand(mP.nE, 1) )
-
-
+    mP.octo2E = np.maximum(0,  mP.octo2Emu + mP.octo2Estd*r.normal(0,1,(mP.nE,1)) )
 
 
     # each neuron has slightly different noise levels for sde use. Define noise vectors for each type:
     # Gaussian versions:
-    # mP.noiseRvec = pos_rect( mP.mP.epsRstd + mP.RnoiseSig*r.rand(mP.nR, 1) ) # remove negative noise entries
-    # mP.noisePvec = pos_rect( mP.epsPstd + mP.PnoiseSig*r.rand(mP.nP, 1) )
-    # mP.noiseLvec = pos_rect( mP.epsLstd + mP.LnoiseSig*r.rand(mP.nG, 1) )
-    mP.noisePIvec = pos_rect( mP.noisePI + mP.PInoiseStd*r.rand(mP.nPI, 1) ) # no PIs for mnist
-    mP.noiseKvec = pos_rect( mP.noiseK + mP.KnoiseStd*r.rand(mP.nK, 1) )
-    mP.noiseEvec = pos_rect( mP.noiseE + mP.EnoiseStd*r.rand(mP.nE, 1) )
+    # mP.noiseRvec = np.maximum(0,  mP.mP.epsRstd + mP.RnoiseSig*r.normal(0,1,(mP.nR,1)) ) # remove negative noise entries
+    # mP.noisePvec = np.maximum(0,  mP.epsPstd + mP.PnoiseSig*r.normal(0,1,(mP.nP,1)) )
+    # mP.noiseLvec = np.maximum(0,  mP.epsLstd + mP.LnoiseSig*r.normal(0,1,(mP.nG,1)) )
+    mP.noisePIvec = np.maximum(0,  mP.noisePI + mP.PInoiseStd*r.normal(0,1,(mP.nPI,1)) ) # no PIs for mnist
+    mP.noiseKvec = np.maximum(0,  mP.noiseK + mP.KnoiseStd*r.normal(0,1,(mP.nK,1)) )
+    mP.noiseEvec = np.maximum(0,  mP.noiseE + mP.EnoiseStd*r.normal(0,1,(mP.nE,1)) )
     # gamma versions:
     a = Decimal(mP.noiseR)/Decimal(mP.RnoiseStd)
     b = Decimal(mP.noiseR)/a
@@ -232,7 +226,7 @@ def initializeConnectionMatrices(mP):
     b = Decimal(mP.noiseL)/a
     mP.noiseLvec = np.random.gamma(a, scale=b, size=(mP.nG,1))
 
-    mP.kGlobalDampVec = mP.kGlobalDampFactor + mP.kGlobalDampStd*r.rand(mP.nK,1)
+    mP.kGlobalDampVec = mP.kGlobalDampFactor + mP.kGlobalDampStd*r.normal(0,1,(mP.nK,1))
     # each KC may be affected a bit differently by LH inhibition
 
 #-------------------------------------------------------------------------------

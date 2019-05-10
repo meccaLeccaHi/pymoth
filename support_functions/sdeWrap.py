@@ -60,11 +60,14 @@ def sdeWrapper( modelParams, expParams, featureArray ):
         theseMags = classMags[puffs]
 
         for j in range(len(theseClassStarts)):
-            #cols = np.where(theseClassStarts[j] < time < (theseClassStarts[j] + theseDurations[j]))
             cols = (theseClassStarts[j] < time) & (time < (theseClassStarts[j] + theseDurations[j]))
             classMagMatrix[i, cols] = theseMags[j]
-    # print('bar',np.where(cols)) # NEED TO FIX- doesn't exactly correspond to matlab output
-    print(f'FOLLOW-UP[{__file__}] - {len(np.where(cols)[0])}') # Contains one element too many
+
+    print(f'FOLLOW-UP[{__file__}]')
+    print(len(np.nonzero(cols)[0])) # Contains one element too many
+    # NEED TO FIX?: Doesn't correspond to matlab counterpart
+    # python version: [71250:71260] length=11
+    # matlab version: [71252:71261] length=10
     # import pdb; pdb.set_trace()
 
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:

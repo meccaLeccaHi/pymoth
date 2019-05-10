@@ -54,11 +54,12 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
         vals = vals[vals < thresh]  # peel off the value(s) just used
 
     activePixelInds = np.nonzero(activePixels > 0)[0]
-    print(f"FOLLOW-UP[{__file__}] - activePixelInds len:", len(activePixelInds))
+    print(f"FOLLOW-UP[{__file__}]")
+    print("activePixelInds len:", len(activePixelInds))
     print('activePixelInds[:5]:', activePixelInds[:5])
-    print("NEED TO FIX?: Doesn't correspond to matlab counterpart")
-    print('Same values for "thresh"')
-    print("Same shape. different values")
+    # NEED TO FIX?: Doesn't correspond to matlab counterpart
+    # Same values for "thresh" for both versions
+    # Same shape for "activePixelInds", but different values
     # import pdb; pdb.set_trace()
 
     if showImages:

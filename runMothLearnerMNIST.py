@@ -42,7 +42,6 @@ start = time.time() # time execution duration
 # Experiment details
 from support_functions.genDS_MNIST import generateDownsampledMNISTSet
 from support_functions.show_figs import showFeatureArrayThumbnails, viewENresponses
-import support_functions.specifyModelParamsMnist as model_params
 from support_functions.connect_mat import initializeConnectionMatrices
 from support_functions.setMNISTExpParams import setMNISTExperimentParams
 from support_functions.sdeWrap import sdeWrapper
@@ -215,7 +214,8 @@ for run in range(numRuns):
 		# # load 'matrixParamsFilename'
 	else:
 		# a) load template params
-		modelParams = model_params
+		# modelParams = model_params
+		import support_functions.specifyModelParamsMnist as modelParams
 
 		# b) over-write default values below (if applicable)
 		modelParams.nF = len(activePixelInds)
@@ -224,7 +224,7 @@ for run in range(numRuns):
 		# c) Now populate the moth's connection matrices using the modelParams
 		modelParams = initializeConnectionMatrices(modelParams)
 
-	modelParams.trueClassLabels = classLabels # misc parameter tagging along
+	modelParams.trueClassLabels = classLabels #.copy() # misc parameter tagging along
 	modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
 
 	# Define the experiment parameters, including book-keeping for time-stepped
@@ -252,7 +252,7 @@ for run in range(numRuns):
 
 	# Calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in r:
-	rNaive = r
+	rNaive = r[::]
 	for i, res in enumerate(r):
 		rNaive[i]['postMeanResp'] = res['preMeanResp']
 		rNaive[i]['postStdResp'] = res['preStdResp']
@@ -309,3 +309,5 @@ for run in range(numRuns):
 print('         -------------All done-------------         ')
 
 print(f'{__file__} executed in {((time.time() - start)/60):.3f} minutes')
+
+print('FOLLOW-UP: Should we include MIT licenses in these scripts?')
