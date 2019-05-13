@@ -424,7 +424,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         # training stimulus.
 
         # Hebbian updates are active for about half the duration of each stimulus
-        if True: #########REPLACE LATER!!!!!!!!! if hebRegion[i]:
+        if hebRegion[i]:
             # the PN contribution to hebbian is based on raw FR
             #tempP = oldP.copy()
             #tempPI = oldPI.copy() # no PIs for mnist
@@ -521,17 +521,18 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # Values are same for both versions, working fine.
     # import pdb; pdb.set_trace()
 
+    saveType = 'float32' # convert to singles to save memory
     thisRun = dict() # pre-allocate
     # combine so that each row of fn output Y is a col of [P; PI; L; R; K]
     if mP.saveAllNeuralTimecourses:
         Y = np.vstack((P, PI, L, R, K, E))
-        thisRun['Y'] = Y.T.astype('float32') # convert to singles to save memory
+        thisRun['Y'] = Y.T.astype(saveType)
     else:
         thisRun['Y'] = []
 
-    thisRun['T'] = T.T.astype('float32') # store T as a col
-    thisRun['E'] = E.T.astype('float32') # length(T) x mP.nE matrix
-    thisRun['P2Kfinal'] = oldP2K.T.astype('float32')
-    thisRun['K2Efinal'] = oldK2E.T.astype('float32')
+    thisRun['T'] = T.T.astype(saveType) # store T as a col
+    thisRun['E'] = E.T.astype(saveType) # length(T) x mP.nE matrix
+    thisRun['P2Kfinal'] = oldP2K.astype(saveType)
+    thisRun['K2Efinal'] = oldK2E.astype(saveType)
 
     return thisRun

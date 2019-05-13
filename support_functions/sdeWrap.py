@@ -40,8 +40,8 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     simStop =  expParams.simStop
     timeStep = 2*0.01
 
-    total_steps = (simStop - timeStep - simStart)/timeStep
-    time = np.around(np.linspace(simStart, simStop, total_steps + 1), decimals=4)
+    total_steps = (simStop - simStart)/timeStep
+    time = np.linspace(simStart, simStop-timeStep, total_steps)
 
     # create stimMags, a matrix n x m where n = # of odors and m = # timesteps.
     stimStarts = expParams.stimStarts
@@ -62,13 +62,6 @@ def sdeWrapper( modelParams, expParams, featureArray ):
         for j in range(len(theseClassStarts)):
             cols = (theseClassStarts[j] < time) & (time < (theseClassStarts[j] + theseDurations[j]))
             classMagMatrix[i, cols] = theseMags[j]
-
-    print(f'FOLLOW-UP[{__file__}]')
-    print(len(np.nonzero(cols)[0])) # Contains one element too many
-    # NEED TO FIX?: Doesn't correspond to matlab counterpart
-    # python version: [71250:71260] length=11
-    # matlab version: [71252:71261] length=10
-    # import pdb; pdb.set_trace()
 
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
     lpParam = expParams.lpParam # default transition zone = 0.12 sec
@@ -112,9 +105,12 @@ def sdeWrapper( modelParams, expParams, featureArray ):
         octoHits, modelParams, expParams, seedValue )
     # Time stepping is now done.
 
+    ##### import pdb; pdb.set_trace()
+
     ## Unpack Y and save results:
-    # Y is a matrix numTimePoints x nG. Each col is a PN, each row holds values for a single timestep
-    Y = thisRun['Y']
+    # Y is a matrix numTimePoints x nG.
+    # Each col is a PN, each row holds values for a single timestep
+    # Y = thisRun['Y']
 
     # save some inputs and outputs to a struct for argout:
     simResults = dict()
@@ -125,12 +121,12 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     simResults['P2Kfinal'] = thisRun['P2Kfinal']
 
     if modelParams.saveAllNeuralTimecourses:
-        simResults['P'] = Y[:,:nP]
-        simResults['K'] = Y[:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
+        simResults['P'] = thisRun['Y'][:,:nP]
+        simResults['K'] = thisRun['Y'][:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
 
         # other neural timecourses
-        # simResults['PI'] = Y[:,nP + 1:nP + nPI]
-        # simResults['L'] = Y[:, nP + nPI + 1:nP + nPI + nG]
-        # simResults['R'] = Y[:, nP + nPI + nG + 1: nP + nPI + nG + nR]
+        # simResults['PI'] = thisRun['Y'][:,nP + 1:nP + nPI]
+        # simResults['L'] = thisRun['Y'][:, nP + nPI + 1:nP + nPI + nG]
+        # simResults['R'] = thisRun['Y'][:, nP + nPI + nG + 1: nP + nPI + nG + nR]
 
     return simResults
