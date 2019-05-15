@@ -14,18 +14,13 @@ def averageImageStack( imStack, indicesToAverage ):
     # case: images are col vectors
     if len(imStack_shape) == 2:
         aveIm = np.zeros((imStack_shape[0],))
-
-        for i in indicesToAverage:
-            aveIm += imStack[:, i]
     else:
         aveIm = np.zeros(imStack_shape)
-        # DEV NOTE: Don't actually need for loop below in each branch of if construct
-        # - fix during refactor
-        for i in indicesToAverage:
-            aveIm += imStack[:, i]
+
+    for i in indicesToAverage:
+        aveIm += imStack[:, i]
 
     # normalize
-    averageIm = aveIm/imStack_shape[1]
-    # DEV NOTE: remove averageIm above feed right side directly to return to save memory
+    aveIm /= imStack_shape[1]
 
-    return averageIm
+    return aveIm

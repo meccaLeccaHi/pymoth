@@ -1,17 +1,18 @@
-def selectActivePixels( featureArray, numFeatures, showImages ):
+def selectActivePixels( featureArray, numFeatures, saveImageFolder=[], scrsz = (1920, 1080) ):
     '''
     Select the most active pixels, considering all class average images, to use as features.
     Inputs:
         1. featureArray: 3-D array nF x nS x nC, where nF = # of features,
         nS = # samples per class, nC = number of classes. As created by genDS_MNIST.
         2. numFeatures: The number of active pixels to use (these form the receptive field).
-        3. showImages:  1 means show average class images, 0 = don't show.
+        3. saveImageFolder:  dir to save average class images, empty = don't save
     Output:
         1. activePixelInds: 1 x nF vector of indices to use as features.
         Indices are relative to the vectorized thumbnails (so between 1 and 144).
     '''
 
-    # make a classAves matrix, each col a class ave 1 to 10 (ie 0), and add a col for the overallAve
+    # make a classAves matrix (cA), each col a class ave 1 to 10 (ie 0),
+    #  and add a col for the overallAve
     import numpy as np
     from support_functions.aveImStack import averageImageStack
     from support_functions.show_figs import showFeatureArrayThumbnails
@@ -20,26 +21,25 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     cA = np.zeros((pixNum, classNum+1))
 
     for i in range(classNum):
-        #temp = np.zeros((pixNum, numPerClass))
+
         cA[:,i] = averageImageStack(featureArray[:,:,i], list(range(numPerClass)))
 
     # last col = average image over all digits
-    cA[:,-1] = np.sum(cA[:,:-1],axis=1) / classNum
+    cA[:,-1] = np.sum(cA[:,:-1], axis=1) / classNum
 
     # normed version (does not rescale the overall average)
-    z = np.max(cA,axis=0)
+    z = np.max(cA, axis=0)
     z[-1] = 1
-    caNormed = cA/np.tile(z,(pixNum,1))
+    caNormed = cA/np.tile(z, (pixNum,1))
     # num = size(caNormed,2);
 
     # select most active 'numFeatures' pixels
-    this = cA[:,:-1]
-    thisLogical = np.zeros((pixNum, classNum))
+    this = cA[:, :-1]
+
+    thisLogical = np.zeros(this.shape)
 
     # all the pixel values from all the class averages, in descending order
-    vals = this.flatten()
-    vals.sort()
-    vals = vals[::-1]
+    vals = np.sort(this.flatten())[::-1]
 
     # start selecting the highest-valued pixels
     # DEV NOTE: Clarify this part with CBD - (why do it?)
@@ -62,11 +62,12 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
     # Same shape for "activePixelInds", but different values
     # import pdb; pdb.set_trace()
 
-    if showImages:
+    if saveImageFolder:
         # plot the normalized classAves pre-ablation
         normalize = 0
         titleStr = 'class aves, all pixels'
-        showFeatureArrayThumbnails(caNormed, classNum+1, normalize, titleStr)
+        showFeatureArrayThumbnails(caNormed, classNum+1, normalize, titleStr,
+            scrsz, saveImageFolder, 'all')
 
         # look at active pixels of the classAves, ie post-ablation
         normalize = 0
@@ -74,6 +75,7 @@ def selectActivePixels( featureArray, numFeatures, showImages ):
         caActiveOnly[activePixelInds, : ] = caNormed[activePixelInds, :]
         titleStr = 'class aves, active pixels only'
 
-        showFeatureArrayThumbnails(caActiveOnly, classNum+1, normalize, titleStr)
+        showFeatureArrayThumbnails(caActiveOnly, classNum+1, normalize, titleStr,
+            scrsz, saveImageFolder, 'active')
 
     return activePixelInds

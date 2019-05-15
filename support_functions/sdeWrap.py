@@ -44,28 +44,28 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     time = np.linspace(simStart, simStop-timeStep, total_steps)
 
     # create stimMags, a matrix n x m where n = # of odors and m = # timesteps.
-    stimStarts = expParams.stimStarts
-    durations = expParams.durations
-    whichClass = expParams.whichClass
+    # stimStarts = expParams.stimStarts
+    # durations = expParams.durations
+    # whichClass = expParams.whichClass
 
-    classList = np.sort(np.unique(whichClass))
-    classMags = expParams.classMags
+    classList = np.sort(np.unique(expParams.whichClass))
+    # classMags = expParams.classMags
     # create a classMagMatrix, each row giving the stimulus magnitudes of a different class:
     classMagMatrix = np.zeros((len(classList), len(time))) # ie 4 x len(time)
     for i,cl in enumerate(classList):
         # extract the relevant odor puffs. All vectors should be same size, in same order
-        puffs = (whichClass == cl)
-        theseClassStarts = stimStarts[puffs]
-        theseDurations = durations[puffs]
-        theseMags = classMags[puffs]
+        puffs = (expParams.whichClass == cl)
+        theseClassStarts = expParams.stimStarts[puffs]
+        theseDurations = expParams.durations[puffs]
+        theseMags = expParams.classMags[puffs]
 
         for j in range(len(theseClassStarts)):
             cols = (theseClassStarts[j] < time) & (time < (theseClassStarts[j] + theseDurations[j]))
             classMagMatrix[i, cols] = theseMags[j]
 
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
-    lpParam = expParams.lpParam # default transition zone = 0.12 sec
-    L = round(lpParam/timeStep) # define the slope of low pass transitions here
+    # lpParam: default transition zone = 0.12 sec
+    L = round(expParams.lpParam/timeStep) # define the slope of low pass transitions here
     lpWindow = np.hamming(L) # window of width L
     lpWindow /= lpWindow.sum()
 
@@ -74,14 +74,14 @@ def sdeWrapper( modelParams, expParams, featureArray ):
         classMagMatrix[i,:] = np.convolve(classMagMatrix[i,:], lpWindow, 'same')
 
     # window the octopamine:
-    octoMag = expParams.octoMag
+    # octoMag = expParams.octoMag
     octoHits = np.zeros(len(time))
     # octoStart = expParams.octoStart
     # durationOcto = expParams.durationOcto
     octoStop = [i + expParams.durationOcto for i in expParams.octoStart]
     for i in range(len(expParams.octoStart)):
         hits = (time >= expParams.octoStart[i]) & (time < octoStop[i])
-        octoHits[ hits ] = octoMag
+        octoHits[ hits ] = expParams.octoMag
     octoHits = np.convolve(octoHits, lpWindow, 'same') # the low pass filter
 
     ## do SDE time-step evolution:
@@ -99,13 +99,11 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     tspan = [ simStart, simStop ]
     seedValue = 0 # to free up or fix randn
     # If = 0, a random seed value will be chosen. If > 0, the seed will be defined.
-
+    
     # Run the SDE evolution:
     thisRun = sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         octoHits, modelParams, expParams, seedValue )
     # Time stepping is now done.
-
-    ##### import pdb; pdb.set_trace()
 
     ## Unpack Y and save results:
     # Y is a matrix numTimePoints x nG.

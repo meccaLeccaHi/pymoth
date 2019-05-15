@@ -36,6 +36,7 @@ Order of events:
 import numpy as np
 import os
 import dill # for pickling module object (optional)
+import copy # for deep copy of nested lists
 import time
 start = time.time() # time execution duration
 
@@ -68,7 +69,7 @@ numSniffs = 2 # number of exposures each training sample
 
 ## Flags to show various images:
 showAverageImages = False # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'
-showThumbnailsUsed =  0 #  N means show N experiment inputs from each class. 0 means don't show any.
+showThumbnailsUsed =  1 #  N means show N experiment inputs from each class. 0 means don't show any.
 showENPlots = [1, 1] # 1 to plot, 0 to ignore
 # arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN.
 # arg2 refers to EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image).
@@ -152,7 +153,8 @@ preP['useExistingConnectionMatrices'] = useExistingConnectionMatrices # boolean
 preP['matrixParamsFilename'] = matrixParamsFilename
 
 # generate the data array:
-fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP) # argin = preprocessingParams
+fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP, saveResultsImageFolder, scrsz)
+# argin = preprocessingParams
 
 pixNum, numPerClass, classNum = fA.shape
 # The dataset fA is a feature array ready for running experiments. Each experiment uses a random draw from this dataset.
@@ -203,14 +205,17 @@ for run in range(numRuns):
 		normalize = 1
 		titleStr = 'Input thumbnails'
 		showFeatureArrayThumbnails(tempArray, showThumbnailsUsed, normalize,
-									titleStr, scrsz)
+									titleStr, scrsz, saveResultsImageFolder)
 
 #-------------------------------------------------------------------------------
+	##DEV NOTE: digitQueues NOT THE SAME BETWEEN VERSIONS
+	## try: `np.sum(np.sum(digitQueues,0),0)`
+	# import pdb; pdb.set_trace()
 
 	# Create a moth. Either load an existing moth, or create a new moth
 	if useExistingConnectionMatrices:
 		pass
-		# DEV NOTE: Implement this!!
+		# DEV NOTE: Implement this later
 		# # load 'matrixParamsFilename'
 	else:
 		# a) load template params
@@ -235,7 +240,6 @@ for run in range(numRuns):
 #-------------------------------------------------------------------------------
 
 	# 3. run this experiment as sde time-step evolution:
-
 	simResults = sdeWrapper( modelParams, experimentParams, digitQueues )
 
 #-------------------------------------------------------------------------------
@@ -247,48 +251,52 @@ for run in range(numRuns):
 			os.mkdir(saveResultsImageFolder)
 
 	# Process the sim results to group EN responses by class and time:
-	r = viewENresponses(simResults, modelParams, experimentParams,
+	respOrig = viewENresponses(simResults, modelParams, experimentParams,
 		showENPlots, classLabels, scrsz, resultsFilename, saveResultsImageFolder)
 
 	# Calculate the classification accuracy:
-	# for baseline accuracy function argin, substitute pre- for post-values in r:
-	rNaive = r[::]
-	for i, res in enumerate(r):
-		rNaive[i]['postMeanResp'] = res['preMeanResp']
-		rNaive[i]['postStdResp'] = res['preStdResp']
-		rNaive[i]['postTrainOdorResp'] = res['preTrainOdorResp']
+	# for baseline accuracy function argin, substitute pre- for post-values in respOrig:
+	respNaive = copy.deepcopy(respOrig)
+	for i, resp in enumerate(respOrig):
+		## DEV NOTE: do we need these copy() functions? test later
+		respNaive[i]['postMeanResp'] = resp['preMeanResp'].copy()
+		respNaive[i]['postStdResp'] = resp['preStdResp'].copy()
+		respNaive[i]['postTrainOdorResp'] = resp['preTrainOdorResp'].copy()
 
 	# 1. Using Log-likelihoods over all ENs:
-	#  Baseline accuracy:
-	outputNaiveLogL = classifyDigitsViaLogLikelihood( rNaive )
-
+	# Baseline accuracy:
+	outputNaiveLogL = classifyDigitsViaLogLikelihood( respNaive )
 	print( 'LogLikelihood:' )
 	print( f"Naive Accuracy: {round(outputNaiveLogL['totalAccuracy'])}" + \
 		f"#, by class: {np.round(outputNaiveLogL['accuracyPercentages'])} #.   ")
 
 	# Post-training accuracy using log-likelihood over all ENs:
-	outputTrainedLogL = classifyDigitsViaLogLikelihood( r )
+	outputTrainedLogL = classifyDigitsViaLogLikelihood( respOrig )
 	print( f"Trained Accuracy: {round(outputTrainedLogL['totalAccuracy'])}" + \
-		f"#, by class: {np.round(outputTrainedLogL['accuracyPercentages'])} #.   " + \
-		f"{resultsFilename}_{run}" )
+		f"#, by class: {np.round(outputTrainedLogL['accuracyPercentages'])} #.   ")
+
+	print( f"results file: {resultsFilename}_{run}" )
+
+	#import pdb; pdb.set_trace()
+	# COMPARE outputNaiveLogL WITH outputTrainedLogL
 
 	# 2. Using single EN thresholding:
-	outputNaiveThresholding = classifyDigitsViaThresholding( rNaive, 1e9, -1, 10 )
-	outputTrainedThresholding = classifyDigitsViaThresholding( r, 1e9, -1, 10 )
+	outputNaiveThresholding = classifyDigitsViaThresholding( respNaive, 1e9, -1, 10 )
+	outputTrainedThresholding = classifyDigitsViaThresholding( respOrig, 1e9, -1, 10 )
 	#     disp( 'Thresholding: ')
 	#     disp( [ 'Naive accuracy: ' num2str(round(outputNaiveThresholding.totalAccuracy)),...
 	#               '#, by class: ' num2str(round(outputNaiveThresholding.accuracyPercentages)), ' #.   ' ])
 	#     disp([ ' Trained accuracy: ' num2str(round(outputTrainedThresholding.totalAccuracy)),...
 	#               '#, by class: ' num2str(round(outputTrainedThresholding.accuracyPercentages)), ' #.   ' ])
 
-	# append the accuracy results, and other run data, to the first entry of r:
-	r[0]['modelParams'] = modelParams  # will include all connection weights of this moth
-	r[0]['outputNaiveLogL'] = outputNaiveLogL
-	r[0]['outputTrainedLogL'] = outputTrainedLogL
-	r[0]['outputNaiveThresholding'] = outputNaiveThresholding
-	r[0]['outputTrainedThresholding'] = outputTrainedThresholding
-	r[0]['matrixParamsFilename'] = matrixParamsFilename
-	r[0]['K2Efinal'] = simResults['K2Efinal']
+	# append the accuracy results, and other run data, to the first entry of respOrig:
+	respOrig[0]['modelParams'] = modelParams  # will include all connection weights of this moth
+	respOrig[0]['outputNaiveLogL'] = outputNaiveLogL
+	respOrig[0]['outputTrainedLogL'] = outputTrainedLogL
+	respOrig[0]['outputNaiveThresholding'] = outputNaiveThresholding
+	respOrig[0]['outputTrainedThresholding'] = outputTrainedThresholding
+	respOrig[0]['matrixParamsFilename'] = matrixParamsFilename
+	respOrig[0]['K2Efinal'] = simResults['K2Efinal']
 
 	if saveResultsDataFolder:
 		if not os.path.isdir(saveResultsDataFolder):
@@ -296,7 +304,7 @@ for run in range(numRuns):
 
 		# save results data
 		results_fname = os.path.join(saveResultsDataFolder, f'{resultsFilename}_{run}.pkl')
-		dill.dump(r, open(results_fname, 'wb'))
+		dill.dump(respOrig, open(results_fname, 'wb'))
 		# open via:
 		# >>> import dill as pickle
 		# >>> with open(results_fname,'rb') as f:

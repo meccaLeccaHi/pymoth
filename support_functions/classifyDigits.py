@@ -66,12 +66,10 @@ def classifyDigitsViaLogLikelihood( results ):
         # For example, the diagonal contains the mahalanobis distance of this
         # digit's response to each EN's home-class response.
 
-        likelihoods[i,:] = (dist**4).sum() # the ^4 (instead of ^2) is a sharpener
+        likelihoods[i,:] = np.sum(dist**4, axis=0) # the ^4 (instead of ^2) is a sharpener
 
     # make predictions:
     predClasses = np.argmin(likelihoods, axis=1)
-    # for i in range(nP):
-    #   predClasses[i] = find(likelihoods[i,:] == min(likelihoods[i,:]) )
 
     # calc accuracy percentages:
     classAccuracies = np.zeros(nEn)
@@ -163,12 +161,12 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
     # r = results
     nEn = len(results) # number of ENs, same as number of classes
     ptInds = np.nonzero(results[1]['postTrainOdorResp'] >= 0)[0] # indices of post-train (ie validation) digits
-    # DEV NOTE: Why use 2 (1, here) as index above?
+    # DEV NOTE: Why use 2 (1, in Python) as index above?
     nP = len(ptInds) # number of post-train digits
 
     # extract true classes:
     trueClasses = results[0]['odorClass'][ptInds] # throughout, digits may be referred to as odors or 'odor puffs'
-    # DEV NOTE: Why use 1 (0, here) as index above?
+    # DEV NOTE: Why use 1 (0, in Python) as index above?
 
     # extract the relevant odor puffs: Each row is an EN, each col is an odor puff
     ptResp = np.full((nEn,nP), np.nan)
@@ -198,6 +196,10 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
 
         # 1. Apply rewards for above-threshold responses:
         offDiag = dist - np.diag(np.diag(dist))
+
+        ## DEV NOTE: DO WE NEED THE .copy() BELOW?
+        # import pdb; pdb.set_trace()
+
         onDiag = np.diag(dist).copy()
         # Reward any onDiags that are above some threshold (mu - n*sigma) of an EN.
         # CAUTION: This reward-by-shrinking only works when off-diagonals are
@@ -210,7 +212,7 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
         # This makes the off-diagonals less important in the final likelihood sum.
         # This is shrinkage for a different purpose than in the lines above.
         dist = (offDiag / homeAdvantage) + onDiag
-        likelihoods[i,:] = (dist**4).sum() # the ^4 (instead of ^2) is a sharpener
+        likelihoods[i,:] = np.sum(dist**4, axis=0) # the ^4 (instead of ^2) is a sharpener
         # In pure thresholding case (ie off-diagonals ~ 0), this does not matter.
 
     # make predictions:
@@ -228,6 +230,8 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
     # confusion matrix:
     # i,j'th entry is number of test digits with true label i that were predicted to be j.
     confusion = confusion_matrix(trueClasses, predClasses)
+
+    # import pdb; pdb.set_trace()
 
     # DEV NOTE: could assign these directly above and save this step.
     output = dict()

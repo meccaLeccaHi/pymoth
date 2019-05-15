@@ -1,4 +1,4 @@
-def generateDownsampledMNISTSet( preP ):
+def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) ):
 	'''
 	Loads the MNIST dataset (from Yann LeCun's website),
 	then applies various preprocessing steps to reduce the number of pixels
@@ -11,6 +11,7 @@ def generateDownsampledMNISTSet( preP ):
 
 	Inputs:
 		1. preP = preprocessingParams = dictionary with keys corresponding to relevant variables
+		2. saveImageFolder = image for thumbnails to be saved (if chosen)
 
 	Outputs:
 		1. featureArray = n x m x 10 array. n = #active pixels, m = #digits from
@@ -94,13 +95,11 @@ def generateDownsampledMNISTSet( preP ):
 	# c. Normalize each image so the pixels sum to the same amount
 	fSums = np.sum(featureArray, axis=0)
 	normArray = np.repeat(fSums[np.newaxis,:,:],new_length,0)
-	fNorm = preP['pixelSum']*featureArray/normArray
-	featureArray = fNorm
-	## DEV NOTE: Replace above with syntax below
-	## featureArray *= preP['pixelSum']
-	## featureArray /= normArray
+	featureArray *= preP['pixelSum']
+	featureArray /= normArray
 	# featureArray now consists of mean-subtracted, non-negative,
-	# normalized (by sum of pixels) columns, each column a vectorized thumbnail. size = 144 x numDigitsPerClass x 10
+	# normalized (by sum of pixels) columns, each column a vectorized thumbnail.
+	# size = 144 x numDigitsPerClass x 10
 
 	lengthOfSide = new_length # save to allow sde_EM_evolution to print thumbnails.
 
@@ -117,7 +116,7 @@ def generateDownsampledMNISTSet( preP ):
 
 	# DEV NOTE: Clarify this part with CBD - need to understand 'active pixels' better
 	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]
-	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'], preP['showAverageImages'])
+	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'], saveImageFolder, scrsz)
 	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
 
 	return featureArray, activePixelInds, lengthOfSide

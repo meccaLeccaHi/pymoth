@@ -2,9 +2,11 @@ def piecewiseLinearPseudoSigmoid(x, span, slope):
     '''
     Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns
     '''
+    import numpy as np
+
     y = x*slope
-    y[y<(-span/2)] = -span/2 # replace values below -span/2
-    y[y>(span/2)] = span/2 # replace values above span/2
+    y = np.maximum(y, -span/2) # replace values below -span/2
+    y = np.minimum(y, span/2) # replace values above span/2
 
     return y
 
@@ -49,9 +51,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         5. featureArray = mP.nF x kk x nC array, where mP.nF = numFeatures,
             kk >= number of puffs for that stim, and nC = # of classes.
         6. octoHits = 1 x N matrix. Each entry is a strength of octopamine
-        7. mP = modelParams, a struct that contains values of all connectivity matrices,
+        7. mP = modelParams, an object that contains values of all connectivity matrices,
             noise parameters, and timing params (eg when octo, stim and heb occur)
-        8. exP = struct with timing params
+        8. exP = object with timing params
         9. seedVal = starting seed value for reproducibility. optional arg
     outputs:
         1. T = m x 1 vector, timepoints used in evolution
@@ -97,7 +99,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     nL = mP.nG
     nR = mP.nG
 
-    # DEV NOTE: Remove this next section (lines 89:94)
+    # DEV NOTE: Remove this next section (redundant)?
     ## noise in individual neuron FRs
     # These are vectors, one vector for each type:
     wPsig = mP.noisePvec
@@ -110,7 +112,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     # steady-state RN FR, base + noise:
     RspontRatios = mP.Rspont/mP.Rspont.mean() # used to scale stim inputs
 
-    # DEV NOTE: Are we worried about the precision of these values (below)?
+    # DEV NOTE: How worried about the precision of these values (below)?
+    # Python: pSlope=1.000125
+    # matlab: pSlope=1
+
     ## param for sigmoid that squashes inputs to neurons:
     # the slope at x = 0 = mP.slopeParam*span/4
     pSlope = mP.slopeParam*mP.cP/4
@@ -123,15 +128,12 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
     dt = time[1] - time[0] # this is determined by start, stop and step in calling function
     N = int( (tspan[1] - tspan[0]) / dt ) # number of steps in noise evolution
-    T = np.linspace(tspan[0], tspan[1], N+1)[:-1] # the time vector
-    # T is made to correspond to the matlab version which doesn't include the endpoint
+    T = np.linspace(tspan[0], tspan[1]-dt, N) # the time vector
 
     def wiener(w_sig, meanSpont_, old_, tau_, inputs_):
         d_ = dt*(-old_*tau_ + inputs_)
-
         # Wiener noise:
         dW_ = np.sqrt(dt)*w_sig.squeeze()*meanSpont_*np.random.normal(0,1,(d_.shape))
-
         # combine them:
         return old_ + d_ + dW_
 
@@ -310,9 +312,11 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 #-------------------------------------------------------------------------------
 
         ## DEV NOTE: Check w/ CBD - dP, dPI, and dL all do the same thing at this point, correct?
+        ## if so, should implement function for following clauses
+
         # dP:
         Pinputs = (1 - thisOctoHit*mP.octo2P*mP.octoNegDiscount).squeeze()
-        Pinputs[Pinputs<0] = 0 # pos. rectify
+        Pinputs = np.maximum(Pinputs, 0) # pos. rectify
         Pinputs *= -mP.L2P.dot(oldL)
         Pinputs += (mP.R2P.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2P).squeeze()
         # ie octo increases responsivity to positive inputs and to spont firing, and
@@ -326,7 +330,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # dPI: # no PIs for mnist
         PIinputs = (1 - thisOctoHit*mP.octo2PI*mP.octoNegDiscount).squeeze()
-        PIinputs[PIinputs<0] = 0 # pos. rectify
+        PIinputs = np.maximum(PIinputs, 0)  # pos. rectify
         PIinputs *= -mP.L2PI.dot(oldL)
         PIinputs += mP.R2PI.dot(oldR)*(1 + thisOctoHit*mP.octo2PI).squeeze()
         # ie octo increases responsivity to positive inputs and to spont firing, and
@@ -340,7 +344,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # dL:
         Linputs = (1 - thisOctoHit*mP.octo2L*mP.octoNegDiscount).squeeze()
-        Linputs[Linputs<0] = 0 # pos. rectify
+        Linputs = np.maximum(Linputs, 0) # pos. rectify
         Linputs *= -mP.L2L.dot(oldL)
         Linputs += (mP.R2L.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2L).squeeze()
         Linputs = piecewiseLinearPseudoSigmoid(Linputs, mP.cL, lSlope)
@@ -354,7 +358,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         # inputs: S = stim,  L = lateral neurons, mP.Rspont = spontaneous FR
         # NOTE: octo does not affect mP.Rspont. It affects R's response to input odors.
         Rinputs = (1 - thisOctoHit*mP.octo2R*mP.octoNegDiscount).squeeze()
-        Rinputs[Rinputs<0] = 0 # pos. rectify Rinputs
+        Rinputs = np.maximum(Rinputs, 0) # pos. rectify Rinputs
         Rinputs *= -mP.L2R.dot(oldL)
         neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
         neur_act = neur_act*(1 + thisOctoHit*mP.octo2R).squeeze()
@@ -488,9 +492,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             newK2E = np.minimum(newK2E, mP.hebMaxKE)
 
         else: # case: no heb or no octo
-            newP2K = oldP2K
-            newPI2K = oldPI2K # no PIs for mnist
-            newK2E = oldK2E
+            newP2K = oldP2K.copy()
+            newPI2K = oldPI2K.copy() # no PIs for mnist
+            newK2E = oldK2E.copy()
 
 #-------------------------------------------------------------------------------
 
@@ -514,7 +518,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         E[:,i+1] = newE # always save full EN timecourses
 
-    print()
+    print('\r')
     # Time-step simulation is now over.
 
     # FOLLOW-UP: Figure out why 'E' has a different shape than the others.

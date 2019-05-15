@@ -11,7 +11,8 @@ def getScreen():
     root.destroy()
     return (screen_width, screen_height)
 
-def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString, scrsz ):
+def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString,
+    scrsz = (1920, 1080), saveImageFolder=[], saveString='' ):
     '''
     Show thumbnails of inputs used in the experiment.
     Inputs:
@@ -28,16 +29,17 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
 
     import numpy as np
     import matplotlib.pyplot as plt
+    import os
 
     # bookkeeping: change dim if needed
     # DEV NOTE: Clarify with CBD - this seems unnecessary
     if len(featureArray.shape)==2:
         f = np.zeros((featureArray.shape[0],featureArray.shape[1],1))
         f[:,:,0] = featureArray
-        featureArray = f  #.squeeze()
+        featureArray = f[:,:,:]  #.squeeze()
 
     pixNum, numPerClass, nC  = featureArray.shape
-    # DEV NOTE: Should be able to remove classNum from inputs above
+    # DEV NOTE: removed classNum from inputs above
 
     total = nC*showPerClass # total number of subplots
     numRows = np.ceil(np.sqrt(total/2)) # n of rows
@@ -46,23 +48,21 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     horiz = 1/(numCols + 1) # horizontal step size
 
     fig_sz = [np.floor((i/100)*0.5) for i in scrsz]
-    thumbs = plt.figure(figsize=fig_sz, dpi=100)
+    thumbsFig = plt.figure(figsize=fig_sz, dpi=100)
 
     for cl in range(nC): # 'class' is a keyword in Python; renamed to 'cl'
         for i in range(showPerClass):
             ax_i = showPerClass*(cl) + i + 1
             thisInput = featureArray[:, i, cl]
 
+            # renormalize, to offset effect of classMagMatrix scaling
             if normalize:
-                # DEV NOTE: This only affects the last image in the stack (the average)
-                # -> could be made more efficient
-                #print(thisInput.max())
-                thisInput /= thisInput.max() # renormalize, to offset effect of classMagMatrix scaling
+                thisInput /= thisInput.max()
 
             ax_count = i + (cl*nC)
             plt.subplot(np.int(numRows),np.int(numCols),ax_i)
 
-            # # DEV NOTE: Rename or delete these
+            # # DEV NOTE: delete these
             # # reverse:
             # # thisInput = (-thisInput + 1)*1.1
             # thisCol = ax_i % numCols
@@ -76,11 +76,14 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
             # d = vert # subplot height
 
             side = np.int(np.sqrt(len(thisInput)))
-            plt.imshow(thisInput.reshape((side,side)), cmap='gray')
+            plt.imshow(thisInput.reshape((side,side)), cmap='gray', vmin=0, vmax=1)
 
     # add a title at the bottom
     plt.xlabel(titleString, fontweight='bold')
-    plt.show()
+
+    # Save plot
+    if saveImageFolder and os.path.isdir(saveImageFolder):
+        thumbsFig.savefig(os.path.join(saveImageFolder, 'thumbnails_'+saveString+'.png'))
 
 def viewENresponses( simRes, modelParams, expP,
     showPlots, classLabels, scrsz, resultsFilename=[], saveImageFolder=[] ):
@@ -174,7 +177,7 @@ def viewENresponses( simRes, modelParams, expP,
     # numClasses = len(classList)
 
     # pre-allocate list of empty dicts
-    results = r = [dict() for i in range(modelParams.nE)]
+    results = [dict() for i in range(modelParams.nE)]
 
     # Make one stats plot per EN. Loop through ENs:
     for enInd in range(modelParams.nE):
@@ -216,14 +219,12 @@ def viewENresponses( simRes, modelParams, expP,
         # calc no-octo stats for each odor, pre and post train:
         for k, cl in enumerate(classList):
             curCl = whichClass==cl
-            preFull = preTrainOdorResp[np.logical_and(preTrainOdorResp>=0, curCl)]
-            postFull = postTrainOdorResp[np.logical_and(postTrainOdorResp>=0, curCl)]
+            preSA = preTrainOdorResp[np.logical_and(preTrainOdorResp>=0, curCl)]
+            postSA = postTrainOdorResp[np.logical_and(postTrainOdorResp>=0, curCl)]
             ## calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
             # this will contain the average responses over all sniffs for each sample
-            # DEV NOTE: Changed pretty drastically, but should be the same.
-            # Check with CBD
-            preSA = preFull
-            postSA = postFull
+            # DEV NOTE: Changed pretty drastically from orig version, but should be the same.
+            # Doube check with CBD
 
             if len(preSA)==0: # DEV NOTE: When would this occur? Remove?
                 preMeanResp[k] = -1
@@ -270,14 +271,6 @@ def viewENresponses( simRes, modelParams, expP,
                                 (100*(postMedianResp[preSA] - preMedianResp[preSA] - postHebMean))\
                                 /preMedianResp[preSA]
 
-        # create list of xticklabels
-        trueXLabels = classLabels
-        # DEV NOTE: the following lines should not be necessary since python uses
-        # 0-based indexing. Delete?
-        # trueXLabels = [None] * len(classLabels)
-        # for j,c in enumerate(classLabels):
-            # trueXLabels[j] = str(c % 10) # 'mod' turns 10 into 0
-
         # plot stats if wished:
         if showPlots[0]:
             fig_sz = [np.floor((i/100)*0.8) for i in scrsz]
@@ -300,7 +293,7 @@ def viewENresponses( simRes, modelParams, expP,
             ax.set_xlim([0, max(preSA) + 1])
             ax.set_ylim([0, 1.1*max(np.concatenate((preMedianResp, postMedianResp)))])
             ax.set_xticks(preSA, minor=False)
-            ax.set_xticklabels(trueXLabels)
+            ax.set_xticklabels(classLabels)
 
             # connect pre to post with lines for clarity
             for j in range(len(preSA)):
@@ -329,7 +322,7 @@ def viewENresponses( simRes, modelParams, expP,
             ax.set_xlim([0, max(preSA)+1])
             # ax.set_ylim([-50,400])
             ax.set_xticks(preSA, minor=False)
-            ax.set_xticklabels(trueXLabels)
+            ax.set_xticklabels(classLabels)
 
             # relative changes in median, ie control/trained
             ax = thisFig.add_subplot(2, 3, 3)
@@ -343,7 +336,7 @@ def viewENresponses( simRes, modelParams, expP,
             ax.set_xlim([0, max(preSA)+1])
             # ax.set_ylim([0,2])
             ax.set_xticks(preSA, minor=False)
-            ax.set_xticklabels(trueXLabels)
+            ax.set_xticklabels(classLabels)
 
             #-------------------------------------------------------------------
             ## means
@@ -359,7 +352,7 @@ def viewENresponses( simRes, modelParams, expP,
             ax.set_xlim([0, max(preSA)+1])
             ax.set_ylim([0, 1.1*np.concatenate((preMeanResp, postMeanResp)).max() + np.concatenate((preStdResp, postStdResp)).max()])
             ax.set_xticks(preSA, minor=False)
-            ax.set_xticklabels(trueXLabels)
+            ax.set_xticklabels(classLabels)
 
             # plot spont
             ax.errorbar(preSA[0], preHebMean, yerr=preHebStd, fmt='mo')
@@ -374,7 +367,7 @@ def viewENresponses( simRes, modelParams, expP,
             ax.set_xlim([0, max(preSA)+1])
             # ax.set_ylim([-50, 1000])
             ax.set_xticks(preSA)
-            ax.set_xticklabels(trueXLabels)
+            ax.set_xticklabels(classLabels)
 
             # relative percent changes
             ax = thisFig.add_subplot(2, 3, 6)
@@ -387,7 +380,7 @@ def viewENresponses( simRes, modelParams, expP,
             ax.set_xlim([0, max(preSA)+1])
             ax.set_ylim([0, 2])
             ax.set_xticks(preSA)
-            ax.set_xticklabels(trueXLabels)
+            ax.set_xticklabels(classLabels)
 
         # Save plot
         if saveImageFolder and os.path.isdir(saveImageFolder) and showPlots[0]:
@@ -396,32 +389,32 @@ def viewENresponses( simRes, modelParams, expP,
         #-----------------------------------------------------------------------
 
         # store results in a list of dicts
-        r[enInd]['preTrainOdorResp'] = preTrainOdorResp # preserves all the sniffs for each stimulus
-        r[enInd]['postTrainOdorResp'] = postTrainOdorResp
-        r[enInd]['preRespSniffsAved'] = preSA # the averaged sniffs for each stimulus
-        r[enInd]['postRespSniffsAved'] = postSA
-        r[enInd]['odorClass'] = whichClass
-        r[enInd]['percentChangeInMeanResp'] = percentChangeInMeanResp # key stat
-        r[enInd]['percentChangeInNoiseSubtractedMeanResp'] = percentChangeInNoiseSubtractedMeanResp
-        r[enInd]['relativeChangeInNoiseSubtractedMeanResp'] = \
+        results[enInd]['preTrainOdorResp'] = preTrainOdorResp # preserves all the sniffs for each stimulus
+        results[enInd]['postTrainOdorResp'] = postTrainOdorResp
+        results[enInd]['preRespSniffsAved'] = preSA # the averaged sniffs for each stimulus
+        results[enInd]['postRespSniffsAved'] = postSA
+        results[enInd]['odorClass'] = whichClass
+        results[enInd]['percentChangeInMeanResp'] = percentChangeInMeanResp # key stat
+        results[enInd]['percentChangeInNoiseSubtractedMeanResp'] = percentChangeInNoiseSubtractedMeanResp
+        results[enInd]['relativeChangeInNoiseSubtractedMeanResp'] = \
                 percentChangeInNoiseSubtractedMeanResp / percentChangeInNoiseSubtractedMeanResp[enInd]
-        r[enInd]['percentChangeInMedianResp'] = percentChangeInMedianResp
-        r[enInd]['percentChangeInNoiseSubtractedMedianResp'] = percentChangeInNoiseSubtractedMedianResp
-        r[enInd]['relativeChangeInNoiseSubtractedMedianResp'] = \
+        results[enInd]['percentChangeInMedianResp'] = percentChangeInMedianResp
+        results[enInd]['percentChangeInNoiseSubtractedMedianResp'] = percentChangeInNoiseSubtractedMedianResp
+        results[enInd]['relativeChangeInNoiseSubtractedMedianResp'] = \
                 ( (postMedianResp - preMedianResp - postHebMean )/preMedianResp ) / \
                 ( (postMedianResp[enInd] - preMedianResp[enInd] - postHebMean )/preMedianResp[enInd] )
-        r[enInd]['trained'] = enInd
+        results[enInd]['trained'] = enInd
         # EN odor responses, pre and post training.
         # these should be vectors of length numStims
-        r[enInd]['preMeanResp'] = preMeanResp
-        r[enInd]['preStdResp'] = preStdResp
-        r[enInd]['postMeanResp'] = postMeanResp
-        r[enInd]['postStdResp'] = postStdResp
+        results[enInd]['preMeanResp'] = preMeanResp
+        results[enInd]['preStdResp'] = preStdResp
+        results[enInd]['postMeanResp'] = postMeanResp
+        results[enInd]['postStdResp'] = postStdResp
         # spont responses, pre and post training
-        r[enInd]['preSpontMean'] = preSpont.mean()
-        r[enInd]['preSpontStd'] = preSpont.std()
-        r[enInd]['postSpontMean'] = postSpont.mean()
-        r[enInd]['postSpontStd'] = postSpont.std()
+        results[enInd]['preSpontMean'] = preSpont.mean()
+        results[enInd]['preSpontStd'] = preSpont.std()
+        results[enInd]['postSpontMean'] = postSpont.mean()
+        results[enInd]['postSpontStd'] = postSpont.std()
 
     ## Plot EN timecourses normalized by mean digit response
 
@@ -448,15 +441,15 @@ def viewENresponses( simRes, modelParams, expP,
             controlInd = list(range(0, enInd)) + list(range(enInd+1, len(classList)))
 
             # # plot mean pre and post training of trained digit
-            preMean = r[enInd]['preMeanResp']
+            preMean = results[enInd]['preMeanResp']
             # preMeanTr = preMean[enInd]
             preMeanControl = preMean[controlInd].mean() # DEV NOTE: Why do we use these indices?
-            # preStd = r[enInd]['preStdResp']
+            # preStd = results[enInd]['preStdResp']
             # preStd = preStd[enInd]
-            postMean = r[enInd]['postMeanResp']
+            postMean = results[enInd]['postMeanResp']
             # postMeanTr = postMean[enInd]
             postMeanControl = postMean[controlInd].mean()
-            # postStd = r[enInd]['postStdResp']
+            # postStd = results[enInd]['postStdResp']
             # postStd = postStd[enInd]
             preT = simRes['T'] < expP.startTrain
             preTime = simRes['T'][preT]

@@ -18,7 +18,7 @@ def extractMNISTFeatureArray( mnist, labels, image_indices, phase_label ):
     Outputs:
         im_array = numberImages x h x w x numberClasses 4-D array
     '''
-    
+
     import numpy as np
 
     # get some dimensions:
@@ -37,7 +37,8 @@ def extractMNISTFeatureArray( mnist, labels, image_indices, phase_label ):
             im_data = mnist['test_images']
             target_data = mnist['test_labels']
 
-        # Convert to double precision float (https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html)
+        # Convert from (8-bit) unsigned integers to double precision float
+        #  see: (https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html)
         class_array = im_data[target_data==c].astype('float64')/256
 
         im_array[image_indices,:,:,c] = class_array[image_indices,:,:]
