@@ -55,19 +55,21 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	imageArray = extractMNISTFeatureArray(mnist, preP['classLabels'], imageIndices, 'train')
 	# imageArray = numberImages x h x w x numberClasses 4-D array. class order: 1 to 10 (10 = '0')
 
-	z,h,w,label_len = imageArray.shape
-	# DEV NOTE: This is hard code now :( - fix this during refactor
-	new_length = 144
+	# calc new dimensions
+	im_z, im_height, im_width, label_len = imageArray.shape
+	cropVal = preP['crop']*np.ones(4,dtype = int)
+	new_width = (im_width-np.sum(cropVal[2:]))/preP['downsampleRate']
+	new_height = (im_height-np.sum(cropVal[0:2]))/preP['downsampleRate']
+	new_length = int(new_width*new_height)
 
-	featureArray = np.zeros((new_length, z, label_len)) # pre-allocate
+	featureArray = np.zeros((new_length, im_z, label_len)) # pre-allocate
 
 	# crop, downsample, and vectorize the average images and the image stacks
 	for c in range(label_len):
-		# featureMatrix : [a x numImages] array,
+		# featureArray[...,n] : [a x numImages] array,
 		# 	where a = number of pixels in the cropped and downsampled images
-		featureMatrix = cropDownsampleVectorizeImageStack(imageArray[...,c],
+		featureArray[...,c] = cropDownsampleVectorizeImageStack(imageArray[...,c],
 		 	preP['crop'], preP['downsampleRate'], preP['downsampleMethod'])
-		featureArray[...,c] = featureMatrix
 
 	del imageArray # to save memory
 
@@ -84,8 +86,8 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	overallAve /= label_len
 
 	# b. Subtract this overallAve image from all images
-	ave_2D = np.tile(overallAve,(z,1)).T
-	# ave_2D = npm.repmat(overallAve,z,1).T
+	ave_2D = np.tile(overallAve,(im_z,1)).T
+	# ave_2D = npm.repmat(overallAve,im_z,1).T
 	ave_3D = np.repeat(ave_2D[:,:,np.newaxis],label_len,2)
 	featureArray -= ave_3D
 	del ave_2D, ave_3D

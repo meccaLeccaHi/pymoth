@@ -55,11 +55,12 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[], scrsz = (
 
     activePixelInds = np.nonzero(activePixels > 0)[0]
     print(f"FOLLOW-UP[{__file__}]")
-    print("activePixelInds len:", len(activePixelInds))
-    print('activePixelInds[:5]:', activePixelInds[:5])
-    # NEED TO FIX?: Doesn't correspond to matlab counterpart
+    # print("activePixelInds len:", len(activePixelInds))
+    # print('activePixelInds[:5]:', activePixelInds[:5])
+    ## DEV NOTE: NEED TO FIX?: Doesn't correspond to matlab counterpart
     # Same values for "thresh" for both versions
     # Same shape for "activePixelInds", but different values
+    # May be on account of re-ordered stimuli (i.e. digits)?
     # import pdb; pdb.set_trace()
 
     if saveImageFolder:

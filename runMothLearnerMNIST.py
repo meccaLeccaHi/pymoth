@@ -275,10 +275,8 @@ for run in range(numRuns):
 	print( f"Trained Accuracy: {round(outputTrainedLogL['totalAccuracy'])}" + \
 		f"#, by class: {np.round(outputTrainedLogL['accuracyPercentages'])} #.   ")
 
-	print( f"results file: {resultsFilename}_{run}" )
-
 	#import pdb; pdb.set_trace()
-	# COMPARE outputNaiveLogL WITH outputTrainedLogL
+	# FIX outputTrainedLogL
 
 	# 2. Using single EN thresholding:
 	outputNaiveThresholding = classifyDigitsViaThresholding( respNaive, 1e9, -1, 10 )

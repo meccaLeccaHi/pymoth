@@ -1,11 +1,11 @@
-def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsampleMethod ):
+def cropDownsampleVectorizeImageStack( imStack, cropVal, dsVal, downsampleMethod ):
     '''
     For each image in a stack of images: Crop, then downsample, then make into a col vector.
     Inputs:
         1. imStack = numImages x width x height array
         2. cropVal = number of pixels to shave off each side. can be a scalar or a
             4 x 1 vector: top, bottom, left, right.
-        3. downsampleVal = amount to downsample
+        3. dsVal = amount to downsample
         4. downsampleMethod: if 0, do downsampling by summing square patches.
             If 1, use bicubic interpolation.
     Output:
@@ -16,43 +16,38 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, downsampleVal, downsamp
     import numpy as np
 
     if type(cropVal) is int:
-        #cropVal = cropVal*np.ones((1,4),dtype = int)[0]
         cropVal = cropVal*np.ones(4,dtype = int)
 
     if len(imStack.shape)==3:
-        z,h,w = imStack.shape
+        im_z,im_height,im_width = imStack.shape
     else:
-        h,w = imStack.shape
-        z = 1
+        im_height,im_width = imStack.shape
+        im_z = 1
 
-    width = range(cropVal[2], w-cropVal[3])
-    height = range(cropVal[0], h-cropVal[1])
+    width = range(cropVal[2], im_width-cropVal[3])
+    height = range(cropVal[0], im_height-cropVal[1])
 
-    new_width = (h-np.sum(cropVal[0:2]))/downsampleVal
-    new_height = (w-np.sum(cropVal[2:]))/downsampleVal
+    new_width = (im_width-np.sum(cropVal[2:]))/dsVal
+    new_height = (im_height-np.sum(cropVal[0:2]))/dsVal
 
-    imColArray = np.zeros((int(new_width*new_height),z))
-    d = downsampleVal
+    imColArray = np.zeros((int(new_width*new_height),im_z))
     # crop, downsample, vectorize the thumbnails one-by-one
-    for s in range(z):
+    for s in range(im_z):
         t = imStack[s,...]
         # crop image
         ixgrid = np.ix_(width, height)
         t = t[ixgrid]
 
         if downsampleMethod: # bicubic
-            t2 = imresize(t, 1/d, interp='bicubic')
+            t2 = imresize(t, 1/dsVal, interp='bicubic')
 
         else: # sum 2 x 2 blocks
-            t2 = np.zeros((int(len(height)/d),int(len(width)/d)))
-            for i in range(int(len(height)/d)):
-                for j in range(int(len(width)/d)):
-                    b = t[(i-1)*d+1:i*d+1, (j-1)*d+1:j*d+1]
+            t2 = np.zeros((int(len(height)/dsVal),int(len(width)/dsVal)))
+            for i in range(int(len(height)/dsVal)):
+                for j in range(int(len(width)/dsVal)):
+                    b = t[(i-1)*dsVal+1:i*dsVal+1, (j-1)*dsVal+1:j*dsVal+1]
                     t2[i,j] = b.sum()
 
-        t2 = t2.flatten()
-        t2 = t2/np.max(t2)
-        # DEV NOTE: Is this copy() necessary? (Test later)
-        imColArray[:,s] = t2.copy()
+        imColArray[:,s] = t2.flatten()/t2.max()
 
     return imColArray
