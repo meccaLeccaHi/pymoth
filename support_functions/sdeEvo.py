@@ -361,8 +361,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         Rinputs = np.maximum(Rinputs, 0) # pos. rectify Rinputs
         Rinputs *= -mP.L2R.dot(oldL)
         neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
-        neur_act = neur_act*(1 + thisOctoHit*mP.octo2R).squeeze()
-        Rinputs = Rinputs + neur_act + mP.Rspont.squeeze()
+        neur_act *= (1 + thisOctoHit*mP.octo2R).squeeze()
+        Rinputs += neur_act + mP.Rspont.squeeze()
         # DEV NOTE: Rinputs values seem higher than their ML version, even though
         # the inputs (octoMax, etc.) look the same - check if it's a problem.
         Rinputs = piecewiseLinearPseudoSigmoid(Rinputs, mP.cR, rSlope)

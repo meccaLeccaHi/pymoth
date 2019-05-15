@@ -33,12 +33,12 @@ Order of events:
 # root.destroy()
 
 # import packages
+import time
+runStart = time.time() # time execution duration
 import numpy as np
 import os
 import dill # for pickling module object (optional)
 import copy # for deep copy of nested lists
-import time
-start = time.time() # time execution duration
 
 # Experiment details
 from support_functions.genDS_MNIST import generateDownsampledMNISTSet
@@ -68,8 +68,7 @@ trPerClass =  3 # the number of training samples per class
 numSniffs = 2 # number of exposures each training sample
 
 ## Flags to show various images:
-showAverageImages = False # to show thumbnails in 'examineClassAveragesAndCorrelations_fn'
-showThumbnailsUsed =  1 #  N means show N experiment inputs from each class. 0 means don't show any.
+showThumbnails = 0 #  N means show N experiment inputs from each class. 0 means don't show any.
 showENPlots = [1, 1] # 1 to plot, 0 to ignore
 # arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN.
 # arg2 refers to EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image).
@@ -86,7 +85,7 @@ saveResultsImageFolder = 'results' # StrtempArraying. If non-empty, images will 
 
 # # DEV NOTE: retrieving screen-size just once since it's trickier in python
 # # get screensize, if that's useful
-# if (showAverageImages + showThumbnailsUsed + sum(showENPlots)):
+# if ( showThumbnails + sum(showENPlots)):
 # 	# tkinter errors if run after matplotlib is loaded, so we run it first
 #
 # 	from support_functions.show_figs import getScreen
@@ -145,7 +144,7 @@ preP['downsampleRate'] = 2
 preP['crop'] = 2
 preP['numFeatures'] =  85  # number of pixels in the receptive field
 preP['pixelSum'] = 6
-preP['showAverageImages'] = showAverageImages # boolean
+preP['showThumbnails'] = showThumbnails # boolean
 preP['downsampleMethod'] = 1 # 0 means sum square patches of pixels. 1 means use bicubic interpolation.
 
 preP['classLabels'] = classLabels # append
@@ -199,12 +198,12 @@ for run in range(numRuns):
 			i] = fA[:, theseInds, i]
 
 	# show the final versions of thumbnails to be used, if wished
-	if showThumbnailsUsed:
+	if showThumbnails:
 		tempArray = np.zeros((lengthOfSide, numPerClass, classNum))
 		tempArray[activePixelInds,:,:] = digitQueues
 		normalize = 1
 		titleStr = 'Input thumbnails'
-		showFeatureArrayThumbnails(tempArray, showThumbnailsUsed, normalize,
+		showFeatureArrayThumbnails(tempArray, showThumbnails, normalize,
 									titleStr, scrsz, saveResultsImageFolder)
 
 #-------------------------------------------------------------------------------
@@ -240,7 +239,9 @@ for run in range(numRuns):
 #-------------------------------------------------------------------------------
 
 	# 3. run this experiment as sde time-step evolution:
+	sdeStart = time.time() # time sde duration
 	simResults = sdeWrapper( modelParams, experimentParams, digitQueues )
+	sdeDuration = time.time()-sdeStart
 
 #-------------------------------------------------------------------------------
 
@@ -314,6 +315,8 @@ for run in range(numRuns):
 
 print('         -------------All done-------------         ')
 
-print(f'{__file__} executed in {((time.time() - start)/60):.3f} minutes')
+runDuration = time.time() - runStart
+print(f'{__file__} executed in {runDuration/60:.3f} minutes')
+print(f'SDE duration: {sdeDuration/60:.3f} minutes ({sdeDuration/runDuration:.3f}%)')
 
 print('FOLLOW-UP: Should we include MIT licenses in these scripts?')

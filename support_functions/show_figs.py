@@ -83,7 +83,9 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
 
     # Save plot
     if saveImageFolder and os.path.isdir(saveImageFolder):
-        thumbsFig.savefig(os.path.join(saveImageFolder, 'thumbnails_'+saveString+'.png'))
+        thumbName = os.path.join(saveImageFolder, 'thumbnails_'+saveString+'.png')
+        thumbsFig.savefig(thumbName)
+        print(f'Image thumbnails saved: {thumbName}')
 
 def viewENresponses( simRes, modelParams, expP,
     showPlots, classLabels, scrsz, resultsFilename=[], saveImageFolder=[] ):
@@ -224,7 +226,7 @@ def viewENresponses( simRes, modelParams, expP,
             ## calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
             # this will contain the average responses over all sniffs for each sample
             # DEV NOTE: Changed pretty drastically from orig version, but should be the same.
-            # Doube check with CBD
+            # Double check with CBD
 
             if len(preSA)==0: # DEV NOTE: When would this occur? Remove?
                 preMeanResp[k] = -1
@@ -253,10 +255,9 @@ def viewENresponses( simRes, modelParams, expP,
         # preStdMeanEst = preStdResp/np.sqrt(preNumPuffs)
         # postStdMeanEst = postStdResp/np.sqrt(postNumPuffs)
 
-        # could use: (preNumPuffs > 0).nonzero()
-        preSA = [i for (i, val) in enumerate(preNumPuffs) if val>0]
-        postSA = [i for (i, val) in enumerate(postNumPuffs) if val>0]
-        postOffset = [i + 0.25 for i in postSA]
+        preSA = np.nonzero(preNumPuffs > 0)[0]
+        postSA = np.nonzero(postNumPuffs > 0)[0]
+        postOffset = postSA + 0.25
 
         # a key output:
         percentChangeInMeanResp = (100*(postMeanResp[preSA] - preMeanResp[preSA]))\
@@ -276,15 +277,15 @@ def viewENresponses( simRes, modelParams, expP,
             fig_sz = [np.floor((i/100)*0.8) for i in scrsz]
             thisFig = plt.figure(figsize=fig_sz, dpi=100)
 
-            # medians
+            # medians, pre and post
             ax = thisFig.add_subplot(2, 3, 1)
+            ax.grid()
             ax.plot(preSA, preMedianResp[preSA], '*b')
             ax.plot(postOffset, postMedianResp[postSA], 'bo') # , markerfacecolor='b'
             #   ax.plot(pre, preMeanResp + preStdResp, '+g')
             #   ax.plot(post, postMeanResp + postStdResp, '+g')
             #   ax.plot(pre, preMeanResp - preStdResp, '+g')
             #   ax.plot(post, postMeanResp - postStdResp, '+g')
-            ax.grid()
 
             # make the home EN of this plot red
             ax.plot(enInd, preMedianResp[enInd], 'ro')
@@ -309,6 +310,7 @@ def viewENresponses( simRes, modelParams, expP,
 
             # percent change in medians
             ax = thisFig.add_subplot(2, 3, 2)
+            ax.grid()
             ax.plot(
                 preSA,
                 (100*(postMedianResp[preSA] - preMedianResp[preSA]))/preMedianResp[preSA],
@@ -326,6 +328,7 @@ def viewENresponses( simRes, modelParams, expP,
 
             # relative changes in median, ie control/trained
             ax = thisFig.add_subplot(2, 3, 3)
+            ax.grid()
             pn = np.sign(postMedianResp[enInd] - preMedianResp[enInd])
             y_vals = (pn * ( (postMedianResp[preSA] - preMedianResp[preSA] )/preMedianResp[preSA] )) \
                 / ( (postMedianResp[enInd] - preMedianResp[enInd] ) / preMedianResp[enInd] )
@@ -342,15 +345,19 @@ def viewENresponses( simRes, modelParams, expP,
             ## means
             # raw means, pre and post
             ax = thisFig.add_subplot(2, 3, 4)
+            ax.grid()
 
             ax.errorbar(preSA, preMeanResp[preSA], yerr=preStdResp[preSA],
+                fmt='bo')
+            ax.errorbar(postOffset, postMeanResp[postSA], yerr=postStdResp[postSA],
                 fmt='bo', markerfacecolor='b')
             ax.errorbar(enInd, preMeanResp[enInd], yerr=preStdResp[enInd], fmt='ro')
             ax.errorbar(enInd + 0.25, postMeanResp[enInd], yerr=postStdResp[enInd],
                 fmt='ro', markerfacecolor='r')
             ax.set_title(f'EN {enInd}\n median +/- std')
             ax.set_xlim([0, max(preSA)+1])
-            ax.set_ylim([0, 1.1*np.concatenate((preMeanResp, postMeanResp)).max() + np.concatenate((preStdResp, postStdResp)).max()])
+            ax.set_ylim([0, 1.1*np.concatenate((preMeanResp, postMeanResp)).max() \
+                + np.concatenate((preStdResp, postStdResp)).max()])
             ax.set_xticks(preSA, minor=False)
             ax.set_xticklabels(classLabels)
 
@@ -360,6 +367,8 @@ def viewENresponses( simRes, modelParams, expP,
 
             # percent change in means
             ax = thisFig.add_subplot(2, 3, 5)
+            ax.grid()
+
             ax.plot(preSA, percentChangeInMeanResp, 'bo', markerfacecolor='b')
             # mark the trained odors in red
             ax.plot(enInd, percentChangeInMeanResp[enInd], 'ro', markerfacecolor='r')
@@ -371,6 +380,8 @@ def viewENresponses( simRes, modelParams, expP,
 
             # relative percent changes
             ax = thisFig.add_subplot(2, 3, 6)
+            ax.grid()
+
             pn = np.sign(postMeanResp[enInd] - preMeanResp[enInd])
             ax.plot(preSA, (pn*percentChangeInMeanResp)/percentChangeInMeanResp[enInd],
                 'bo', markerfacecolor='b')
@@ -378,7 +389,7 @@ def viewENresponses( simRes, modelParams, expP,
             ax.plot(enInd, pn*1, 'ro', markerfacecolor='r')
             ax.set_title(r'relative $\Delta$ mean')
             ax.set_xlim([0, max(preSA)+1])
-            ax.set_ylim([0, 2])
+            # ax.set_ylim([0, 2])
             ax.set_xticks(preSA)
             ax.set_xticklabels(classLabels)
 
@@ -462,8 +473,6 @@ def viewENresponses( simRes, modelParams, expP,
             midTimeInds = np.nonzero(midT)[0]
 
             # plot ENs
-
-            #import pdb; pdb.set_trace()
 
             # normalized by the home class preMean
             ax.plot(preTime, simRes['E'][preTimeInds,enInd] / preMeanControl, color='b')

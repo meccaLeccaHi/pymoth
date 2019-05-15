@@ -118,7 +118,8 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 
 	# DEV NOTE: Clarify this part with CBD - need to understand 'active pixels' better
 	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]
-	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'], saveImageFolder, scrsz)
+	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'], saveImageFolder,
+		scrsz, preP['showThumbnails'])
 	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
 
 	return featureArray, activePixelInds, lengthOfSide

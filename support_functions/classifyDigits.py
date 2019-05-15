@@ -71,6 +71,8 @@ def classifyDigitsViaLogLikelihood( results ):
     # make predictions:
     predClasses = np.argmin(likelihoods, axis=1)
 
+    # import pdb; pdb.set_trace()
+
     # calc accuracy percentages:
     classAccuracies = np.zeros(nEn)
     for i in range(nEn):
@@ -199,7 +201,6 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
 
         ## DEV NOTE: DO WE NEED THE .copy() BELOW?
         # import pdb; pdb.set_trace()
-
         onDiag = np.diag(dist).copy()
         # Reward any onDiags that are above some threshold (mu - n*sigma) of an EN.
         # CAUTION: This reward-by-shrinking only works when off-diagonals are

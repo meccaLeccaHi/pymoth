@@ -1,11 +1,14 @@
-def selectActivePixels( featureArray, numFeatures, saveImageFolder=[], scrsz = (1920, 1080) ):
+def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
+    scrsz = (1920, 1080), showThumbnails = 0 ):
     '''
     Select the most active pixels, considering all class average images, to use as features.
     Inputs:
         1. featureArray: 3-D array nF x nS x nC, where nF = # of features,
         nS = # samples per class, nC = number of classes. As created by genDS_MNIST.
         2. numFeatures: The number of active pixels to use (these form the receptive field).
-        3. saveImageFolder:  dir to save average class images, empty = don't save
+        3. saveImageFolder: dir to save average class images, empty = don't save
+        4. screensize: (width, height)
+        5. showThumbnails: number of thumbnails to plot
     Output:
         1. activePixelInds: 1 x nF vector of indices to use as features.
         Indices are relative to the vectorized thumbnails (so between 1 and 144).
@@ -63,7 +66,7 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[], scrsz = (
     # May be on account of re-ordered stimuli (i.e. digits)?
     # import pdb; pdb.set_trace()
 
-    if saveImageFolder:
+    if showThumbnails and saveImageFolder:
         # plot the normalized classAves pre-ablation
         normalize = 0
         titleStr = 'class aves, all pixels'
