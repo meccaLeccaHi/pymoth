@@ -209,6 +209,7 @@ def initializeConnectionMatrices(mP):
     mP.noisePIvec = np.maximum(0,  mP.noisePI + mP.PInoiseStd*r.normal(0,1,(mP.nPI,1)) ) # no PIs for mnist
     mP.noiseKvec = np.maximum(0,  mP.noiseK + mP.KnoiseStd*r.normal(0,1,(mP.nK,1)) )
     mP.noiseEvec = np.maximum(0,  mP.noiseE + mP.EnoiseStd*r.normal(0,1,(mP.nE,1)) )
+
     # gamma versions:
     a = Decimal(mP.noiseR)/Decimal(mP.RnoiseStd)
     b = Decimal(mP.noiseR)/a

@@ -54,7 +54,9 @@ def div(a,b):
     return float(round(Decimal(a)/Decimal(b),4))
 
 nF = 85 # number of features
-goal = 20 # measure of learning rate
+goal = 15 # measure of learning rate
+# DEV NOTE: Above vars hard-coded for now.
+# Change after refactoring
 
 nG = nF
 nP = nG # Pn = n of excitatory Pn. (one per glomerulus)
@@ -353,8 +355,9 @@ octo2Estd = 0
 noise = 1
 noiseStdFactor= 0.3
 noiseR,noiseP,noiseL,noisePI = [noise]*4
-RnoiseStd,PnoiseStd,LnoiseStd,PInoiseStd,KnoiseStd = [noise*noiseStdFactor]*5
+RnoiseStd,PnoiseStd,LnoiseStd,PInoiseStd = [noise*noiseStdFactor]*4
 noiseK,noiseE,EnoiseStd = [0]*3
+KnoiseStd = noiseK*noiseStdFactor
 
 #-------------------------------------------------------------------------------
 

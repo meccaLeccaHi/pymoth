@@ -126,7 +126,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
 #-------------------------------------------------------------------------------
 
-    dt = time[1] - time[0] # this is determined by start, stop and step in calling function
+    dt = round(time[1] - time[0], 2) # this is determined by start, stop and step in calling function
     N = int( (tspan[1] - tspan[0]) / dt ) # number of steps in noise evolution
     T = np.linspace(tspan[0], tspan[1]-dt, N) # the time vector
 
@@ -440,7 +440,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
             # decay some P2K connections if wished: (not used for mnist experiments)
             if mP.dieBackTauPK > 0:
-                oldP2K -= oldP2K*(1/dieBackTauPK)*dt
+                oldP2K *= -(1/mP.dieBackTauPK)*dt
 
             newP2K = np.maximum(oldP2K + dp2k, 0)
             newP2K = np.minimum(newP2K, mP.hebMaxPK)
@@ -523,7 +523,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
     # FOLLOW-UP: Figure out why 'E' has a different shape than the others.
     # Values are same for both versions, working fine.
-    # import pdb; pdb.set_trace()
 
     saveType = 'float32' # convert to singles to save memory
     thisRun = dict() # pre-allocate

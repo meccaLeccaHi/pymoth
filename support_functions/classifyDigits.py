@@ -71,8 +71,6 @@ def classifyDigitsViaLogLikelihood( results ):
     # make predictions:
     predClasses = np.argmin(likelihoods, axis=1)
 
-    # import pdb; pdb.set_trace()
-
     # calc accuracy percentages:
     classAccuracies = np.zeros(nEn)
     for i in range(nEn):
@@ -200,7 +198,6 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
         offDiag = dist - np.diag(np.diag(dist))
 
         ## DEV NOTE: DO WE NEED THE .copy() BELOW?
-        # import pdb; pdb.set_trace()
         onDiag = np.diag(dist).copy()
         # Reward any onDiags that are above some threshold (mu - n*sigma) of an EN.
         # CAUTION: This reward-by-shrinking only works when off-diagonals are
@@ -231,8 +228,6 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
     # confusion matrix:
     # i,j'th entry is number of test digits with true label i that were predicted to be j.
     confusion = confusion_matrix(trueClasses, predClasses)
-
-    # import pdb; pdb.set_trace()
 
     # DEV NOTE: could assign these directly above and save this step.
     output = dict()

@@ -64,7 +64,6 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
     # Same values for "thresh" for both versions
     # Same shape for "activePixelInds", but different values
     # May be on account of re-ordered stimuli (i.e. digits)?
-    # import pdb; pdb.set_trace()
 
     if showThumbnails and saveImageFolder:
         # plot the normalized classAves pre-ablation

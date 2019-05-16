@@ -99,7 +99,7 @@ def sdeWrapper( modelParams, expParams, featureArray ):
     tspan = [ simStart, simStop ]
     seedValue = 0 # to free up or fix randn
     # If = 0, a random seed value will be chosen. If > 0, the seed will be defined.
-    
+
     # Run the SDE evolution:
     thisRun = sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         octoHits, modelParams, expParams, seedValue )

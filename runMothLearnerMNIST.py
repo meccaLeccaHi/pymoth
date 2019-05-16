@@ -219,11 +219,12 @@ for run in range(numRuns):
 	else:
 		# a) load template params
 		# modelParams = model_params
+		# DEV NOTE: Pass modelParams modelParams.nF and modelParams.goal after refactor
 		import support_functions.specifyModelParamsMnist as modelParams
 
-		# b) over-write default values below (if applicable)
-		modelParams.nF = len(activePixelInds)
-		modelParams.goal = goal
+		# # b) over-write default values below (if applicable)
+		# modelParams.nF = len(activePixelInds)
+		# modelParams.goal = goal
 
 		# c) Now populate the moth's connection matrices using the modelParams
 		modelParams = initializeConnectionMatrices(modelParams)
@@ -246,7 +247,6 @@ for run in range(numRuns):
 #-------------------------------------------------------------------------------
 
 	# Experiment Results: EN behavior, classifier calculations:
-
 	if saveResultsImageFolder:
 		if not os.path.isdir(saveResultsImageFolder):
 			os.mkdir(saveResultsImageFolder)
@@ -311,8 +311,6 @@ for run in range(numRuns):
 
 		print(f'Results saved to: {results_fname}')
 
-# import pdb; pdb.set_trace()
-
 print('         -------------All done-------------         ')
 
 runDuration = time.time() - runStart
@@ -320,3 +318,5 @@ print(f'{__file__} executed in {runDuration/60:.3f} minutes')
 print(f'SDE duration: {sdeDuration/60:.3f} minutes ({sdeDuration/runDuration:.3f}%)')
 
 print('FOLLOW-UP: Should we include MIT licenses in these scripts?')
+
+# import pdb; pdb.set_trace()

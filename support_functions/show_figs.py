@@ -201,12 +201,14 @@ def viewENresponses( simRes, modelParams, expP,
             # than ~ismember(t, octoTimes):
             small = 1e-8 # .00000001
             # assign no-octo, PRE-train response val (or -1)
+            # DEV NOTE: Needs commentary!
             preTrainOdorResp[i] = -1 # as flag
             if (len(octoTimes)==0) or ((abs(octoTimes - t).min() > small) and (t < expP.startTrain)):
                 resp_ind = np.logical_and(t-1 < simRes['T'], simRes['T'] < t+1)
                 preTrainOdorResp[i] = thisEnResponse[resp_ind].max()
 
             # assign no-octo, POST-train response val (or -1)
+            # DEV NOTE: Needs commentary!
             postTrainOdorResp[i] = -1
             if len(octoTimes)!=0:
                 if (abs(octoTimes - t).min() > small) and (t > expP.endTrain):
@@ -223,12 +225,13 @@ def viewENresponses( simRes, modelParams, expP,
             curCl = whichClass==cl
             preSA = preTrainOdorResp[np.logical_and(preTrainOdorResp>=0, curCl)]
             postSA = postTrainOdorResp[np.logical_and(postTrainOdorResp>=0, curCl)]
+
             ## calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
             # this will contain the average responses over all sniffs for each sample
             # DEV NOTE: Changed pretty drastically from orig version, but should be the same.
             # Double check with CBD
-
             if len(preSA)==0: # DEV NOTE: When would this occur? Remove?
+                print(f'[1]This occured. You were wrong. {__file__}')
                 preMeanResp[k] = -1
                 preMedianResp[k] = -1
                 preStdResp[k] = -1
@@ -240,6 +243,7 @@ def viewENresponses( simRes, modelParams, expP,
                 preNumPuffs[k] = len(preSA)
 
             if len(postSA)==0: # DEV NOTE: When would this occur? Remove?
+                print(f'[2]This occured. You were wrong. {__file__}')
                 postMeanResp[k] = -1
                 postMedianResp[k] = -1
                 postStdResp[k] = -1
