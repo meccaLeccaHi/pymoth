@@ -41,21 +41,23 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 
 	mnist_fname = os.path.join(im_dir,'MNIST_all.npy')
 
-	# DEV NOTE: add test for npy file before loading. run creation script, if absent.
-	if os.path.isfile(mnist_fname):
-		# 1. extract mnist:
-		mnist = np.load(mnist_fname, allow_pickle = True).item()
-		# loads dictionary 'mnist' with keys:value pairs =
-		#              .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
-		#              AND parsed by class. These fields are used to assemble the imageArray:
-		#              .trI_* = train_images of class *
-		#              .teI_* = test_images of class *
-		#              .trL_* = train_labels of class *
-		#              .teL_* = test_labels of class *
-	else:
+	import pdb; pdb.set_trace()
+
+	# test for npy file before loading. run creation script, if absent.
+	if ~os.path.isfile(mnist_fname):
 		# download and save data
 		from MNIST_all import MNIST_makeAll
 		MNIST_makeAll.downloadAndSave()
+
+	# 1. extract mnist:
+	mnist = np.load(mnist_fname, allow_pickle = True).item()
+	# loads dictionary 'mnist' with keys:value pairs =
+	#              .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
+	#              AND parsed by class. These fields are used to assemble the imageArray:
+	#              .trI_* = train_images of class *
+	#              .teI_* = test_images of class *
+	#              .trL_* = train_labels of class *
+	#              .teL_* = test_labels of class *
 
 	# extract the required images and classes
 	imageIndices = range(preP['maxInd']+1)
