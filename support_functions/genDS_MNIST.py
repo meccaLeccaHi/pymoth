@@ -41,10 +41,8 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 
 	mnist_fname = os.path.join(im_dir,'MNIST_all.npy')
 
-	import pdb; pdb.set_trace()
-
 	# test for npy file before loading. run creation script, if absent.
-	if ~os.path.isfile(mnist_fname):
+	if not os.path.isfile(mnist_fname):
 		# download and save data
 		from MNIST_all import MNIST_makeAll
 		MNIST_makeAll.downloadAndSave()
