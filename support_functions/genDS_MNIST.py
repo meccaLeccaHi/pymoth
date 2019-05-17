@@ -53,12 +53,9 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 		#              .trL_* = train_labels of class *
 		#              .teL_* = test_labels of class *
 	else:
-
-		import pdb; pdb.set_trace()
 		# download and save data
-		import MNIST_all.MNIST_makeAll
-		# lots of stuff here
-		test1.main() # do whatever is in test1.py
+		from MNIST_all import MNIST_makeAll
+		MNIST_makeAll.downloadAndSave()
 
 	# extract the required images and classes
 	imageIndices = range(preP['maxInd']+1)

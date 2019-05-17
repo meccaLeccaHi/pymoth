@@ -1,6 +1,6 @@
-def download_and_save():
+def downloadAndSave():
 	'''
-	makes the following dictionary, called mnist
+	saves the following dictionary, called mnist, to .npy file
     train_images: np.array[28x28x60000]
     test_images: np.array[28x28x10000]
     train_labels: np.array[60000x1]
@@ -9,9 +9,9 @@ def download_and_save():
 
 	import os
 	import numpy as np
-	from MNIST_read import MNIST_read
+	from MNIST_all import MNIST_read
 
-	[train_imgs, train_lbls, test_imgs, test_lbls] = MNIST_read();
+	[train_imgs, train_lbls, test_imgs, test_lbls] = MNIST_read.read();
 
 	im_dir = 'MNIST_all'
 
@@ -25,4 +25,4 @@ def download_and_save():
 	np.save(os.path.join('.',im_dir,'MNIST_all.npy'), mnist)
 
 if __name__ == "__main__":
-    download_and_save()
+    main()

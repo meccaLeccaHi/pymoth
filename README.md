@@ -10,9 +10,9 @@ Python wrapper for MothNet
 - [dill](https://pypi.org/project/dill/)
 
 Install manually with:
-`$ pip install scipy matplotlib scikit-learn pillow wget dill`
+`$ pip install scipy matplotlib scikit-learn pillow python-wget dill`
 -or-
-`$ conda create -n <env_name> python=3.6 scipy matplotlib scikit-learn pillow wget dill`
+`$ conda create -n <env_name> python=3.6 scipy matplotlib scikit-learn pillow python-wget dill`
 
 Or, install from .txt file
 1. clone this repository and `cd` into it

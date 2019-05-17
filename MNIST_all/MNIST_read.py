@@ -1,18 +1,20 @@
-def MNIST_read():
-	# Read in MNIST digit set in Le Cun's format
-	# [trainImages, trainLabels, testImages, testLabels] = MNIST_read()
-	#
-	# The data is available at:
-	# http://yann.lecun.com/exdb/mnist/
-	#
-	# OUTPUT:
-	# trainImages is a numpy matrix of size 60,000x28x28
-	#		 (0 = background, 255 = foreground)
-	# trainLabels is a 60,000x1 vector of integers
-	# testImages is a numpy matrix of size 10,000x28x28
-	# testLabels is a 10,000x1 vector of integers
-	#
-	# Use MNIST_show(trainImages, trainLabels) to visualize data.
+def read():
+	'''
+	Read in MNIST digit set in Le Cun's format
+	[trainImages, trainLabels, testImages, testLabels] = MNIST_read()
+
+	The data is available at:
+	http://yann.lecun.com/exdb/mnist/
+
+	OUTPUT:
+	trainImages is a numpy matrix of size 60,000x28x28
+			 (0 = background, 255 = foreground)
+	trainLabels is a 60,000x1 vector of integers
+	testImages is a numpy matrix of size 10,000x28x28
+	testLabels is a 10,000x1 vector of integers
+
+	Use MNIST_show(trainImages, trainLabels) to visualize data.
+	'''
 
 	import numpy as np
 	import os
