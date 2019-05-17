@@ -28,6 +28,8 @@ def read():
 
 	if missingFileTest:
 
+		print('Downloading data')
+
 		import wget
 		import gzip
 		import struct
