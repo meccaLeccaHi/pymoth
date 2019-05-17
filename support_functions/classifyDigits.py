@@ -31,7 +31,8 @@ def classifyDigitsViaLogLikelihood( results ):
     '''
 
     import numpy as np
-    from sklearn.metrics import confusion_matrix
+    from sklearn.metrics import confusion_matrix # DEV NOTE: Should consider removing
+        # This is the only thing we are using sklearn for
 
     # r = results
     nEn = len(results) # number of ENs, same as number of classes

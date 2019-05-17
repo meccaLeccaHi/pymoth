@@ -41,7 +41,7 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 
 	# DEV NOTE: add test for npy file before loading. run creation script, if absent.
 	# 1. extract mnist:
-	mnist = np.load(os.path.join(im_dir,'MNIST_all.npy')).item()
+	mnist = np.load(os.path.join(im_dir,'MNIST_all.npy'), allow_pickle = True).item()
 	# loads dictionary 'mnist' with keys:value pairs =
 	#              .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
 	#              AND parsed by class. These fields are used to assemble the imageArray:

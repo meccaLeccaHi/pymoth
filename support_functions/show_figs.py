@@ -1,15 +1,15 @@
-def getScreen():
-    '''
-    function to get screen width and height (linux/mac compatible)
-    '''
-    # tkinter errors if run after matplotlib is loaded, so run it first
-    import tkinter as tk
-    root = tk.Tk()
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    root.update()
-    root.destroy()
-    return (screen_width, screen_height)
+# def getScreen():
+#     '''
+#     function to get screen width and height (linux/mac compatible)
+#     '''
+#     # tkinter errors if run after matplotlib is loaded, so run it first
+#     import tkinter as tk
+#     root = tk.Tk()
+#     screen_width = root.winfo_screenwidth()
+#     screen_height = root.winfo_screenheight()
+#     root.update()
+#     root.destroy()
+#     return (screen_width, screen_height)
 
 def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString,
     scrsz = (1920, 1080), saveImageFolder=[], saveString='' ):
@@ -125,7 +125,11 @@ def viewENresponses( simRes, modelParams, expP,
 
     import os
     import numpy as np
-    import matplotlib.pyplot as plt
+    import matplotlib
+    matplotlib.use("TKAgg") # DEV NOTE: Remove later
+    from matplotlib import pyplot as plt
+
+    # import matplotlib.pyplot as plt
 
     # DEV NOTE: redundant - remove?
     # if saveImageFolder:
@@ -399,6 +403,7 @@ def viewENresponses( simRes, modelParams, expP,
 
         # Save plot
         if saveImageFolder and os.path.isdir(saveImageFolder) and showPlots[0]:
+
             thisFig.savefig(os.path.join(saveImageFolder,f'{resultsFilename}_en{enInd}.png'))
 
         #-----------------------------------------------------------------------

@@ -254,7 +254,7 @@ for run in range(numRuns):
 	# Process the sim results to group EN responses by class and time:
 	respOrig = viewENresponses(simResults, modelParams, experimentParams,
 		showENPlots, classLabels, scrsz, resultsFilename, saveResultsImageFolder)
-
+	
 	# Calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in respOrig:
 	respNaive = copy.deepcopy(respOrig)
