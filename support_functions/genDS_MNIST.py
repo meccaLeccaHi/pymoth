@@ -94,12 +94,11 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 
 	# b. Subtract this overallAve image from all images
 	ave_2D = np.tile(overallAve,(im_z,1)).T
-	# ave_2D = npm.repmat(overallAve,im_z,1).T
 	ave_3D = np.repeat(ave_2D[:,:,np.newaxis],label_len,2)
 	featureArray -= ave_3D
 	del ave_2D, ave_3D
 
-	featureArray[ featureArray < 0 ] = 0 # remove any negative pixel values
+	featureArray = np.maximum( featureArray, 0 ) # remove any negative pixel values
 
 	# c. Normalize each image so the pixels sum to the same amount
 	fSums = np.sum(featureArray, axis=0)
