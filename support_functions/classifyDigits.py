@@ -60,8 +60,10 @@ def classifyDigitsViaLogLikelihood( results ):
     # get the likelihood of each puff (ie each col of ptResp)
     likelihoods = np.zeros((nP,nEn))
     for i in range(nP):
-
-        dist = (np.tile(ptResp[:,i],(10,1)) - mu) / sig # 10 x 10 matrix.
+        # Caution: ptResp[:,i] becomes a row vector, but we need it to stay as a
+        # col vector so we can make 10 identical columns. So transpose it back with [np.newaxis]
+        a = ptResp[:,i][np.newaxis]
+        dist = ( np.tile( a.T, ( 1, 10 )) - mu) / sig # 10 x 10 matrix
         # The ith row, jth col entry is the mahalanobis distance of this test
         # digit's response from the i'th ENs response to the j'th class.
         # For example, the diagonal contains the mahalanobis distance of this

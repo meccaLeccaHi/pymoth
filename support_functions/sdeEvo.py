@@ -302,9 +302,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         thisStimClassInd = []
         for j in range(nC):
             if classMagMatrix[j,i]: # if classMagMatrix[j,i] is not zero
-                thisInput += classMagMatrix[j,i]*featureArray[:,int(classCounter[j]),j]
-                # imNum = int(classCounter[j] - 1) # indexing: need the '-1' so we don't run out of images
-                # thisInput += classMagMatrix[j,i]*featureArray[:,imNum,j]
+                # thisInput += classMagMatrix[j,i]*featureArray[:,int(classCounter[j]),j]
+                imNum = int(classCounter[j] - 1) # indexing: need the '-1' so we don't run out of images
+                thisInput += classMagMatrix[j,i]*featureArray[:,imNum,j]
                 thisStimClassInd.append(j)
 
 #-------------------------------------------------------------------------------
