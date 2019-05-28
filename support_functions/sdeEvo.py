@@ -209,6 +209,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         # step = np.round(time[1] - time[0], 4)
 
         # DEV NOTE: Confused by this. What is purpose?
+        # if sufficiently early, or we want the entire evo
         if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
             oldP = P[:,i]
             oldPI = PI[:,i] # no PIs for mnist
@@ -292,6 +293,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             for j in range(nC):
                 if (classMagMatrix[j,i-1] == 0) and (classMagMatrix[j,i] > 0):
                     classCounter[j] += 1
+        # DEV NOTE: Check that the rows classMagMatrix correspond to correct class of input
 
         # get values of feature inputs at time index i, as a col vector.
         # This allows for simultaneous inputs by different classes, but current
@@ -301,6 +303,8 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         for j in range(nC):
             if classMagMatrix[j,i]: # if classMagMatrix[j,i] is not zero
                 thisInput += classMagMatrix[j,i]*featureArray[:,int(classCounter[j]),j]
+                # imNum = int(classCounter[j] - 1) # indexing: need the '-1' so we don't run out of images
+                # thisInput += classMagMatrix[j,i]*featureArray[:,imNum,j]
                 thisStimClassInd.append(j)
 
 #-------------------------------------------------------------------------------
