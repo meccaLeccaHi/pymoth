@@ -1,4 +1,3 @@
-
 '''
 runMothLearnerOnReducedMnist
 
@@ -21,16 +20,10 @@ Order of events:
 	4. Load the experiment parameters.
 	5. Run the simulation with 'sdeWrapper'
 	6. Plot results, print results to console
-'''
 
-#from support_functions.show_figs import getScreen
-# #scrsz = getScreen()
-#
-# import tkinter as tk
-# root = tk.Tk()
-# scrsz = root.winfo_screenwidth(), root.winfo_screenheight()
-# #root.update()
-# root.destroy()
+Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+MIT License
+'''
 
 # import packages
 import time
@@ -51,6 +44,7 @@ from support_functions.classifyDigits import classifyDigitsViaLogLikelihood, cla
 ## USER ENTRIES (Edit parameters below):
 #-------------------------------------------------------------------------------
 scrsz = (1920, 1080) # screen size (width, height)
+### ADD OPTION TO SET THIS IN PARAMETER FILE
 
 useExistingConnectionMatrices = False
 # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
@@ -82,16 +76,6 @@ saveResultsImageFolder = 'results' # StrtempArraying. If non-empty, images will 
 #-------------------------------------------------------------------------------
 
 ## Misc book-keeping
-
-# # DEV NOTE: retrieving screen-size just once since it's trickier in python
-# # get screensize, if that's useful
-# if ( showThumbnails + sum(showENPlots)):
-# 	# tkinter errors if run after matplotlib is loaded, so we run it first
-#
-# 	from support_functions.show_figs import getScreen
-# 	scrsz = getScreen()
-# 	print(f'screen size: {scrsz}')
-
 classLabels = np.array(range(10))  # For MNIST. '0' is labeled as 10
 valPerClass = 15  # number of digits used in validation sets and in baseline sets
 
@@ -241,9 +225,7 @@ for run in range(numRuns):
 #-------------------------------------------------------------------------------
 
 	# 3. run this experiment as sde time-step evolution:
-	sdeStart = time.time() # time sde duration
 	simResults = sdeWrapper( modelParams, experimentParams, digitQueues )
-	sdeDuration = time.time()-sdeStart
 
 #-------------------------------------------------------------------------------
 
@@ -316,8 +298,20 @@ print('         -------------All done-------------         ')
 
 runDuration = time.time() - runStart
 print(f'{__file__} executed in {runDuration/60:.3f} minutes')
-print(f'SDE duration: {sdeDuration/60:.3f} minutes ({sdeDuration/runDuration:.3f}%)')
 
-print('FOLLOW-UP: Should we include MIT licenses in these scripts?')
+# MIT license:
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # import pdb; pdb.set_trace()

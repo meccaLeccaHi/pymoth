@@ -1,6 +1,9 @@
 def piecewiseLinearPseudoSigmoid(x, span, slope):
     '''
     Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns
+
+    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+    MIT License
     '''
     import numpy as np
 
@@ -82,6 +85,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         1. In the heat maps and time-courses this will give a period of uniform FRs.
         2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
         the exP.stopSpontMean3 timepoint.
+
+    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+    MIT License
     '''
 
     import numpy as np
@@ -543,3 +549,18 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     thisRun['K2Efinal'] = oldK2E.astype(saveType)
 
     return thisRun
+
+# MIT license:
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

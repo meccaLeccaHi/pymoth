@@ -40,6 +40,9 @@ so M(i,j) is the strength from obj(i) to obj(j)
 below, 'G' stands for glomerulus. Glomeruli are not explicitly part of the equations,
 but the matrices for LN interconnections,
 PNs, and RNs are indexed according to the G
+
+Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+MIT License
 '''
 
 # DEV NOTE: using decimal type in arithmetic to avoid representation errors
@@ -366,41 +369,17 @@ KnoiseStd = noiseK*noiseStdFactor
 trueClassLabels = None
 saveAllNeuralTimecourses = None
 
-# F2R = None
-# F2Rbinary = None
-#
-# Rspont = None
-# R2G = None
-# R2P = None
-# R2L = None
-# R2PI = None
-# R2PIcol = None
-#
-# P2K = None
-# PI2K = None
-#
-# octo2R = None
-# octo2P = None
-# octo2PI = None
-# octo2L = None
-# octo2K = None
-# octo2E = None
-#
-# L2G = None
-# L2P = None
-# L2L = None
-# L2PI = None
-# L2R = None
-#
-# G2PI = None
-#
-# K2E = None
-#
-# noiseRvec = None
-# noisePvec = None
-# noisePIvec = None
-# noiseLvec = None
-# noiseKvec = None
-# noiseEvec = None
-#
-# kGlobalDampVec = None
+# MIT license:
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

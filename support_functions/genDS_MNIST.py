@@ -27,6 +27,8 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 		2. cropping and downsampling
 		3. mean-subtract, make non-negative, normalize pixel sums
 		4. select active pixels (receptive field)
+	Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+	MIT License
 	'''
 
 	import os
@@ -131,3 +133,18 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
 
 	return featureArray, activePixelInds, lengthOfSide
+
+# MIT license:
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

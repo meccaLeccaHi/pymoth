@@ -1,16 +1,3 @@
-# def getScreen():
-#     '''
-#     function to get screen width and height (linux/mac compatible)
-#     '''
-#     # tkinter errors if run after matplotlib is loaded, so run it first
-#     import tkinter as tk
-#     root = tk.Tk()
-#     screen_width = root.winfo_screenwidth()
-#     screen_height = root.winfo_screenheight()
-#     root.update()
-#     root.destroy()
-#     return (screen_width, screen_height)
-
 def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString,
     scrsz = (1920, 1080), saveImageFolder=[], saveString='' ):
     '''
@@ -22,10 +9,10 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
         2. showPerClass = how many of the thumbnails from each class to show.
         3. normalize = 1 if you want to rescale thumbs to [0 1], 0 if you don't
         4. titleString = string
-    '''
 
-    # # tkinter errors if run after matplotlib is loaded, so we run it first
-    # scrsz = getScreen()
+    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+    MIT License
+    '''
 
     import numpy as np
     import matplotlib.pyplot as plt
@@ -118,10 +105,10 @@ def viewENresponses( simRes, modelParams, expP,
         7. preSpontStd = std(preSpont)
         8. postSpontMean = mean(postSpont)
         9. postSpontStd = std(postSpont)
-    '''
 
-    # # tkinter errors if run after matplotlib is loaded, so we run it first
-    # scrsz = getScreen()
+    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+    MIT License
+    '''
 
     import os
     import numpy as np
@@ -520,3 +507,18 @@ def viewENresponses( simRes, modelParams, expP,
                 f'{resultsFilename}_enTimecourses{enInd}.png'))
 
     return results
+
+# MIT license:
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

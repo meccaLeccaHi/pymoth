@@ -17,6 +17,9 @@ def initializeConnectionMatrices(mP):
     Step 1: Generate connection matrices
     Comment: Since there are many zero connections (ie matrices are usually
         not all-to-all) we often need to apply masks to preserve the zero connections
+
+    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+    MIT License
     '''
 
     import numpy as np
@@ -230,37 +233,19 @@ def initializeConnectionMatrices(mP):
     mP.kGlobalDampVec = mP.kGlobalDampFactor + mP.kGlobalDampStd*r.normal(0,1,(mP.nK,1))
     # each KC may be affected a bit differently by LH inhibition
 
-#-------------------------------------------------------------------------------
-
-    # append these matrices to 'modelParams' struct:
-    # no editing necessary in this section
-
-    # mP.F2R = F2R
-    # mP.R2P = R2P
-    # mP.R2PI = R2PI
-    # mP.R2L = R2L
-    # mP.octo2R = octo2R
-    # mP.octo2P = octo2P
-    # mP.octo2PI = octo2PI
-    # mP.octo2L = octo2L
-    # mP.octo2K = octo2K
-    # mP.octo2E = octo2E
-    # mP.L2P = L2P
-    # mP.L2L = L2L
-    # mP.L2PI = L2PI
-    # mP.L2R = L2R
-    # mP.G2PI = G2PI
-    # mP.P2K = P2K
-    # mP.PI2K = PI2K
-    # mP.K2E = K2E
-    # mP.Rspont = Rspont # col vector
-
-    # mP.noiseRvec = noiseRvec
-    # mP.noisePvec = noisePvec
-    # mP.noisePIvec = noisePIvec
-    # mP.noiseLvec = noiseLvec
-    # mP.noiseKvec = noiseKvec
-    # mP.noiseEvec = noiseEvec
-    # mP.kGlobalDampVec = kGlobalDampVec
-
     return mP
+
+# MIT license:
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial
+# portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
