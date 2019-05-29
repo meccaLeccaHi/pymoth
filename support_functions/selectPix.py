@@ -48,7 +48,6 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
     vals = np.sort(this.flatten())[::-1]
 
     # start selecting the highest-valued pixels
-    # DEV NOTE: Clarify this part with CBD - (why do it?)
     stop = 0
     while not stop:
         thresh = vals.max()
@@ -60,13 +59,6 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
         vals = vals[vals < thresh]  # peel off the value(s) just used
 
     activePixelInds = np.nonzero(activePixels > 0)[0]
-    print(f"FOLLOW-UP[{__file__}]")
-    # print("activePixelInds len:", len(activePixelInds))
-    # print('activePixelInds[:5]:', activePixelInds[:5])
-    ## DEV NOTE: NEED TO FIX?: Doesn't correspond to matlab counterpart
-    # Same values for "thresh" for both versions
-    # Same shape for "activePixelInds", but different values
-    # May be on account of re-ordered stimuli (i.e. digits)?
 
     if showThumbnails and saveImageFolder:
         # plot the normalized classAves pre-ablation

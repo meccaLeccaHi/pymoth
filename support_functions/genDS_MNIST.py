@@ -37,7 +37,6 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	from support_functions.vec_images import cropDownsampleVectorizeImageStack
 	from support_functions.aveImStack import averageImageStack
 	from support_functions.selectPix import selectActivePixels
-	# DEV NOTE: Collapse these babies into one beautiful object
 
 	im_dir = 'MNIST_all'
 
@@ -84,7 +83,6 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 
 	# subtract a mean image from all feature vectors, then make values non-negative
 
-	# DEV NOTE: The following loop could be collapsed into the loop above
 	# a. Make an overall average feature vector, using the samples specified in 'indsToAverage'
 	overallAve = np.zeros((new_length, )) # pre-allocate col vector
 	classAvesRaw = np.zeros((new_length, label_len))
@@ -125,7 +123,6 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	# 	# load( preP['matrixParamsFilename'] )
 	# 	# preP['numFeatures'] = modelParams['nF']
 
-	# DEV NOTE: Clarify this part with CBD - need to understand 'active pixels' better
 	# reduce pixel number (downsample) to reflect # of features in moth brain
 	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]
 	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'], saveImageFolder,

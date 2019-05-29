@@ -100,7 +100,7 @@ def initializeConnectionMatrices(mP):
         randList = r.rand(*mP.L2G.shape) < numToKill/(mP.nG**2 - mP.nG - numZero)
         mP.L2G[(mP.L2G > 0) & (randList == 1)] = 0
 
-    mP.L2G = mP.L2G.reshape((mP.nG,mP.nG), order="F") # DEV NOTE: Using Fortran order (as MATLAB does)
+    mP.L2G = mP.L2G.reshape((mP.nG,mP.nG), order="F") # using Fortran order (as MATLAB does)
     # Structure of L2G:
     # L2G(i,j) = the synaptic LN weight going to G(i) from G(j),
     # ie the row gives the 'destination glom', the col gives the 'source glom'

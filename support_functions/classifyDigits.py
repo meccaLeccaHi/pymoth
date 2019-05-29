@@ -88,7 +88,6 @@ def classifyDigitsViaLogLikelihood( results ):
     # i,j'th entry is number of test digits with true label i that were predicted to be j.
     confusion = confusion_matrix(trueClasses, predClasses)
 
-    # DEV NOTE: could assign these directly above and save this step.
     output = dict()
     output['trueClasses'] = trueClasses
     output['predClasses'] = predClasses
@@ -238,7 +237,6 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
     # i,j'th entry is number of test digits with true label i that were predicted to be j.
     confusion = confusion_matrix(trueClasses, predClasses)
 
-    # DEV NOTE: could assign these directly above and save this step.
     output = dict()
     output['homeAdvantage'] = homeAdvantage
     output['trueClasses'] = trueClasses

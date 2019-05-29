@@ -105,7 +105,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     nL = mP.nG
     nR = mP.nG
 
-    # DEV NOTE: Remove this next section (redundant)?
     ## noise in individual neuron FRs
     # These are vectors, one vector for each type:
     wPsig = mP.noisePvec
@@ -117,10 +116,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
     # steady-state RN FR, base + noise:
     RspontRatios = mP.Rspont/mP.Rspont.mean() # used to scale stim inputs
-
-    # DEV NOTE: How worried about the precision of these values (below)?
-    # Python: pSlope=1.000125
-    # matlab: pSlope=1
 
     ## param for sigmoid that squashes inputs to neurons:
     # the slope at x = 0 = mP.slopeParam*span/4
@@ -214,7 +209,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
         # step = np.round(time[1] - time[0], 4)
 
-        # DEV NOTE: Confused by this. What is purpose?
         # if sufficiently early, or we want the entire evo
         if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
             oldP = P[:,i]
@@ -321,9 +315,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
 #-------------------------------------------------------------------------------
 
-        ## DEV NOTE: Check w/ CBD - dP, dPI, and dL all do the same thing at this point, correct?
-        ## if so, should implement function for following clauses
-
         # dP:
         Pinputs = (1 - thisOctoHit*mP.octo2P*mP.octoNegDiscount).squeeze()
         Pinputs = np.maximum(Pinputs, 0) # pos. rectify
@@ -373,8 +364,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
         neur_act *= (1 + thisOctoHit*mP.octo2R).squeeze()
         Rinputs += neur_act + mP.Rspont.squeeze()
-        # DEV NOTE: Rinputs values seem higher than their ML version, even though
-        # the inputs (octoMax, etc.) look the same - check if it's a problem.
         Rinputs = piecewiseLinearPseudoSigmoid(Rinputs, mP.cR, rSlope)
 
         # Wiener noise
@@ -517,8 +506,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             L[:,i+1] = np.maximum(newL, 0)
             R[:,i+1] = np.maximum(newR, 0)
             K[:,i+1] = np.maximum(newK, 0)
-            # DEV NOTE: delete following line. redundant with below
-            # E[,i+1] = newE
         else:
             P = np.maximum(newP, 0)
             PI = np.maximum(newPI, 0) # no PIs for mnist

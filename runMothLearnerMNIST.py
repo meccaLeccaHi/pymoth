@@ -44,7 +44,7 @@ from support_functions.classifyDigits import classifyDigitsViaLogLikelihood, cla
 ## USER ENTRIES (Edit parameters below):
 #-------------------------------------------------------------------------------
 scrsz = (1920, 1080) # screen size (width, height)
-### ADD OPTION TO SET THIS IN PARAMETER FILE
+### DEV NOTE: ADD OPTION TO SET THIS IN PARAMETER FILE
 
 useExistingConnectionMatrices = False
 # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
@@ -204,7 +204,7 @@ for run in range(numRuns):
 	else:
 		# a) load template params
 		# modelParams = model_params
-		# DEV NOTE: Pass modelParams modelParams.nF and modelParams.goal after refactor
+		# DEV NOTE: Pass modelParams nF and goal after refactor
 		import support_functions.specifyModelParamsMnist as modelParams
 
 		# # b) over-write default values below (if applicable)
@@ -258,9 +258,6 @@ for run in range(numRuns):
 	outputTrainedLogL = classifyDigitsViaLogLikelihood( respOrig )
 	print( f"Trained Accuracy: {round(outputTrainedLogL['totalAccuracy'])}" + \
 		f"#, by class: {np.round(outputTrainedLogL['accuracyPercentages'])} #.   ")
-
-	#import pdb; pdb.set_trace()
-	# FIX outputTrainedLogL
 
 	# 2. Using single EN thresholding:
 	outputNaiveThresholding = classifyDigitsViaThresholding( respNaive, 1e9, -1, 10 )

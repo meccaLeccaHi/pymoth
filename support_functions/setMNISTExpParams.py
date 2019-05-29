@@ -36,8 +36,8 @@ def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
 	step = 3 # the time between digits (3 seconds)
 	trStep = step + 2 # allow more time between training digits
 
-	# DEV NOTE: The following hack allows us to set the attributes of a Python object
-	# the same way we set the fields of a struct in matlab. Should be removed after
+	# this allows us to set the attributes of a Python object the same way we
+	# set the fields of a struct in matlab. Should be removed after
 	# transition to OOP
 	class Object(object):
 		pass

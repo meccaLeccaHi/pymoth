@@ -355,8 +355,7 @@ octo2Estd = 0
 # - These control random variations in the various neurons that are applied at
 # each time step as 'epsG' and 'epsK'
 # - This might serve to break up potential oscillations
-noise = 1
-# DEV NOTE: set to zero for noise free moth
+noise = 1 # set to zero for noise free moth
 noiseStdFactor= 0.3
 noiseR,noiseP,noiseL,noisePI = [noise]*4
 RnoiseStd,PnoiseStd,LnoiseStd,PInoiseStd = [noise*noiseStdFactor]*4

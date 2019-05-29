@@ -26,7 +26,6 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
         featureArray = f[:,:,:]  #.squeeze()
 
     pixNum, numPerClass, nC  = featureArray.shape
-    # DEV NOTE: removed classNum from inputs above
 
     total = nC*showPerClass # total number of subplots
     numRows = np.ceil(np.sqrt(total/2)) # n of rows
@@ -48,19 +47,6 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
 
             ax_count = i + (cl*nC)
             plt.subplot(np.int(numRows),np.int(numCols),ax_i)
-
-            # # DEV NOTE: delete these
-            # # reverse:
-            # # thisInput = (-thisInput + 1)*1.1
-            # thisCol = ax_i % numCols
-            # if thisCol==0:
-            #     thisCol = numCols
-            # thisRow = np.ceil( ax_i / numCols )
-
-            # a = horiz*(thisCol - 1) # x-coordinates (left edge)
-            # b = 1 - vert*(thisRow) # y-coordinates (bottom edge)
-            # c = horiz # subplot width
-            # d = vert # subplot height
 
             side = np.int(np.sqrt(len(thisInput)))
             plt.imshow(thisInput.reshape((side,side)), cmap='gray', vmin=0, vmax=1)
@@ -116,28 +102,9 @@ def viewENresponses( simRes, modelParams, expP,
     matplotlib.use("TKAgg") # DEV NOTE: Remove later
     from matplotlib import pyplot as plt
 
-    # import matplotlib.pyplot as plt
-
-    # DEV NOTE: redundant - remove?
-    # if saveImageFolder:
-    #     if not os.path.isdir(saveImageFolder):
-    #         os.mkdir(saveImageFolder)
-
-    # nE = modelParams.nE;
-
-    # pre- and post-heb spont stats
-    # preHebSpontStart = expP.preHebSpontStart;
-    # preHebSpontStop = expP.preHebSpontStop;
-    # postHebSpontStart = expP.postHebSpontStart;
-    # postHebSpontStop = expP.postHebSpontStop;
-
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
         (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
     # concurrent octopamine will be marked with yellow x's
-
-    # E = simRes.E;   % # timesteps x #ENs
-    # T = simRes.T;   % # timesteps x 1
-    # octoHits = simRes.octoHits;
 
     if simRes['octoHits'].max() > 0:
         octoTimes = simRes['T'][ simRes['octoHits'] > 0 ]
@@ -491,9 +458,6 @@ def viewENresponses( simRes, modelParams, expP,
                 if i == enInd:
                     ax.plot(classStarts, 0.001*np.ones(classStarts.shape), '.', \
                         color=colors[i], markersize=24) # , markerfacecolor=colors[i]
-
-            # DEV NOTE: Just too much of a pain to implement in pyplot (within a loop)
-            # ax.set(fontname='Arial', fontweight='bold', fontsize=12)
 
             # format
             ax.set_ylim( [0, 1.2* max(simRes['E'][postTimeInds,enInd])/postMeanControl] )
