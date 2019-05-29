@@ -1,4 +1,4 @@
-# pyAL
+# pyMoth
 Python wrapper for MothNet
 
 #### Dependencies:
