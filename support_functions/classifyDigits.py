@@ -1,18 +1,42 @@
+def confusion_matrix( trueClasses, predClasses ):
+    '''
+    Calculate confusion matrix
+    ex: confusion = confusion_matrix(trueClasses, predClasses)
+    '''
+
+    import numpy as np
+    import itertools
+
+    classMembers = list(set(trueClasses))
+
+    # create matrix of (true,pred) indices
+    ind_mat = list(itertools.product(classMembers, classMembers))
+    conf_mat = []
+    for i in ind_mat:
+        trueClassN = [sample==i[0] for sample in trueClasses]
+        predClassN = [sample==i[1] for sample in predClasses]
+        conf_mat.append(sum([j&k for j,k in zip(trueClassN,predClassN)]))
+
+    # reshape to square based on number of different classes
+    return np.reshape(np.array(conf_mat), (-1, len(set(trueClasses))))
+
+
 def classifyDigitsViaLogLikelihood( results ):
     '''
-    function [output] = classifyDigitsViaLogLikelihood_fn (results)
+    function [output] = classifyDigitsViaLogLikelihood(results)
     Classify the test digits in a run using log likelihoods from the various EN responses:
     Inputs:
-    results = 1 x 10 struct produced by viewENresponses. i'th entry gives results for all classes, in the i'th EN.
+    results = 1 x 10 struct produced by viewENresponses.
+        i'th entry gives results for all classes, in the i'th EN
     Important fields:
-    1. postMeanResp, postStdResp (to calculate post-training, ie val, digit response distributions).
+    1. postMeanResp, postStdResp (to calculate post-training, ie val, digit response distributions)
     2. postTrainOdorResponse (gives the actual responses for each val digit, for that EN)
-        Note that non-post-train odors have response = -1 as a flag.
-    3. odorClass: gives the true labels of each digit, 0 to 9 (10 = '0'). this is the same in each EN.
+        Note that non-post-train odors have response = -1 as a flag
+    3. odorClass: gives the true labels of each digit, 0 to 9 (10 = '0'). this is the same in each EN
 
     output:
     output = struct with the following fields:
-    1. likelihoods = n x 10 matrix, each row a postTraining digit. The entries are summed log likelihoods.
+    1. likelihoods = n x 10 matrix, each row a postTraining digit (entries are summed log likelihoods)
     2. trueClasses = shortened version of whichOdor (with only postTrain, ie validation, entries)
     3. predClasses = predicted classes
     4. confusionMatrix = raw counts, rows = ground truth, cols = predicted
@@ -34,8 +58,6 @@ def classifyDigitsViaLogLikelihood( results ):
     '''
 
     import numpy as np
-    from sklearn.metrics import confusion_matrix # DEV NOTE: Should consider removing
-        # This is the only thing we are using sklearn for
 
     # r = results
     nEn = len(results) # number of ENs, same as number of classes
@@ -84,8 +106,8 @@ def classifyDigitsViaLogLikelihood( results ):
 
     totalAccuracy = (100*(predClasses == trueClasses).sum())/len(trueClasses)
 
-    # confusion matrix:
-    # i,j'th entry is number of test digits with true label i that were predicted to be j.
+    # calc confusion matrix:
+    # i,j'th entry is number of test digits with true label i that were predicted to be j
     confusion = confusion_matrix(trueClasses, predClasses)
 
     output = dict()
@@ -164,7 +186,6 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
     '''
 
     import numpy as np
-    from sklearn.metrics import confusion_matrix
 
     # r = results
     nEn = len(results) # number of ENs, same as number of classes
@@ -237,7 +258,7 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
     # i,j'th entry is number of test digits with true label i that were predicted to be j.
     confusion = confusion_matrix(trueClasses, predClasses)
 
-    output = dict()
+    output = dict() # initialize dictionary
     output['homeAdvantage'] = homeAdvantage
     output['trueClasses'] = trueClasses
     output['predClasses'] = predClasses
