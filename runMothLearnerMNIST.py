@@ -255,7 +255,6 @@ for run in range(numRuns):
 	# for baseline accuracy function argin, substitute pre- for post-values in respOrig:
 	respNaive = copy.deepcopy(respOrig)
 	for i, resp in enumerate(respOrig):
-		## DEV NOTE: do we need these copy() functions? test later
 		respNaive[i]['postMeanResp'] = resp['preMeanResp'].copy()
 		respNaive[i]['postStdResp'] = resp['preStdResp'].copy()
 		respNaive[i]['postTrainOdorResp'] = resp['preTrainOdorResp'].copy()
