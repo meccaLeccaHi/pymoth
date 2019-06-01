@@ -57,7 +57,7 @@ class ModelParams:
         # for now assume no pheromone gloms. Can add later, along with special Ps, PIs, and Ls
         self.nK2nGRatio = 30
         self.nK = int(self.nK2nGRatio)*int(self.nG) # number of kenyon cells (in MB)
-        # DEV NOTE: enforcing integer multiplication (above)
+        # enforcing integer multiplication above
 
         # get count of inhibitory projection neurons = PIs
         # for mnist experiments there are no inhibitory projection neurons (PIs)
@@ -237,8 +237,8 @@ class ModelParams:
         # a) excitatory PNs. We need # of KCs connected to each PN:
         # first give the # Ps that feed each K
         self.numPperK = 10
-        self.KperPfrMu = self.numPperK / float(self.nG) # the mean fraction of KCs a given 'PN' connects to.
-        # DEV NOTE: enforcing float division (Python backward-compatibility with v2.7)
+        # mean fraction of KCs a given 'PN' connects to
+        self.KperPfrMu = self.numPperK / float(self.nG) # forcing float division
             # Note that here 'PN' = glom. That is, multiple PNs coming
             # out of a single glom are treated as one PN.
             # assuming 5 true PNs per glom, and 2000 KCs, 0.2 means:

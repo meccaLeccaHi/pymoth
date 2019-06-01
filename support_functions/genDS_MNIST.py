@@ -114,14 +114,8 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	# d. Define a Receptive Field, ie the active pixels
 	# Reduce the number of features by getting rid of less-active pixels.
 	# If we are using an existing moth then activePixelInds is already defined, so
-	# we need to load the modelParams to get the number of features (since this is defined by the AL architecture):
-	# SHOULD EXIST IN PARENT FUNCTION
-	# if preP['useExistingConnectionMatrices']:
-	# 	pass
-	# 	# DEV NOTE: Implement this!!
-	# 	# # load 'modelParams'
-	# 	# load( preP['matrixParamsFilename'] )
-	# 	# preP['numFeatures'] = modelParams['nF']
+	# we need to load the modelParams to get the number of features 
+	# (since this is defined by the AL architecture):
 
 	# reduce pixel number (downsample) to reflect # of features in moth brain
 	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]

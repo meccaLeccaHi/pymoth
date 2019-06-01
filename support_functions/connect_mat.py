@@ -30,7 +30,7 @@ def initializeConnectionMatrices(mP):
     # first make a binary mask S2Rbinary
     if mP.RperFFrMu > 0:
         mP.F2Rbinary = r.rand(mP.nR, mP.nF) < mP.RperSFrMu # 1s and 0s
-        # DEV NOTE: The following flag doesn't exist - remove?
+        # DEV NOTE: The following flag doesn't exist - remove? Check w/ CBD
         if mP.makeFeaturesOrthogonalFlag:
             # remove any overlap in the active odors, by keeping only one non-zero entry in each row
             b = mP.F2Rbinary
@@ -86,8 +86,6 @@ def initializeConnectionMatrices(mP):
     # It will be used below with G2PI to get full effect of Rs on PIs
 
     # Construct L2G = nG x nG matrix of lateral neurons. This is a precursor to L2P etc
-    # DEV NOTE: Had to make this different than matlab version - in Python, scalars have no shape
-    # Run by CBD
     mP.L2G = mP.L2Gmu + mP.L2Gstd*r.normal(0,1,(mP.nG, mP.nG))
     mP.L2G = np.maximum(0, mP.L2G) # kill any vals < 0
     mP.L2G -= np.diag(np.diag(mP.L2G)) # set diagonal = 0

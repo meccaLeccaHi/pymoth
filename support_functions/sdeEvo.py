@@ -293,7 +293,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
             for j in range(nC):
                 if (classMagMatrix[j,i-1] == 0) and (classMagMatrix[j,i] > 0):
                     classCounter[j] += 1
-        # DEV NOTE: Check that the rows classMagMatrix correspond to correct class of input
 
         # get values of feature inputs at time index i, as a col vector.
         # This allows for simultaneous inputs by different classes, but current

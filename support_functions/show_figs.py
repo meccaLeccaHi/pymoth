@@ -19,7 +19,6 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
     import os
 
     # bookkeeping: change dim if needed
-    # DEV NOTE: Clarify with CBD - this seems unnecessary
     if len(featureArray.shape)==2:
         f = np.zeros((featureArray.shape[0],featureArray.shape[1],1))
         f[:,:,0] = featureArray
@@ -99,7 +98,7 @@ def viewENresponses( simRes, modelParams, expP,
     import os
     import numpy as np
     import matplotlib
-    matplotlib.use("TKAgg") # DEV NOTE: Remove later
+    matplotlib.use("TKAgg") # DEV NOTE: Remove later (APJ)
     from matplotlib import pyplot as plt
 
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
@@ -159,14 +158,12 @@ def viewENresponses( simRes, modelParams, expP,
             # than ~ismember(t, octoTimes):
             small = 1e-8 # .00000001
             # assign no-octo, PRE-train response val (or -1)
-            # DEV NOTE: Needs commentary!
             preTrainOdorResp[i] = -1 # as flag
             if (len(octoTimes)==0) or ((abs(octoTimes - t).min() > small) and (t < expP.startTrain)):
                 resp_ind = np.logical_and(t-1 < simRes['T'], simRes['T'] < t+1)
                 preTrainOdorResp[i] = thisEnResponse[resp_ind].max()
 
             # assign no-octo, POST-train response val (or -1)
-            # DEV NOTE: Needs commentary!
             postTrainOdorResp[i] = -1
             if len(octoTimes)!=0:
                 if (abs(octoTimes - t).min() > small) and (t > expP.endTrain):
@@ -188,8 +185,7 @@ def viewENresponses( simRes, modelParams, expP,
             # this will contain the average responses over all sniffs for each sample
             # DEV NOTE: Changed pretty drastically from orig version, but should be the same.
             # Double check with CBD
-            if len(preSA)==0: # DEV NOTE: When would this occur? Remove?
-                print(f'[1]This occured. You were wrong. {__file__}')
+            if len(preSA)==0:
                 preMeanResp[k] = -1
                 preMedianResp[k] = -1
                 preStdResp[k] = -1
@@ -200,8 +196,7 @@ def viewENresponses( simRes, modelParams, expP,
                 preStdResp[k] = preSA.std()
                 preNumPuffs[k] = len(preSA)
 
-            if len(postSA)==0: # DEV NOTE: When would this occur? Remove?
-                print(f'[2]This occured. You were wrong. {__file__}')
+            if len(postSA)==0:
                 postMeanResp[k] = -1
                 postMedianResp[k] = -1
                 postStdResp[k] = -1
@@ -392,7 +387,6 @@ def viewENresponses( simRes, modelParams, expP,
 
     ## Plot EN timecourses normalized by mean digit response
 
-    # DEV NOTE: This whole loop (below) could be incorporated into the one above (right?)
     # labels = whichClass
     if showPlots[1]:
 
@@ -417,7 +411,7 @@ def viewENresponses( simRes, modelParams, expP,
             # # plot mean pre and post training of trained digit
             preMean = results[enInd]['preMeanResp']
             # preMeanTr = preMean[enInd]
-            preMeanControl = preMean[controlInd].mean() # DEV NOTE: Why do we use these indices?
+            preMeanControl = preMean[controlInd].mean()
             # preStd = results[enInd]['preStdResp']
             # preStd = preStd[enInd]
             postMean = results[enInd]['postMeanResp']

@@ -62,12 +62,12 @@ def classifyDigitsViaLogLikelihood( results ):
     # r = results
     nEn = len(results) # number of ENs, same as number of classes
     ptInds = np.nonzero(results[1]['postTrainOdorResp'] >= 0)[0] # indices of post-train (ie validation) digits
-    # DEV NOTE: Why use 2 (1, here) as index above?
+    # DEV NOTE: Why use 2 (1, here) as index above? Ask CBD
     nP = len(ptInds) # number of post-train digits
 
     # extract true classes:
     trueClasses = results[0]['odorClass'][ptInds] # throughout, digits may be referred to as odors or 'odor puffs'
-    # DEV NOTE: Why use 1 (0, here) as index above?
+    # DEV NOTE: Why use 1 (0, here) as index above? Ask CBD
 
     # extract the relevant odor puffs: Each row is an EN, each col is an odor puff
     ptResp = np.full((nEn,nP), np.nan)
@@ -190,12 +190,12 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
     # r = results
     nEn = len(results) # number of ENs, same as number of classes
     ptInds = np.nonzero(results[1]['postTrainOdorResp'] >= 0)[0] # indices of post-train (ie validation) digits
-    # DEV NOTE: Why use 2 (1, in Python) as index above?
+    # DEV NOTE: Why use 2 (1, in Python) as index above? Ask CBD
     nP = len(ptInds) # number of post-train digits
 
     # extract true classes:
     trueClasses = results[0]['odorClass'][ptInds] # throughout, digits may be referred to as odors or 'odor puffs'
-    # DEV NOTE: Why use 1 (0, in Python) as index above?
+    # DEV NOTE: Why use 1 (0, in Python) as index above? Ask CBD
 
     # extract the relevant odor puffs: Each row is an EN, each col is an odor puff
     ptResp = np.full((nEn,nP), np.nan)
@@ -225,8 +225,6 @@ def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, a
 
         # 1. Apply rewards for above-threshold responses:
         offDiag = dist - np.diag(np.diag(dist))
-
-        ## DEV NOTE: DO WE NEED THE .copy() BELOW?
         onDiag = np.diag(dist).copy()
         # Reward any onDiags that are above some threshold (mu - n*sigma) of an EN.
         # CAUTION: This reward-by-shrinking only works when off-diagonals are
