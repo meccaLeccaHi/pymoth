@@ -24,8 +24,6 @@ def initializeConnectionMatrices(mP):
 
     import numpy as np
     import numpy.random as r
-    from decimal import Decimal, getcontext
-    getcontext().prec = 4 # set Decimal type precision
 
     # first make a binary mask S2Rbinary
     if mP.RperFFrMu > 0:
@@ -68,8 +66,8 @@ def initializeConnectionMatrices(mP):
         mP.Rspont = mP.spontRmu*np.ones((mP.nG, 1)) + mP.spontRstd*r.normal(0,1,(mP.nG,1))
         mP.Rspont = np.maximum(0, mP.Rspont)
     else: # case: 2 gamma distribution
-        a = Decimal(mP.spontRmu)/Decimal(mP.spontRstd)
-        b = Decimal(mP.spontRmu)/a # spontRstd
+        a = mP.spontRmu/mP.spontRstd
+        b = mP.spontRmu/a # spontRstd
         g = np.random.gamma(a, scale=b, size=(mP.nG,1))
         mP.Rspont = mP.spontRbase + g
 
@@ -212,20 +210,20 @@ def initializeConnectionMatrices(mP):
     mP.noiseEvec = np.maximum(0,  mP.noiseE + mP.EnoiseStd*r.normal(0,1,(mP.nE,1)) )
 
     # gamma versions:
-    a = Decimal(mP.noiseR)/Decimal(mP.RnoiseStd)
-    b = Decimal(mP.noiseR)/a
+    a = mP.noiseR/mP.RnoiseStd
+    b = mP.noiseR/a
     mP.noiseRvec = np.random.gamma(a, scale=b, size=(mP.nR,1))
     # DEV NOTE: Run below by CBD - Still necessary?
     mP.noiseRvec[mP.noiseRvec > 15] = 0 # experiment to see if just outlier noise vals boost KC noise
 
-    a = Decimal(mP.noiseP)/Decimal(mP.PnoiseStd)
-    b = Decimal(mP.noiseP)/a
+    a = mP.noiseP/mP.PnoiseStd
+    b = mP.noiseP/a
     mP.noisePvec = np.random.gamma(a, scale=b, size=(mP.nR,1))
     # DEV NOTE: Run below by CBD - Still necessary?
     mP.noisePvec[mP.noisePvec > 15] = 0 # experiment to see if outlier noise vals boost KC noise
 
-    a = Decimal(mP.noiseL)/Decimal(mP.LnoiseStd)
-    b = Decimal(mP.noiseL)/a
+    a = mP.noiseL/mP.LnoiseStd
+    b = mP.noiseL/a
     mP.noiseLvec = np.random.gamma(a, scale=b, size=(mP.nG,1))
 
     mP.kGlobalDampVec = mP.kGlobalDampFactor + mP.kGlobalDampStd*r.normal(0,1,(mP.nK,1))

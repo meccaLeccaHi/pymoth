@@ -1,5 +1,5 @@
 # pyMoth
-Python wrapper for MothNet
+Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 
 #### Dependencies:
 - numpy
@@ -25,9 +25,4 @@ Or, install from .txt file
 Built for use with Unix systems - not tested in Windows.
 - Requires Python 3
 
-Uses [Decimal](https://docs.python.org/3/library/decimal.html) module* for floating point arithmetic to avoid representation errors (more info [here](https://docs.python.org/2/tutorial/floatingpoint.html)).
-*Unlike hardware based binary floating point, the decimal module has an alterable precision (defaulting to 28 places). In this case, we rounded to four decimal digits.
-
-[MNIST source](http://yann.lecun.com/exdb/mnist/)
-
-[Matlab source](https://github.com/charlesDelahunt/PuttingABugInML)
+[MNIST](http://yann.lecun.com/exdb/mnist/)
