@@ -6,13 +6,13 @@ Python wrapper for MothNet
 - scipy
 - matplotlib
 - pillow
-- [wget](https://pypi.org/project/wget/)
+- [keras](https://keras.io/) (for loading MNIST)
 - [dill](https://pypi.org/project/dill/)
 
 Install manually with:
-`$ pip install scipy matplotlib pillow python-wget dill`
+`$ pip install scipy matplotlib pillow keras dill`
 -or-
-`$ conda create -n <env_name> python=3.6 scipy matplotlib keras dill`
+`$ conda create -n <env_name> python=3.6 scipy matplotlib pillow keras dill`
 pillow
 Or, install from .txt file
 1. clone this repository and `cd` into it
