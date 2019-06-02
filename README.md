@@ -12,8 +12,8 @@ Python wrapper for MothNet
 Install manually with:
 `$ pip install scipy matplotlib pillow python-wget dill`
 -or-
-`$ conda create -n <env_name> python=3.6 scipy matplotlib pillow python-wget dill`
-
+`$ conda create -n <env_name> python=3.6 scipy matplotlib keras dill`
+pillow
 Or, install from .txt file
 1. clone this repository and `cd` into it
 2a. `$ pip install -r requirements.txt` if you use pip, 

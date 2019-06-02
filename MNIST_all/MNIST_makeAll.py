@@ -12,12 +12,19 @@ def downloadAndSave():
 
 	import os
 	import numpy as np
-	from MNIST_all import MNIST_read
+	# from MNIST_all import MNIST_read
 
-	[train_imgs, train_lbls, test_imgs, test_lbls] = MNIST_read.read();
+	# # download and save data from Yann Lecun's website
+	# [train_imgs, train_lbls, test_imgs, test_lbls] = MNIST_read.read();
 
+	# download and save data from Keras
+	from keras.datasets import mnist
+
+	# directory to save image data
 	im_dir = 'MNIST_all'
 
+	(train_imgs, train_lbls), (test_imgs, test_lbls) = mnist.load_data()
+	
 	mnist = {
 				'train_images':train_imgs,
 				'test_images':test_imgs,

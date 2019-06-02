@@ -44,7 +44,7 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 
 	# test for npy file before loading. run creation script, if absent.
 	if not os.path.isfile(mnist_fname):
-		# download and save data
+		# download and save data from the web
 		from MNIST_all import MNIST_makeAll
 		MNIST_makeAll.downloadAndSave()
 
@@ -114,7 +114,7 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	# d. Define a Receptive Field, ie the active pixels
 	# Reduce the number of features by getting rid of less-active pixels.
 	# If we are using an existing moth then activePixelInds is already defined, so
-	# we need to load the modelParams to get the number of features 
+	# we need to load the modelParams to get the number of features
 	# (since this is defined by the AL architecture):
 
 	# reduce pixel number (downsample) to reflect # of features in moth brain
