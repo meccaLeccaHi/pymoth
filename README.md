@@ -1,6 +1,8 @@
 # pyMoth
 Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Manduca_sexta_MHNT_CUT_2010_0_104_Dos_Amates_Catemaco_VeraCruz_Mexico_female_dorsal.jpg/1920px-Manduca_sexta_MHNT_CUT_2010_0_104_Dos_Amates_Catemaco_VeraCruz_Mexico_female_dorsal.jpg)
+
 #### Dependencies:
 - numpy
 - scipy
