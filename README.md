@@ -1,7 +1,7 @@
 # pyMoth
 Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 
-<img src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Manduca_sexta_MHNT_CUT_2010_0_104_Dos_Amates_Catemaco_VeraCruz_Mexico_female_dorsal.jpg/320px-Manduca_sexta_MHNT_CUT_2010_0_104_Dos_Amates_Catemaco_VeraCruz_Mexico_female_dorsal.jpg' style="float: center;">
+<img src='https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Manduca_brasiliensis_MHNT_CUT_2010_0_12_Boca_de_Mato%2C_Cochoeiras_de_Macacu%2C_rio_de_Janeiro_blanc.jpg/320px-Manduca_brasiliensis_MHNT_CUT_2010_0_12_Boca_de_Mato%2C_Cochoeiras_de_Macacu%2C_rio_de_Janeiro_blanc.jpg'>
 
 #### Dependencies:
 - numpy
