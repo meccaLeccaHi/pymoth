@@ -4,10 +4,9 @@ Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Manduca_brasiliensis_MHNT_CUT_2010_0_12_Boca_de_Mato%2C_Cochoeiras_de_Macacu%2C_rio_de_Janeiro_blanc.jpg/320px-Manduca_brasiliensis_MHNT_CUT_2010_0_12_Boca_de_Mato%2C_Cochoeiras_de_Macacu%2C_rio_de_Janeiro_blanc.jpg'>
 
 #### Dependencies:
-- numpy
-- scipy
-- matplotlib
-- pillow
+- [scipy](https://www.scipy.org/)
+- [matplotlib](https://matplotlib.org/)
+- [pillow](https://pillow.readthedocs.io/en/stable/)
 - [keras](https://keras.io/) (for loading MNIST)
 - [dill](https://pypi.org/project/dill/)
 
@@ -28,4 +27,4 @@ Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3
 
-[MNIST](http://yann.lecun.com/exdb/mnist/)
+[MNIST Data](http://yann.lecun.com/exdb/mnist/)
