@@ -12,9 +12,9 @@ Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 - [dill](https://pypi.org/project/dill/)
 
 #### Install manually:  
-`$ pip install scipy matplotlib pillow keras dill`  
--or-  
-`$ conda create -n <env_name> python=3.6 scipy matplotlib pillow keras dill`  
+> `$ pip install scipy matplotlib pillow keras dill`  
+> *-or-*  
+> `$ conda create -n <env_name> python=3.6 scipy matplotlib pillow keras dill`  
 
 #### Or, install from .txt file:  
 > **First**, 
