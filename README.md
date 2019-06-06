@@ -19,6 +19,7 @@ Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 #### Or, install from .txt file:  
 > **First**, 
 > - clone this repository and `cd` into it  
+>
 > **Second**, 
 > - if you use pip, `$ pip install -r requirements.txt` *else,*   
 > - if you prefer conda, `$ conda install --yes --file requirements.txt` *else,* 
