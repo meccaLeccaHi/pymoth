@@ -11,17 +11,18 @@ Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 - [keras](https://keras.io/) (for loading MNIST)
 - [dill](https://pypi.org/project/dill/)
 
-Install manually with:  
+#### Install manually:  
 `$ pip install scipy matplotlib pillow keras dill`  
 -or-  
 `$ conda create -n <env_name> python=3.6 scipy matplotlib pillow keras dill`  
-Or, install from .txt file  
-> 1. clone this repository and `cd` into it  
-> 2. 
+
+#### Or, install from .txt file:  
+> **First**, clone this repository and `cd` into it  
+> **Second**, 
 > `$ pip install -r requirements.txt` if you use pip,   
-> **or**  
+> *or*  
 > `$ conda install --yes --file requirements.txt` if you prefer conda,  
-> **or**  
+> *or*  
 > `$ conda create --name <env_name> --file requirements.txt` to install a conda virtualenv.  
 
 Built for use with Unix systems - not tested in Windows.
