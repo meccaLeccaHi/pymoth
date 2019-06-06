@@ -18,11 +18,11 @@ Install manually with:
 Or, install from .txt file  
 > 1. clone this repository and `cd` into it  
 > 2. 
-> 	A. `$ pip install -r requirements.txt` if you use pip,   
-> 	**or**  
-> 	B. `$ conda install --yes --file requirements.txt` if you prefer conda,  
-> 	**or**  
-> 	C. `$ conda create --name <env_name> --file requirements.txt` to install a conda virtualenv.  
+> `$ pip install -r requirements.txt` if you use pip,   
+> **or**  
+> `$ conda install --yes --file requirements.txt` if you prefer conda,  
+> **or**  
+> `$ conda create --name <env_name> --file requirements.txt` to install a conda virtualenv.  
 
 Built for use with Unix systems - not tested in Windows.
 - Requires Python 3
