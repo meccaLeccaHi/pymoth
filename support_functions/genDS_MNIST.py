@@ -1,4 +1,4 @@
-def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) ):
+def generate_ds_MNIST( preP, saveImageFolder=[], scrsz = (1920, 1080) ):
 	'''
 	Loads the MNIST dataset (from Yann LeCun's website),
 	then applies various preprocessing steps to reduce the number of pixels
@@ -34,9 +34,9 @@ def generateDownsampledMNISTSet( preP, saveImageFolder=[], scrsz = (1920, 1080) 
 	import os
 	import numpy as np
 	from support_functions.extractFA import extractMNISTFeatureArray
-	from support_functions.vec_images import cropDownsampleVectorizeImageStack
-	from support_functions.aveImStack import averageImageStack
-	from support_functions.selectPix import selectActivePixels
+	from support_functions.extractFA import cropDownsampleVectorizeImageStack
+	from support_functions.extractFA import averageImageStack
+	from support_functions.extractFA import selectActivePixels
 
 	im_dir = 'MNIST_all'
 

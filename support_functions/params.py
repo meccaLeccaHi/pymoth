@@ -359,7 +359,7 @@ class ModelParams:
         self.trueClassLabels = None
         self.saveAllNeuralTimecourses = None
 
-def setMNISTExperimentParams( trClasses, classLabels, valPerClass ):
+def setMNISTExpParams( trClasses, classLabels, valPerClass ):
 	'''
 	This function defines parameters of a time-evolution experiment: overall timing, stim timing and
 	strength, octo timing and strength, lowpass window parameter, etc.

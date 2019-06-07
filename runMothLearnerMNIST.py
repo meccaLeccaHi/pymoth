@@ -34,12 +34,14 @@ import dill # for pickling module object (optional)
 import copy # for deep copy of nested lists
 
 # Experiment details
-from support_functions.genDS_MNIST import generateDownsampledMNISTSet
+from support_functions.genDS_MNIST import generate_ds_MNIST
 from support_functions.show_figs import showFeatureArrayThumbnails, viewENresponses
 from support_functions.connect_mat import initializeConnectionMatrices
-from support_functions.setMNISTExpParams import setMNISTExperimentParams
-from support_functions.sdeWrap import sdeWrapper
+from support_functions.params import setMNISTExpParams
+from support_functions.sde import sdeWrapper
 from support_functions.classifyDigits import classifyDigitsViaLogLikelihood, classifyDigitsViaThresholding
+
+# DEV NOTE: Add test for Python vers == 3
 
 ## USER ENTRIES (Edit parameters below):
 #-------------------------------------------------------------------------------
@@ -95,7 +97,7 @@ trClasses = np.random.permutation( trClasses )
 trClasses = np.tile( trClasses, [1, numSniffs] )[0]
 
 # Experiment details for 10 digit training:
-experimentFn = setMNISTExperimentParams
+experimentFn = setMNISTExpParams
 
 #-------------------------------------------------------------------------------
 
@@ -148,7 +150,7 @@ preP['useExistingConnectionMatrices'] = useExistingConnectionMatrices # boolean
 preP['matrixParamsFilename'] = matrixParamsFilename
 
 # generate the data array:
-fA, activePixelInds, lengthOfSide = generateDownsampledMNISTSet(preP, saveResultsImageFolder, scrsz)
+fA, activePixelInds, lengthOfSide = generate_ds_MNIST(preP, saveResultsImageFolder, scrsz)
 # argin = preprocessingParams
 
 pixNum, numPerClass, classNum = fA.shape
@@ -213,7 +215,7 @@ for run in range(numRuns):
 
 	else:
 		# Load template params
-		from support_functions.specifyModelParamsMnist import ModelParams
+		from support_functions.params import ModelParams
 		modelParams = ModelParams(nF=len(activePixelInds), goal=goal)
 
 		# Now populate the moth's connection matrices using the modelParams

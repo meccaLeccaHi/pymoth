@@ -24,7 +24,7 @@ simResults = sdeWrapper( modelParams, experimentParams, ... )
 
 	thisRun = sdeEvoMNIST( featureArray, modelParams, expParams, ... )
 
-		inputs = piecewiseLinearPseudoSigmoid(inputs)
+		inputs = piecewiseLinearPseudoSigmoid( inputs )
 
 resp = viewENresponses( simResults, modelParams, experimentParams, classLabels, ... )
 
