@@ -33,10 +33,10 @@ def generate_ds_MNIST( preP, saveImageFolder=[], scrsz = (1920, 1080) ):
 
 	import os
 	import numpy as np
-	from support_functions.extractFA import extractMNISTFeatureArray
-	from support_functions.extractFA import cropDownsampleVectorizeImageStack
-	from support_functions.extractFA import averageImageStack
-	from support_functions.extractFA import selectActivePixels
+	from support_functions.extract import extractMNISTFeatureArray
+	from support_functions.extract import cropDownsampleVectorizeImageStack
+	from support_functions.extract import averageImageStack
+	from support_functions.extract import selectActivePixels
 
 	im_dir = 'MNIST_all'
 

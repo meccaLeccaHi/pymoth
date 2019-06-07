@@ -1,4 +1,4 @@
-def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleString,
+def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
     scrsz = (1920, 1080), saveImageFolder=[], saveString='' ):
     '''
     Show thumbnails of inputs used in the experiment.
@@ -59,7 +59,7 @@ def showFeatureArrayThumbnails( featureArray, showPerClass, normalize, titleStri
         thumbsFig.savefig(thumbName)
         print(f'Image thumbnails saved: {thumbName}')
 
-def viewENresponses( simRes, modelParams, expP,
+def view_EN_resp( simRes, modelParams, expP,
     showPlots, classLabels, scrsz, resultsFilename=[], saveImageFolder=[] ):
     '''
     View readout neurons (EN):

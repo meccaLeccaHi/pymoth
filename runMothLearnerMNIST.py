@@ -16,9 +16,9 @@ Order of events:
 	3. Create a moth (neural net). Either select an existing moth file, or generate a new moth in 2 steps:
 		a) run 'specifyModelParamsMnist' and
 		   incorporate user entry edits such as 'goal'.
-		b) create connection matrices via 'initializeConnectionMatrices'
+		b) create connection matrices via 'init_connection_matrix'
 	4. Load the experiment parameters.
-	5. Run the simulation with 'sdeWrapper'
+	5. Run the simulation with 'sde_wrap'
 	6. Plot results, print results to console
 
 Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
@@ -34,12 +34,11 @@ import dill # for pickling module object (optional)
 import copy # for deep copy of nested lists
 
 # Experiment details
-from support_functions.genDS_MNIST import generate_ds_MNIST
-from support_functions.show_figs import showFeatureArrayThumbnails, viewENresponses
-from support_functions.connect_mat import initializeConnectionMatrices
-from support_functions.params import setMNISTExpParams
-from support_functions.sde import sdeWrapper
-from support_functions.classify import classifyDigitsViaLogLikelihood, classifyDigitsViaThresholding
+from support_functions.generate import generate_ds_MNIST
+from support_functions.show_figs import show_FA_thumbs, view_EN_resp
+from support_functions.params import init_connection_matrix, set_MNIST_exp_params
+from support_functions.sde import sde_wrap
+from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
 
 # DEV NOTE: Add test for Python vers == 3
 
@@ -97,7 +96,7 @@ trClasses = np.random.permutation( trClasses )
 trClasses = np.tile( trClasses, [1, numSniffs] )[0]
 
 # Experiment details for 10 digit training:
-experimentFn = setMNISTExpParams
+experimentFn = set_MNIST_exp_params
 
 #-------------------------------------------------------------------------------
 
@@ -219,7 +218,7 @@ for run in range(numRuns):
 		modelParams = ModelParams(nF=len(activePixelInds), goal=goal)
 
 		# Now populate the moth's connection matrices using the modelParams
-		modelParams = initializeConnectionMatrices(modelParams)
+		modelParams = init_connection_matrix(modelParams)
 
 		# save params to file (if saveParamsFolder not empty)
 		if saveParamsFolder:
@@ -240,7 +239,7 @@ for run in range(numRuns):
 #-------------------------------------------------------------------------------
 
 	# 3. run this experiment as sde time-step evolution:
-	simResults = sdeWrapper( modelParams, experimentParams, digitQueues )
+	simResults = sde_wrap( modelParams, experimentParams, digitQueues )
 
 #-------------------------------------------------------------------------------
 
@@ -250,7 +249,7 @@ for run in range(numRuns):
 			os.mkdir(saveResultsImageFolder)
 
 	# Process the sim results to group EN responses by class and time:
-	respOrig = viewENresponses(simResults, modelParams, experimentParams,
+	respOrig = view_EN_resp(simResults, modelParams, experimentParams,
 		showENPlots, classLabels, scrsz, resultsFilename, saveResultsImageFolder)
 
 	# Calculate the classification accuracy:
@@ -263,19 +262,19 @@ for run in range(numRuns):
 
 	# 1. Using Log-likelihoods over all ENs:
 	# Baseline accuracy:
-	outputNaiveLogL = classifyDigitsViaLogLikelihood( respNaive )
+	outputNaiveLogL = classify_digits_log_likelihood( respNaive )
 	print( 'LogLikelihood:' )
 	print( f"Naive Accuracy: {round(outputNaiveLogL['totalAccuracy'])}" + \
 		f"#, by class: {np.round(outputNaiveLogL['accuracyPercentages'])} #.   ")
 
 	# Post-training accuracy using log-likelihood over all ENs:
-	outputTrainedLogL = classifyDigitsViaLogLikelihood( respOrig )
+	outputTrainedLogL = classify_digits_log_likelihood( respOrig )
 	print( f"Trained Accuracy: {round(outputTrainedLogL['totalAccuracy'])}" + \
 		f"#, by class: {np.round(outputTrainedLogL['accuracyPercentages'])} #.   ")
 
 	# 2. Using single EN thresholding:
-	outputNaiveThresholding = classifyDigitsViaThresholding( respNaive, 1e9, -1, 10 )
-	outputTrainedThresholding = classifyDigitsViaThresholding( respOrig, 1e9, -1, 10 )
+	outputNaiveThresholding = classify_digits_thresholding( respNaive, 1e9, -1, 10 )
+	outputTrainedThresholding = classify_digits_thresholding( respOrig, 1e9, -1, 10 )
 	#     disp( 'Thresholding: ')
 	#     disp( [ 'Naive accuracy: ' num2str(round(outputNaiveThresholding.totalAccuracy)),...
 	#               '#, by class: ' num2str(round(outputNaiveThresholding.accuracyPercentages)), ' #.   ' ])

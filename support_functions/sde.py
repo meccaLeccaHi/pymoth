@@ -1,4 +1,4 @@
-def sdeWrapper( modelParams, expParams, featureArray ):
+def sde_wrap( modelParams, expParams, featureArray ):
     '''
     Prepares for and runs the SDE time-stepped evolution of neural firing rates.
     Inputs:
@@ -153,7 +153,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     To include neural noise, evolve the differential equations using euler-
     maruyama, milstein version (see Higham's Algorithmic introduction to
     numerical simulation of SDE)
-    Called by sdeWrapper. For use with MNIST experiments.
+    Called by sde_wrap(). For use with MNIST experiments.
     Inputs:
         1. tspan: 1 x 2 vector = start and stop timepoints (sec)
         2. initCond: n x 1 vector = starting FRs for all neurons, order-specific

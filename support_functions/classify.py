@@ -21,7 +21,7 @@ def confusion_matrix( trueClasses, predClasses ):
     return np.reshape(np.array(conf_mat), (-1, len(set(trueClasses))))
 
 
-def classifyDigitsViaLogLikelihood( results ):
+def classify_digits_log_likelihood( results ):
     '''
     function [output] = classifyDigitsViaLogLikelihood(results)
     Classify the test digits in a run using log likelihoods from the various EN responses:
@@ -121,7 +121,7 @@ def classifyDigitsViaLogLikelihood( results ):
     return output
 
 
-def classifyDigitsViaThresholding(results, homeAdvantage, homeThresholdSigmas, aboveHomeThreshReward):
+def classify_digits_thresholding(results, homeAdvantage, homeThresholdSigmas, aboveHomeThreshReward):
     '''
     Classify the test digits in a run using log likelihoods from the various EN
     responses, with the added option of rewarding high scores relative to an ENs

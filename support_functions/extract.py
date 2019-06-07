@@ -159,8 +159,7 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
     # make a classAves matrix (cA), each col a class ave 1 to 10 (ie 0),
     #  and add a col for the overallAve
     import numpy as np
-    from support_functions.extractFA import averageImageStack
-    from support_functions.show_figs import showFeatureArrayThumbnails
+    from support_functions.show_figs import show_FA_thumbs
 
     pixNum, numPerClass, classNum  = featureArray.shape
     cA = np.zeros((pixNum, classNum+1))
@@ -203,7 +202,7 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
         # plot the normalized classAves pre-ablation
         normalize = 0
         titleStr = 'class aves, all pixels'
-        showFeatureArrayThumbnails(caNormed, classNum+1, normalize, titleStr,
+        show_FA_thumbs(caNormed, classNum+1, normalize, titleStr,
             scrsz, saveImageFolder, 'all')
 
         # look at active pixels of the classAves, ie post-ablation
@@ -212,7 +211,7 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
         caActiveOnly[activePixelInds, : ] = caNormed[activePixelInds, :]
         titleStr = 'class aves, active pixels only'
 
-        showFeatureArrayThumbnails(caActiveOnly, classNum+1, normalize, titleStr,
+        show_FA_thumbs(caActiveOnly, classNum+1, normalize, titleStr,
             scrsz, saveImageFolder, 'active')
 
     return activePixelInds
