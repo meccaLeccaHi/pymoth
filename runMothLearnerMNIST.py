@@ -39,7 +39,7 @@ from support_functions.show_figs import showFeatureArrayThumbnails, viewENrespon
 from support_functions.connect_mat import initializeConnectionMatrices
 from support_functions.params import setMNISTExpParams
 from support_functions.sde import sdeWrapper
-from support_functions.classifyDigits import classifyDigitsViaLogLikelihood, classifyDigitsViaThresholding
+from support_functions.classify import classifyDigitsViaLogLikelihood, classifyDigitsViaThresholding
 
 # DEV NOTE: Add test for Python vers == 3
 
@@ -49,7 +49,7 @@ scrsz = (1920, 1080) # screen size (width, height)
 
 useExistingConnectionMatrices = False
 # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
-# if False, generate new moth from template in specifyModelParamsMnist_fn.py
+# if False, generate new moth from template in params.py
 
 matrixParamsFilename = 'sampleMothModelParams'
 # dict with all info, including connection matrices, of a particular moth

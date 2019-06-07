@@ -24,6 +24,9 @@ Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 > - if you prefer conda, `$ conda install --yes --file requirements.txt` *else,* 
 > - to install a conda virtualenv, `$ conda create --name <env_name> --file requirements.txt`  
 
+#### Run via:
+`$ python runMothLearnerMNIST.py`
+
 Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3
 
