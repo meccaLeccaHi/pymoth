@@ -1,4 +1,4 @@
-def generate_ds_MNIST( preP, saveImageFolder=[], scrsz = (1920, 1080) ):
+def generate_ds_MNIST( preP, saveImageFolder=[] ):
 	'''
 	Loads the MNIST dataset (from Yann LeCun's website),
 	then applies various preprocessing steps to reduce the number of pixels
@@ -119,8 +119,9 @@ def generate_ds_MNIST( preP, saveImageFolder=[], scrsz = (1920, 1080) ):
 
 	# reduce pixel number (downsample) to reflect # of features in moth brain
 	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]
-	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'], saveImageFolder,
-		scrsz, preP['showThumbnails'])
+	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'],
+		preP['screen_size'], save_image_folder=saveImageFolder,
+		show_thumbnails=preP['showThumbnails'])
 	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
 
 	return featureArray, activePixelInds, lengthOfSide

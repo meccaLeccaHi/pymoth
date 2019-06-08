@@ -1,5 +1,5 @@
 def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
-    scrsz = (1920, 1080), saveImageFolder=[], saveString='' ):
+    screen_size, saveImageFolder=[], saveString='' ):
     '''
     Show thumbnails of inputs used in the experiment.
     Inputs:
@@ -32,7 +32,7 @@ def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
     vert = 1/(numRows + 1) # vertical step size
     horiz = 1/(numCols + 1) # horizontal step size
 
-    fig_sz = [np.floor((i/100)*0.5) for i in scrsz]
+    fig_sz = [np.floor((i/100)*0.5) for i in screen_size]
     thumbsFig = plt.figure(figsize=fig_sz, dpi=100)
 
     for cl in range(nC): # 'class' is a keyword in Python; renamed to 'cl'
@@ -60,7 +60,7 @@ def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
         print(f'Image thumbnails saved: {thumbName}')
 
 def view_EN_resp( simRes, modelParams, expP,
-    showPlots, classLabels, scrsz, resultsFilename=[], saveImageFolder=[] ):
+    showPlots, classLabels, screen_size, resultsFilename=[], saveImageFolder=[] ):
     '''
     View readout neurons (EN):
         Color-code them dots by class and by concurrent octopamine.
@@ -231,7 +231,7 @@ def view_EN_resp( simRes, modelParams, expP,
 
         # plot stats if wished:
         if showPlots[0]:
-            fig_sz = [np.floor((i/100)*0.8) for i in scrsz]
+            fig_sz = [np.floor((i/100)*0.8) for i in screen_size]
             thisFig = plt.figure(figsize=fig_sz, dpi=100)
 
             # medians, pre and post
@@ -396,7 +396,7 @@ def view_EN_resp( simRes, modelParams, expP,
             if enInd%3 == 0:
                 # make a new figure at ENs 4, 7, 10
                 #? test this (below)
-                fig_sz = [np.floor(i/100) for i in scrsz]
+                fig_sz = [np.floor(i/100) for i in screen_size]
                 enFig2 = plt.figure(figsize=fig_sz, dpi=100)
 
             ax = enFig2.add_subplot(3, 1, (enInd%3)+1)

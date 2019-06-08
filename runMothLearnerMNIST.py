@@ -44,7 +44,7 @@ from support_functions.classify import classify_digits_log_likelihood, classify_
 
 ## USER ENTRIES (Edit parameters below):
 #-------------------------------------------------------------------------------
-scrsz = (1920, 1080) # screen size (width, height)
+screen_size = (1920, 1080) # screen size (width, height)
 
 useExistingConnectionMatrices = False
 # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
@@ -136,6 +136,7 @@ preP['maxInd'] = max( [ preP['indsToCalculateReceptiveField'] + \
 	indPoolForTrain ][0] ) # we'll throw out unused samples
 
 ## 2. Pre-processing parameters for the thumbnails:
+preP['screen_size'] = screen_size
 preP['downsampleRate'] = 2
 preP['crop'] = 2
 preP['numFeatures'] =  85  # number of pixels in the receptive field
@@ -149,7 +150,7 @@ preP['useExistingConnectionMatrices'] = useExistingConnectionMatrices # boolean
 preP['matrixParamsFilename'] = matrixParamsFilename
 
 # generate the data array:
-fA, activePixelInds, lengthOfSide = generate_ds_MNIST(preP, saveResultsImageFolder, scrsz)
+fA, activePixelInds, lengthOfSide = generate_ds_MNIST(preP, saveResultsImageFolder)
 # argin = preprocessingParams
 
 pixNum, numPerClass, classNum = fA.shape
@@ -202,7 +203,7 @@ for run in range(numRuns):
 		normalize = 1
 		titleStr = 'Input thumbnails'
 		showFeatureArrayThumbnails(tempArray, showThumbnails, normalize,
-									titleStr, scrsz, saveResultsImageFolder)
+									titleStr, screen_size, saveResultsImageFolder)
 
 #-------------------------------------------------------------------------------
 	# Create a moth. Either load an existing moth, or create a new moth
@@ -250,7 +251,7 @@ for run in range(numRuns):
 
 	# Process the sim results to group EN responses by class and time:
 	respOrig = view_EN_resp(simResults, modelParams, experimentParams,
-		showENPlots, classLabels, scrsz, resultsFilename, saveResultsImageFolder)
+		showENPlots, classLabels, screen_size, resultsFilename, saveResultsImageFolder)
 
 	# Calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in respOrig:
@@ -264,22 +265,17 @@ for run in range(numRuns):
 	# Baseline accuracy:
 	outputNaiveLogL = classify_digits_log_likelihood( respNaive )
 	print( 'LogLikelihood:' )
-	print( f"Naive Accuracy: {round(outputNaiveLogL['totalAccuracy'])}" + \
-		f"#, by class: {np.round(outputNaiveLogL['accuracyPercentages'])} #.   ")
+	print( f"Naive Accuracy: {round(outputNaiveLogL['total_acc'])}" + \
+		f"#, by class: {np.round(outputNaiveLogL['acc_perc'])} #.   ")
 
 	# Post-training accuracy using log-likelihood over all ENs:
 	outputTrainedLogL = classify_digits_log_likelihood( respOrig )
-	print( f"Trained Accuracy: {round(outputTrainedLogL['totalAccuracy'])}" + \
-		f"#, by class: {np.round(outputTrainedLogL['accuracyPercentages'])} #.   ")
+	print( f"Trained Accuracy: {round(outputTrainedLogL['total_acc'])}" + \
+		f"#, by class: {np.round(outputTrainedLogL['acc_perc'])} #.   ")
 
 	# 2. Using single EN thresholding:
 	outputNaiveThresholding = classify_digits_thresholding( respNaive, 1e9, -1, 10 )
 	outputTrainedThresholding = classify_digits_thresholding( respOrig, 1e9, -1, 10 )
-	#     disp( 'Thresholding: ')
-	#     disp( [ 'Naive accuracy: ' num2str(round(outputNaiveThresholding.totalAccuracy)),...
-	#               '#, by class: ' num2str(round(outputNaiveThresholding.accuracyPercentages)), ' #.   ' ])
-	#     disp([ ' Trained accuracy: ' num2str(round(outputTrainedThresholding.totalAccuracy)),...
-	#               '#, by class: ' num2str(round(outputTrainedThresholding.accuracyPercentages)), ' #.   ' ])
 
 	# append the accuracy results, and other run data, to the first entry of respOrig:
 	respOrig[0]['modelParams'] = modelParams  # will include all connection weights of this moth

@@ -137,8 +137,8 @@ def averageImageStack( imStack, indicesToAverage ):
 
     return aveIm
 
-def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
-    scrsz = (1920, 1080), showThumbnails = 0 ):
+def selectActivePixels( featureArray, numFeatures, screen_size,
+    save_image_folder=[], show_thumbnails=0 ):
     '''
     Select the most active pixels, considering all class average images, to use as features.
     Inputs:
@@ -147,7 +147,7 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
         2. numFeatures: The number of active pixels to use (these form the receptive field).
         3. saveImageFolder: dir to save average class images, empty = don't save
         4. screensize: (width, height)
-        5. showThumbnails: number of thumbnails to plot
+        5. show_thumbnails: number of thumbnails to plot
     Output:
         1. activePixelInds: 1 x nF vector of indices to use as features.
         Indices are relative to the vectorized thumbnails (so between 1 and 144).
@@ -198,12 +198,12 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
 
     activePixelInds = np.nonzero(activePixels > 0)[0]
 
-    if showThumbnails and saveImageFolder:
+    if show_thumbnails and saveImageFolder:
         # plot the normalized classAves pre-ablation
         normalize = 0
         titleStr = 'class aves, all pixels'
         show_FA_thumbs(caNormed, classNum+1, normalize, titleStr,
-            scrsz, saveImageFolder, 'all')
+            screen_size, saveImageFolder, 'all')
 
         # look at active pixels of the classAves, ie post-ablation
         normalize = 0
@@ -212,7 +212,7 @@ def selectActivePixels( featureArray, numFeatures, saveImageFolder=[],
         titleStr = 'class aves, active pixels only'
 
         show_FA_thumbs(caActiveOnly, classNum+1, normalize, titleStr,
-            scrsz, saveImageFolder, 'active')
+            screen_size, saveImageFolder, 'active')
 
     return activePixelInds
 
