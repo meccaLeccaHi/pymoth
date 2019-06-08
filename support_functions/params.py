@@ -1,3 +1,6 @@
+# import packages
+import numpy as np
+
 class ModelParams:
     '''
     This Python module contains the parameters for a sample moth, ie the template
@@ -8,9 +11,6 @@ class ModelParams:
         2. goal = measure of learning rate: goal = N means we expect the moth to
             hit max accuracy when trained on N samples per class. So goal = 1 gives
             a fast learner, goal = 20 gives a slower learner.
-
-    Output:
-        1. modelParams = struct ready to pass to 'init_connection_matrix'
 
     #-------------------------------------------------------------------------------
 
@@ -359,18 +359,16 @@ class ModelParams:
         self.trueClassLabels = None
         self.saveAllNeuralTimecourses = None
 
-def set_MNIST_exp_params( trClasses, classLabels, valPerClass ):
-	'''
+class ExpParams:
+    '''
 	This function defines parameters of a time-evolution experiment: overall timing, stim timing and
 	strength, octo timing and strength, lowpass window parameter, etc.
 	It does book-keeping to allow analysis of the SDE time-stepped evolution of the neural firing rates.
 	Inputs:
-		1. trClasses: vector of indices giving the classes of the training digits in order.
+		1. train_classes: vector of indices giving the classes of the training digits in order.
 		The first entry must be nonzero. Unused entries can be filled with -1s if wished.
-		2. classLabels: a list of labels, eg 1:10 for mnist
-		3. valPerClass: how many digits of each class to use for baseline and post-train
-	Output:
-		1. expParams: struct with experiment info.
+		2. class_labels: a list of labels, eg 1:10 for mnist
+		3. val_per_class: how many digits of each class to use for baseline and post-train
 
 #-------------------------------------------------------------------------------
 
@@ -384,130 +382,122 @@ def set_MNIST_exp_params( trClasses, classLabels, valPerClass ):
 
 	Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
-	'''
+    '''
+    def __init__( self, train_classes, class_labels, val_per_class ):
 
-	# import packages
-	import numpy as np
+        self.stimMag = 20 # stim magnitudes as passed into AL
+        # (See original version in smartAsABug codebase)
+        self.stimLength = 0.22
+        self.nC = len(class_labels) # the number of classes in this experiment
 
-	stimMag = 20 # stim magnitudes as passed into AL (See original version in smartAsABug codebase)
-	stimLength = 0.22
-	nC = len(classLabels) # the number of classes in this experiment
+        ## Define the time span and events:
+        self.step = 3 # the time between digits (3 seconds)
+        self.trStep = self.step + 2 # allow more time between training digits
 
-	## Define the time span and events:
-	step = 3 # the time between digits (3 seconds)
-	trStep = step + 2 # allow more time between training digits
+        self.sim_start = -30 # use negative start-time for convenience (artifact)
 
-	# this allows us to set the attributes of a Python object the same way we
-	# set the fields of a struct in matlab. Should be removed after
-	# transition to OOP
-	class Object(object):
-		pass
-	expParams = Object()
+        ## Baseline period:
+        # do a loop, to allow gaps between class groups:
+        self.baselineTimes = np.empty(0)
+        self.startTime = 30
+        self.gap = 10
+        for i in range(self.nC):
+            # vector of timepoints
+            self.baselineTimes = np.append(self.baselineTimes,
+                range(self.startTime, self.startTime + val_per_class*self.step, self.step) )
+            self.startTime = int(np.max(self.baselineTimes) + self.gap)
+        # include extra buffer before training
+        self.endOfBaseline = int(np.max(self.baselineTimes) + 25)
 
-	expParams.simStart = -30 # use negative start-time for convenience (artifact)
+        ## Training period:
+        # vector of timepoints, one digit every 'trStep' seconds
+        self.trainTimes = np.array(range(self.endOfBaseline,
+            self.endOfBaseline + len(train_classes)*self.trStep, self.trStep))
+        # includes buffer before Validation
+        self.endOfTrain = int(np.max(self.trainTimes) + 25)
 
-	## Baseline period:
-	# do a loop, to allow gaps between class groups:
-	baselineTimes = np.empty(0)
-	startTime = 30
-	gap = 10
-	for i in range(nC):
-		# vector of timepoints
-		baselineTimes = np.append(baselineTimes,
-			range(startTime, startTime + valPerClass*step, step) )
-		startTime = int(np.max(baselineTimes) + gap)
-	endOfBaseline = int(np.max(baselineTimes) + 25) # include extra buffer before training
+        # Val period:
+        # do a loop, to allow gaps between class groups
+        self.valTimes = np.empty(0)
+        self.startTime = self.endOfTrain
+        for i in range(self.nC):
+            # vector of timepoints
+            self.valTimes = np.append(self.valTimes,
+                range(self.startTime, self.startTime + val_per_class*self.step, self.step) )
+            self.startTime = int(np.max(self.valTimes) + self.gap)
+        self.endOfVal = np.max(self.valTimes) + 4
 
-	# Training period:
-	# vector of timepoints, one digit every 'trStep' seconds
-	trainTimes = np.array(range(endOfBaseline, endOfBaseline + len(trClasses)*trStep, trStep))
-	endOfTrain = int(np.max(trainTimes) + 25) # includes buffer before Validation
+        ## assemble vectors of stimulus data for export:
 
-	# Val period:
-	# do a loop, to allow gaps between class groups
-	valTimes = np.empty(0)
-	startTime = endOfTrain
-	for i in range(nC):
-		# vector of timepoints
-		valTimes = np.append(valTimes,
-			range(startTime, startTime + valPerClass*step, step) )
-		startTime = int(np.max(valTimes) + gap)
-	endOfVal = np.max(valTimes) + 4
+        # Assign the classes of each stim. Assign the baseline and val in blocks,
+        # and the training stims in the order passed in:
 
-	## assemble vectors of stimulus data for export:
+        self.stimStarts = np.hstack(( self.baselineTimes, self.trainTimes, self.valTimes ))
 
-	# Assign the classes of each stim. Assign the baseline and val in blocks,
-	# and the training stims in the order passed in:
+        self.whichClass = np.empty(self.stimStarts.shape) * np.nan
+        self.numBaseline = val_per_class*self.nC
+        self.numTrain = len(train_classes)
+        for c in range(self.nC):
+            # the baseline groups
+            self.whichClass[ c*val_per_class : (c+1)*val_per_class ] = class_labels[c]
 
-	stimStarts = np.hstack(( baselineTimes, trainTimes, valTimes ))
+            # the val groups
+            self.whichClass[ self.numBaseline + self.numTrain + c*val_per_class : \
+                self.numBaseline + self.numTrain + (c+1)*val_per_class ]  = class_labels[c]
 
-	whichClass = np.empty(stimStarts.shape) * np.nan
-	numBaseline = valPerClass*nC
-	numTrain = len(trClasses)
-	for c in range(nC):
-		# the baseline groups
-		whichClass[ c*valPerClass : (c+1)*valPerClass ] = classLabels[c]
+        self.whichClass[ self.numBaseline : self.numBaseline + self.numTrain ] = train_classes
 
-		# the val groups
-		whichClass[ numBaseline + numTrain + c*valPerClass : \
-			numBaseline + numTrain + (c+1)*valPerClass ]  = classLabels[c]
+        # self.whichClass = whichClass
+        # self.stimStarts = stimStarts # starting times
+        self.durations = self.stimLength*np.ones( len(self.stimStarts) ) # durations
+        self.classMags = self.stimMag*np.ones( len(self.stimStarts) ) # magnitudes
 
-	whichClass[ numBaseline : numBaseline + numTrain ] = trClasses
+        # octopamine input timing:
+        self.octoMag = 1
+        self.octoStart = self.trainTimes
+        self.durationOcto = 1
 
-	expParams.whichClass = whichClass
+        # Hebbian timing: Hebbian updates are enabled 25# of the way into the stimulus, and
+        # last until 75% of the way through (ie active during the peak response period)
+        self.hebStarts = [i + 0.25*self.stimLength for i in self.trainTimes]
+        self.hebDurations = 0.5*self.stimLength*np.ones( len(self.trainTimes) )
+        self.startTrain = min(self.hebStarts)
+        self.endTrain = max(self.hebStarts) + max(self.hebDurations)
 
-	expParams.stimStarts = stimStarts # starting times
-	expParams.durations = stimLength*np.ones( len(stimStarts) ) # durations
-	expParams.classMags = stimMag*np.ones( len(stimStarts) ) # magnitudes
+        ## Other time parameters required for time evolution book-keeping:
+        # end timepoints for the section used to define mean spontaneous firing rates,
+        # in order to calibrate noise.
+        # To let the system settle, we recalibrate noise levels to current spontaneous
+        # FRs in stages.
+        # This ensures that in steady state, noise levels are correct in relation to mean FRs.
+        # the numbers 1,2,3 do refer to time periods where spont responses are
+        # allowed to settle before recalibration.
+        self.startPreNoiseSpontMean1 = -25
+        self.stopPreNoiseSpontMean1 = -15
+        # Currently no change is made in start/stopSpontMean2.
+        # So spontaneous behavior may be stable in this range.
+        self.startSpontMean2 = -10
+        self.stopSpontMean2 = -5
+        # currently, spontaneous behavior is steady-state by startSpontMean3.
+        self.startSpontMean3 = 0
+        self.stopSpontMean3 = 28
 
-	# octopamine input timing:
-	expParams.octoMag = 1
-	expParams.octoStart = trainTimes
-	expParams.durationOcto = 1
+        self.preHebPollTime = min(self.trainTimes) - 5
+        self.postHebPollTime = max(self.trainTimes) + 5
 
-	# Hebbian timing: Hebbian updates are enabled 25# of the way into the stimulus, and
-	# last until 75% of the way through (ie active during the peak response period)
-	expParams.hebStarts = [i + 0.25*stimLength for i in trainTimes]
-	expParams.hebDurations = 0.5*stimLength*np.ones( len(trainTimes) )
-	expParams.startTrain = min(expParams.hebStarts)
-	expParams.endTrain = max(expParams.hebStarts) + max(expParams.hebDurations)
+        # timePoints for plotting EN responses:
+        # spontaneous response periods, before and after training, to view effect of
+        # training on spontaneous FRs:
+        self.preHebSpontStart = self.startSpontMean3
+        self.preHebSpontStop = self.stopSpontMean3
+        self.postHebSpontStart = max(self.trainTimes) + 5
+        self.postHebSpontStop = min(self.valTimes) - 3
 
-	## Other time parameters required for time evolution book-keeping:
-	# end timepoints for the section used to define mean spontaneous firing rates,
-    # in order to calibrate noise.
-    # To let the system settle, we recalibrate noise levels to current spontaneous
-    # FRs in stages.
-    # This ensures that in steady state, noise levels are correct in relation to mean FRs.
-	# the numbers 1,2,3 do refer to time periods where spont responses are
-	# allowed to settle before recalibration.
-	expParams.startPreNoiseSpontMean1 = -25
-	expParams.stopPreNoiseSpontMean1 = -15
-	# Currently no change is made in start/stopSpontMean2.
-	# So spontaneous behavior may be stable in this range.
-	expParams.startSpontMean2 = -10
-	expParams.stopSpontMean2 = -5
-	# currently, spontaneous behavior is steady-state by startSpontMean3.
-	expParams.startSpontMean3 = 0
-	expParams.stopSpontMean3 = 28
+        # hamming filter window parameter (= width of transition zone in seconds).
+        # The lp filter is applied to odors and to octo
+        self.lpParam =  0.12
 
-	expParams.preHebPollTime = min(trainTimes) - 5
-	expParams.postHebPollTime = max(trainTimes) + 5
-
-	# timePoints for plotting EN responses:
-	# spontaneous response periods, before and after training, to view effect of
-	# training on spontaneous FRs:
-	expParams.preHebSpontStart = expParams.startSpontMean3
-	expParams.preHebSpontStop = expParams.stopSpontMean3
-	expParams.postHebSpontStart = max(trainTimes) + 5
-	expParams.postHebSpontStop = min(valTimes) - 3
-
-	# hamming filter window parameter (= width of transition zone in seconds).
-	# The lp filter is applied to odors and to octo
-	expParams.lpParam =  0.12
-
-	expParams.simStop = max(stimStarts) + 10
-
-	return expParams
+        self.sim_stop = max(self.stimStarts) + 10
 
 def init_connection_matrix(mP):
     '''
@@ -533,7 +523,7 @@ def init_connection_matrix(mP):
     MIT License
     '''
 
-    import numpy as np
+    # import numpy as np
     import numpy.random as r
 
     # first make a binary mask S2Rbinary

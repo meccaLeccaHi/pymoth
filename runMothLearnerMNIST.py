@@ -36,7 +36,7 @@ import copy # for deep copy of nested lists
 # Experiment details
 from support_functions.generate import generate_ds_MNIST
 from support_functions.show_figs import show_FA_thumbs, view_EN_resp
-from support_functions.params import init_connection_matrix, set_MNIST_exp_params
+from support_functions.params import init_connection_matrix, ExpParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
 
@@ -94,9 +94,6 @@ trClasses = np.repeat( classLabels, trPerClass )
 trClasses = np.random.permutation( trClasses )
 # repeat these inputs if taking multiple sniffs of each training sample:
 trClasses = np.tile( trClasses, [1, numSniffs] )[0]
-
-# Experiment details for 10 digit training:
-experimentFn = set_MNIST_exp_params
 
 #-------------------------------------------------------------------------------
 
@@ -202,7 +199,7 @@ for run in range(numRuns):
 		tempArray[activePixelInds,:,:] = digitQueues
 		normalize = 1
 		titleStr = 'Input thumbnails'
-		showFeatureArrayThumbnails(tempArray, showThumbnails, normalize,
+		show_FA_thumbs(tempArray, showThumbnails, normalize,
 									titleStr, screen_size, saveResultsImageFolder)
 
 #-------------------------------------------------------------------------------
@@ -232,10 +229,15 @@ for run in range(numRuns):
 	modelParams.trueClassLabels = classLabels # misc parameter tagging along
 	modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
 
-	# Define the experiment parameters, including book-keeping for time-stepped
+	# # Define the experiment parameters, including book-keeping for time-stepped
+	# # 	evolutions, eg when octopamine occurs, time regions to poll for digit
+	# # 	responses, windowing of Firing rates, etc
+	# experimentParams = experimentFn( trClasses, classLabels, valPerClass )
+
+	# Load experiment params, including book-keeping for time-stepped
 	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# 	responses, windowing of Firing rates, etc
-	experimentParams = experimentFn( trClasses, classLabels, valPerClass )
+	experimentParams = ExpParams( trClasses, classLabels, valPerClass )
 
 #-------------------------------------------------------------------------------
 

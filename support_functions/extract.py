@@ -48,18 +48,18 @@ def extractMNISTFeatureArray( mnist, labels, image_indices, phase_label ):
 
     return im_array
 
-def cropDownsampleVectorizeImageStack( imStack, cropVal, dsVal, downsampleMethod ):
+def cropDownsampleVectorizeImageStack( im_stack, crop_val, ds_ratio, ds_method ):
     '''
     For each image in a stack of images: Crop, then downsample, then make into a col vector.
     Inputs:
-        1. imStack = numImages x width x height array
-        2. cropVal = number of pixels to shave off each side. can be a scalar or a
+        1. im_stack: numImages x width x height array
+        2. crop_val: number of pixels to shave off each side. can be a scalar or a
             4 x 1 vector: top, bottom, left, right.
-        3. dsVal = amount to downsample
-        4. downsampleMethod: if 0, do downsampling by summing square patches.
+        3. ds_ratio: amount to downsample
+        4. ds_method: if 0, do downsampling by summing square patches.
             If 1, use bicubic interpolation.
     Output:
-        1. imArray = a x numImages array, where a = number of pixels in the cropped and downsampled images
+        1. im_array: a x numImages array, where a = number of pixels in the cropped and downsampled images
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
@@ -68,52 +68,52 @@ def cropDownsampleVectorizeImageStack( imStack, cropVal, dsVal, downsampleMethod
     from scipy.misc import imresize
     import numpy as np
 
-    if type(cropVal) is int:
-        cropVal = cropVal*np.ones(4,dtype = int)
+    if type(crop_val) is int:
+        crop_val = crop_val*np.ones(4,dtype = int)
 
-    if len(imStack.shape)==3:
-        im_z,im_height,im_width = imStack.shape
+    if len(im_stack.shape)==3:
+        im_z,im_height,im_width = im_stack.shape
     else:
-        im_height,im_width = imStack.shape
+        im_height,im_width = im_stack.shape
         im_z = 1
 
-    width = range(cropVal[2], im_width-cropVal[3])
-    height = range(cropVal[0], im_height-cropVal[1])
+    width = range(crop_val[2], im_width-crop_val[3])
+    height = range(crop_val[0], im_height-crop_val[1])
 
-    new_width = (im_width-np.sum(cropVal[2:]))/dsVal
-    new_height = (im_height-np.sum(cropVal[0:2]))/dsVal
+    new_width = (im_width-np.sum(crop_val[2:]))/ds_ratio
+    new_height = (im_height-np.sum(crop_val[0:2]))/ds_ratio
 
-    imColArray = np.zeros((int(new_width*new_height),im_z))
+    im_col_array = np.zeros((int(new_width*new_height),im_z))
     # crop, downsample, vectorize the thumbnails one-by-one
     for s in range(im_z):
-        t = imStack[s,...]
+        t = im_stack[s,...]
         # crop image
         ixgrid = np.ix_(width, height)
         t = t[ixgrid]
 
-        if downsampleMethod: # bicubic
-            t2 = imresize(t, 1/dsVal, interp='bicubic')
+        if ds_method: # bicubic
+            t2 = imresize(t, 1/ds_ratio, interp='bicubic')
 
         else: # sum 2 x 2 blocks
-            t2 = np.zeros((int(len(height)/dsVal),int(len(width)/dsVal)))
-            for i in range(int(len(height)/dsVal)):
-                for j in range(int(len(width)/dsVal)):
-                    b = t[(i-1)*dsVal+1:i*dsVal+1, (j-1)*dsVal+1:j*dsVal+1]
+            t2 = np.zeros((int(len(height)/ds_ratio),int(len(width)/ds_ratio)))
+            for i in range(int(len(height)/ds_ratio)):
+                for j in range(int(len(width)/ds_ratio)):
+                    b = t[(i-1)*ds_ratio+1:i*ds_ratio+1, (j-1)*ds_ratio+1:j*ds_ratio+1]
                     t2[i,j] = b.sum()
 
-        imColArray[:,s] = t2.flatten()/t2.max()
+        im_col_array[:,s] = t2.flatten()/t2.max()
 
-    return imColArray
+    return im_col_array
 
-def averageImageStack( imStack, indicesToAverage ):
+def averageImageStack( im_stack, indices_to_average ):
     '''
     Average a stack of images
     Inputs:
-        1. imStack = 3-d stack (x, y, z) OR 2-d matrix (images-as-col-vecs, z)
-        Caution: Do not feed in featureArray (ie 3-d with dim 1 = feature cols, 2 = samples per class, 3 = classes)
-        2. indicesToAverage: which images in the stack to average
+        1. im_stack = 3-d stack (x, y, z) OR 2-d matrix (images-as-col-vecs, z)
+        Caution: Do not feed in feature_array (ie 3-d with dim 1 = feature cols, 2 = samples per class, 3 = classes)
+        2. indices_to_average: which images in the stack to average
     Output:
-        1. averageImage: (if input is 3-d) or column vector (if input is 2-d)
+        1. average_image: (if input is 3-d) or column vector (if input is 2-d)
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
@@ -121,35 +121,35 @@ def averageImageStack( imStack, indicesToAverage ):
 
     import numpy as np
 
-    imStack_shape = imStack.shape
+    im_stack_shape = im_stack.shape
 
     # case: images are col vectors
-    if len(imStack_shape) == 2:
-        aveIm = np.zeros((imStack_shape[0],))
+    if len(im_stack_shape) == 2:
+        ave_im = np.zeros((im_stack_shape[0],))
     else:
-        aveIm = np.zeros(imStack_shape)
+        ave_im = np.zeros(im_stack_shape)
 
-    for i in indicesToAverage:
-        aveIm += imStack[:, i]
+    for i in indices_to_average:
+        ave_im += im_stack[:, i]
 
     # normalize
-    aveIm /= imStack_shape[1]
+    ave_im /= im_stack_shape[1]
 
-    return aveIm
+    return ave_im
 
-def selectActivePixels( featureArray, numFeatures, screen_size,
+def selectActivePixels( feature_array, num_features, screen_size,
     save_image_folder=[], show_thumbnails=0 ):
     '''
     Select the most active pixels, considering all class average images, to use as features.
     Inputs:
-        1. featureArray: 3-D array nF x nS x nC, where nF = # of features,
+        1. feature_array: 3-D array nF x nS x nC, where nF = # of features,
         nS = # samples per class, nC = number of classes. As created by genDS_MNIST.
-        2. numFeatures: The number of active pixels to use (these form the receptive field).
-        3. saveImageFolder: dir to save average class images, empty = don't save
+        2. num_features: The number of active pixels to use (these form the receptive field).
+        3. save_image_folder: dir to save average class images, empty = don't save
         4. screensize: (width, height)
         5. show_thumbnails: number of thumbnails to plot
     Output:
-        1. activePixelInds: 1 x nF vector of indices to use as features.
+        1. active_pixel_inds: 1 x nF vector of indices to use as features.
         Indices are relative to the vectorized thumbnails (so between 1 and 144).
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
@@ -161,60 +161,57 @@ def selectActivePixels( featureArray, numFeatures, screen_size,
     import numpy as np
     from support_functions.show_figs import show_FA_thumbs
 
-    pixNum, numPerClass, classNum  = featureArray.shape
-    cA = np.zeros((pixNum, classNum+1))
+    num_pix, num_per_class, num_classes  = feature_array.shape
+    cA = np.zeros((num_pix, num_classes+1))
 
-    for i in range(classNum):
+    for i in range(num_classes):
 
-        cA[:,i] = averageImageStack(featureArray[:,:,i], list(range(numPerClass)))
+        cA[:,i] = averageImageStack(feature_array[:,:,i], list(range(num_per_class)))
 
     # last col = average image over all digits
-    cA[:,-1] = np.sum(cA[:,:-1], axis=1) / classNum
+    cA[:,-1] = np.sum(cA[:,:-1], axis=1) / num_classes
 
     # normed version (does not rescale the overall average)
     z = np.max(cA, axis=0)
     z[-1] = 1
-    caNormed = cA/np.tile(z, (pixNum,1))
-    # num = size(caNormed,2);
+    cA_norm = cA/np.tile(z, (num_pix,1))
 
-    # select most active 'numFeatures' pixels
-    this = cA[:, :-1]
-
-    thisLogical = np.zeros(this.shape)
+    # select most active 'num_features' pixels
+    peak_pix = cA[:, :-1]
+    peak_pix_logical = np.zeros(peak_pix.shape)
 
     # all the pixel values from all the class averages, in descending order
-    vals = np.sort(this.flatten())[::-1]
+    vals = np.sort(peak_pix.flatten())[::-1]
 
     # start selecting the highest-valued pixels
     stop = 0
     while not stop:
         thresh = vals.max()
-        thisLogical[this>=thresh] = 1
-        activePixels = thisLogical.sum(axis=1) # sum the rows
+        peak_pix_logical[peak_pix>=thresh] = 1
+        active_pix = peak_pix_logical.sum(axis=1) # sum the rows
         # If a class ave had the i'th pixel, selected, keptPixels(i) > 0
-        stop = (activePixels > 0).sum() >= numFeatures # check if we have enough pixels
+        stop = (active_pix > 0).sum() >= num_features # check if we have enough pixels
 
         vals = vals[vals < thresh]  # peel off the value(s) just used
 
-    activePixelInds = np.nonzero(activePixels > 0)[0]
+    active_pixel_inds = np.nonzero(active_pix > 0)[0]
 
-    if show_thumbnails and saveImageFolder:
+    if show_thumbnails and save_image_folder:
         # plot the normalized classAves pre-ablation
         normalize = 0
-        titleStr = 'class aves, all pixels'
-        show_FA_thumbs(caNormed, classNum+1, normalize, titleStr,
-            screen_size, saveImageFolder, 'all')
+        title_str = 'class aves, all pixels'
+        show_FA_thumbs(cA_norm, num_classes+1, normalize, title_str,
+            screen_size, saveImageFolder=save_image_folder, saveString='all')
 
         # look at active pixels of the classAves, ie post-ablation
         normalize = 0
-        caActiveOnly = np.zeros(caNormed.shape)
-        caActiveOnly[activePixelInds, : ] = caNormed[activePixelInds, :]
-        titleStr = 'class aves, active pixels only'
+        cA_active_only = np.zeros(cA_norm.shape)
+        cA_active_only[active_pixel_inds, : ] = cA_norm[active_pixel_inds, :]
+        title_str = 'class aves, active pixels only'
+        show_FA_thumbs(cA_active_only, num_classes+1, normalize, title_str,
+            screen_size, saveImageFolder=save_image_folder, saveString='active')
 
-        show_FA_thumbs(caActiveOnly, classNum+1, normalize, titleStr,
-            screen_size, saveImageFolder, 'active')
-
-    return activePixelInds
+    return active_pixel_inds
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

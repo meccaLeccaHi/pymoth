@@ -1,14 +1,14 @@
-def sde_wrap( modelParams, expParams, featureArray ):
+def sde_wrap( model_params, exp_params, feature_array ):
     '''
     Prepares for and runs the SDE time-stepped evolution of neural firing rates.
     Inputs:
-        1. modelParams: struct with connection matrices etc
-        2. expParams: struct with timing info about experiment, eg when stimuli are given.
-        3. featureArray: numFeatures x numStimsPerClass x numClasses array of stimuli
+        1. model_params: struct with connection matrices etc
+        2. exp_params: struct with timing info about experiment, eg when stimuli are given.
+        3. feature_array: numFeatures x numStimsPerClass x numClasses array of stimuli
     Output:
-        1. simResults: EN timecourses and final P2K and K2E connection matrices.
+        1. sim_results: EN timecourses and final P2K and K2E connection matrices.
           Note that other neurons' timecourses (outputted from sdeEvolutionMnist)
-          are not retained in simResults.
+          are not retained in sim_results.
 
     #---------------------------------------------------------------------------
 
@@ -23,44 +23,38 @@ def sde_wrap( modelParams, expParams, featureArray ):
     '''
 
     import numpy as np
-    # import sdeEvoMNIST
 
     ## 1. initialize states of various components:
 
     # unpack a few variables that are needed before the evolution stage:
-    nP = modelParams.nP # = nG
-    nG = modelParams.nG
-    nPI = modelParams.nPI
-    nK = modelParams.nK
-    nR = modelParams.nR # = nG
-    nE = modelParams.nE
-    F2R = modelParams.F2R
+    nP = model_params.nP # = nG
+    nG = model_params.nG
+    nPI = model_params.nPI
+    nK = model_params.nK
+    nR = model_params.nR # = nG
+    nE = model_params.nE
+    F2R = model_params.F2R
 
     ##  2b. Define Stimuli and Octopamine time courses:
 
     # set time span and events:
-    simStart = expParams.simStart
-    simStop =  expParams.simStop
-    timeStep = 2*0.01
+    sim_start = exp_params.sim_start
+    sim_stop =  exp_params.sim_stop
+    time_step = 2*0.01
 
-    total_steps = (simStop - simStart)/timeStep
-    time = np.linspace(simStart, simStop-timeStep, total_steps)
+    total_steps = (sim_stop - sim_start)/time_step
+    time = np.linspace(sim_start, sim_stop-time_step, total_steps)
 
-    # create stimMags, a matrix n x m where n = # of odors and m = # timesteps.
-    # stimStarts = expParams.stimStarts
-    # durations = expParams.durations
-    # whichClass = expParams.whichClass
-
-    classList = np.sort(np.unique(expParams.whichClass))
-    # classMags = expParams.classMags
+    class_list = np.sort(np.unique(exp_params.whichClass))
+    # classMags = exp_params.classMags
     # create a classMagMatrix, each row giving the stimulus magnitudes of a different class:
-    classMagMatrix = np.zeros((len(classList), len(time))) # ie 4 x len(time)
-    for i,cl in enumerate(classList):
+    classMagMatrix = np.zeros((len(class_list), len(time))) # ie 4 x len(time)
+    for i,cl in enumerate(class_list):
         # extract the relevant odor puffs. All vectors should be same size, in same order
-        puffs = (expParams.whichClass == cl)
-        theseClassStarts = expParams.stimStarts[puffs]
-        theseDurations = expParams.durations[puffs]
-        theseMags = expParams.classMags[puffs]
+        puffs = (exp_params.whichClass == cl)
+        theseClassStarts = exp_params.stimStarts[puffs]
+        theseDurations = exp_params.durations[puffs]
+        theseMags = exp_params.classMags[puffs]
 
         for j in range(len(theseClassStarts)):
             cols = (theseClassStarts[j] < time) & (time < (theseClassStarts[j] + theseDurations[j]))
@@ -68,23 +62,23 @@ def sde_wrap( modelParams, expParams, featureArray ):
 
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
     # lpParam: default transition zone = 0.12 sec
-    L = round(expParams.lpParam/timeStep) # define the slope of low pass transitions here
+    L = round(exp_params.lpParam/time_step) # define the slope of low pass transitions here
     lpWindow = np.hamming(L) # window of width L
     lpWindow /= lpWindow.sum()
 
     # window the stimulus time courses:
-    for i in range(len(classList)):
+    for i in range(len(class_list)):
         classMagMatrix[i,:] = np.convolve(classMagMatrix[i,:], lpWindow, 'same')
 
     # window the octopamine:
-    # octoMag = expParams.octoMag
+    # octoMag = exp_params.octoMag
     octoHits = np.zeros(len(time))
-    # octoStart = expParams.octoStart
-    # durationOcto = expParams.durationOcto
-    octoStop = [i + expParams.durationOcto for i in expParams.octoStart]
-    for i in range(len(expParams.octoStart)):
-        hits = (time >= expParams.octoStart[i]) & (time < octoStop[i])
-        octoHits[ hits ] = expParams.octoMag
+    # octoStart = exp_params.octoStart
+    # durationOcto = exp_params.durationOcto
+    octoStop = [i + exp_params.durationOcto for i in exp_params.octoStart]
+    for i in range(len(exp_params.octoStart)):
+        hits = (time >= exp_params.octoStart[i]) & (time < octoStop[i])
+        octoHits[ hits ] = exp_params.octoMag
     octoHits = np.convolve(octoHits, lpWindow, 'same') # the low pass filter
 
     ## do SDE time-step evolution:
@@ -94,18 +88,18 @@ def sde_wrap( modelParams, expParams, featureArray ):
     Po = np.ones(nP) # P are the normalized FRs of the excitatory PNs
     PIo = np.ones(nPI) # PI are the normed FRs of the inhib PNs
     Lo = np.ones(nG)
-    Ro = modelParams.Rspont
-    Ko = np.ones(modelParams.nK) # K are the normalized firing rates of the Kenyon cells
-    Eo = np.zeros(modelParams.nE) # start at zeros
+    Ro = model_params.Rspont
+    Ko = np.ones(model_params.nK) # K are the normalized firing rates of the Kenyon cells
+    Eo = np.zeros(model_params.nE) # start at zeros
     initCond = np.concatenate((Po, PIo, Lo, Ro, Ko, Eo) , axis=None) # initial conditions for Y
 
-    tspan = [ simStart, simStop ]
+    tspan = [ sim_start, sim_stop ]
     seedValue = 0 # to free up or fix randn
     # If = 0, a random seed value will be chosen. If > 0, the seed will be defined.
 
     # Run the SDE evolution:
-    thisRun = sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
-        octoHits, modelParams, expParams, seedValue )
+    thisRun = sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
+        octoHits, model_params, exp_params, seedValue )
     # Time stepping is now done.
 
     ## Unpack Y and save results:
@@ -114,40 +108,26 @@ def sde_wrap( modelParams, expParams, featureArray ):
     # Y = thisRun['Y']
 
     # save some inputs and outputs to a struct for argout:
-    simResults = dict()
-    simResults['T']= thisRun['T'] # timing information
-    simResults['E'] =  thisRun['E']
-    simResults['octoHits'] = octoHits
-    simResults['K2Efinal'] = thisRun['K2Efinal']
-    simResults['P2Kfinal'] = thisRun['P2Kfinal']
+    sim_results = {
+        'T' : thisRun['T'], # timing information
+        'E' : thisRun['E'],
+        'octoHits' : octoHits,
+        'K2Efinal' : thisRun['K2Efinal'],
+        'P2Kfinal' : thisRun['P2Kfinal'],
+        }
 
-    if modelParams.saveAllNeuralTimecourses:
-        simResults['P'] = thisRun['Y'][:,:nP]
-        simResults['K'] = thisRun['Y'][:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
+    if model_params.saveAllNeuralTimecourses:
+        sim_results['P'] = thisRun['Y'][:,:nP]
+        sim_results['K'] = thisRun['Y'][:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
 
         # other neural timecourses
-        # simResults['PI'] = thisRun['Y'][:,nP + 1:nP + nPI]
-        # simResults['L'] = thisRun['Y'][:, nP + nPI + 1:nP + nPI + nG]
-        # simResults['R'] = thisRun['Y'][:, nP + nPI + nG + 1: nP + nPI + nG + nR]
+        # sim_results['PI'] = thisRun['Y'][:,nP + 1:nP + nPI]
+        # sim_results['L'] = thisRun['Y'][:, nP + nPI + 1:nP + nPI + nG]
+        # sim_results['R'] = thisRun['Y'][:, nP + nPI + nG + 1: nP + nPI + nG + nR]
 
-    return simResults
+    return sim_results
 
-def piecewiseLinearPseudoSigmoid(x, span, slope):
-    '''
-    Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns
-
-    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-    MIT License
-    '''
-    import numpy as np
-
-    y = x*slope
-    y = np.maximum(y, -span/2) # replace values below -span/2
-    y = np.minimum(y, span/2) # replace values above span/2
-
-    return y
-
-def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
+def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     octoHits, mP, exP, seedValue):
     '''
     To include neural noise, evolve the differential equations using euler-
@@ -157,17 +137,23 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     Inputs:
         1. tspan: 1 x 2 vector = start and stop timepoints (sec)
         2. initCond: n x 1 vector = starting FRs for all neurons, order-specific
-        3. time: vector of timepoints for stepping
-        4. classMagMatrix: 10 x n matrix of stimulus magnitudes.
-        Each row contains mags of digits from a given class.
-        5. featureArray: numFeatures x numStimsPerClass x numClasses array
+        3. time: start:step:stop; vector of timepoints for stepping through the evolution
+            Note we assume that noise and FRs have the same step size (based on Milstein's method)
+        4. classMagMatrix: nC x N matrix where nC = # of different classes (for
+            digits, up to 10), N = length(time = vector of time points). Each
+            entry is the strength of a digit presentation.
+        5. feature_array: numFeatures x numStimsPerClass x numClasses array
         6. octoHits: 1 x length(t) vector with octopamine strengths at each timepoint
-        7. mP: modelParams, including connection matrices, learning rates, etc
+        7. mP: model_params, including connection matrices, learning rates, etc
         8. exP: experiment parameters with some timing info
-        9. seedValue: for random number generation. 0 means start a new seed.
+        9. seedValue: optional arg for random number generation.
+            0 means start a new seed.
     Output:
-        thisRun: object with attributes Y (vectors of all neural timecourses as rows);
-                    T = t; and final mP.P2K and mP.K2E connection matrices.
+        thisRun: object with attributes Y (vectors of all neural timecourses as rows),
+            T (timepoints used in evolution), and final mP.P2K and mP.K2E connection matrices.
+            1. T = m x 1 vector, timepoints used in evolution
+            2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
+                each row is the FR at a given timepoint
 
     #---------------------------------------------------------------------------
 
@@ -176,26 +162,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         The class may change with each new digit, so there is be a counter
         that increments when stimMag changes from nonzero to zero.
         There are nC counters.
-
-    inputs:
-        1. tspan = 1 x 2 vector with start and stop times
-        2. initCond = col vector with all starting values for P, L, etc
-        3. time = start:step:stop; these are the time points for the evolution.
-            Note we assume that noise and FRs have the same step size (based on Milstein's method)
-        4. classMagMatrix = nC x N matrix where nC = # of different classes (for
-            digits, up to 10), N = length(time = vector of time points). Each
-            entry is the strength of a digit presentation.
-        5. featureArray = mP.nF x kk x nC array, where mP.nF = numFeatures,
-            kk >= number of puffs for that stim, and nC = # of classes.
-        6. octoHits = 1 x N matrix. Each entry is a strength of octopamine
-        7. mP = modelParams, an object that contains values of all connectivity matrices,
-            noise parameters, and timing params (eg when octo, stim and heb occur)
-        8. exP = object with timing params
-        9. seedVal = starting seed value for reproducibility. optional arg
-    outputs:
-        1. T = m x 1 vector, timepoints used in evolution
-        2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
-            each row is the FR at a given timepoint
 
     The function uses the noise params to create a Wiener process, then
     evolves the FR equations with the added noise
@@ -215,7 +181,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         3. noise is proportional to ms2. neurons may converge to new
             meanSpontFRs = ms3, but noise is not changed. stdSpontFRs are
             calculated from ms3 time period.
-    This has the following effects on simResults:
+    This has the following effects on sim_results:
         1. In the heat maps and time-courses this will give a period of uniform FRs.
         2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
         the exP.stopSpontMean3 timepoint.
@@ -226,6 +192,20 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
 
     import numpy as np
     from scipy.special import erfinv
+
+    def piecewiseLinearPseudoSigmoid(x, span, slope):
+        # Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns.
+        y = x*slope
+        y = np.maximum(y, -span/2) # replace values below -span/2
+        y = np.minimum(y, span/2) # replace values above span/2
+        return y
+
+    def wiener(w_sig, meanSpont_, old_, tau_, inputs_):
+        d_ = dt*(-old_*tau_ + inputs_)
+        # Wiener noise:
+        dW_ = np.sqrt(dt)*w_sig.squeeze()*meanSpont_*np.random.normal(0,1,(d_.shape))
+        # combine them:
+        return old_ + d_ + dW_
 
     # if argin seedValue is nonzero, fix the rand seed for reproducible results
     if seedValue:
@@ -264,13 +244,6 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
     dt = round(time[1] - time[0], 2) # this is determined by start, stop and step in calling function
     N = int( (tspan[1] - tspan[0]) / dt ) # number of steps in noise evolution
     T = np.linspace(tspan[0], tspan[1]-dt, N) # the time vector
-
-    def wiener(w_sig, meanSpont_, old_, tau_, inputs_):
-        d_ = dt*(-old_*tau_ + inputs_)
-        # Wiener noise:
-        dW_ = np.sqrt(dt)*w_sig.squeeze()*meanSpont_*np.random.normal(0,1,(d_.shape))
-        # combine them:
-        return old_ + d_ + dW_
 
 #-------------------------------------------------------------------------------
 
@@ -435,9 +408,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, featureArray,
         thisStimClassInd = []
         for j in range(nC):
             if classMagMatrix[j,i]: # if classMagMatrix[j,i] is not zero
-                # thisInput += classMagMatrix[j,i]*featureArray[:,int(classCounter[j]),j]
+                # thisInput += classMagMatrix[j,i]*feature_array[:,int(classCounter[j]),j]
                 imNum = int(classCounter[j] - 1) # indexing: need the '-1' so we don't run out of images
-                thisInput += classMagMatrix[j,i]*featureArray[:,imNum,j]
+                thisInput += classMagMatrix[j,i]*feature_array[:,imNum,j]
                 thisStimClassInd.append(j)
 
 #-------------------------------------------------------------------------------

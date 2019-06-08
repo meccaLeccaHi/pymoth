@@ -97,8 +97,8 @@ def view_EN_resp( simRes, modelParams, expP,
 
     import os
     import numpy as np
-    import matplotlib
-    matplotlib.use("TKAgg") # DEV NOTE: Remove later (APJ)
+    # import matplotlib
+    # matplotlib.use("TKAgg") # DEV NOTE: Remove later (APJ)
     from matplotlib import pyplot as plt
 
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
