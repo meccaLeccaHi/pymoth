@@ -203,7 +203,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     def wiener(w_sig, meanSpont_, old_, tau_, inputs_):
         d_ = dt*(-old_*tau_ + inputs_)
         # Wiener noise:
-        dW_ = np.sqrt(dt)*w_sig.squeeze()*meanSpont_*np.random.normal(0,1,(d_.shape))
+        dW_ = np.sqrt(dt)*w_sig*meanSpont_*np.random.normal(0,1,(d_.shape))
         # combine them:
         return old_ + d_ + dW_
 
@@ -221,12 +221,12 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
 
     ## noise in individual neuron FRs
     # These are vectors, one vector for each type:
-    wPsig = mP.noisePvec
-    wPIsig = mP.noisePIvec # no PIs for mnist
-    wLsig = mP.noiseLvec
-    wRsig = mP.noiseRvec
-    wKsig = mP.noiseKvec
-    wEsig = mP.noiseEvec
+    wPsig = mP.noisePvec.squeeze()
+    wPIsig = mP.noisePIvec.squeeze() # no PIs for mnist
+    wLsig = mP.noiseLvec.squeeze()
+    wRsig = mP.noiseRvec.squeeze()
+    wKsig = mP.noiseKvec.squeeze()
+    wEsig = mP.noiseEvec.squeeze()
 
     # steady-state RN FR, base + noise:
     RspontRatios = mP.Rspont/mP.Rspont.mean() # used to scale stim inputs
@@ -624,19 +624,18 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     print('\r')
     # Time-step simulation is now over.
 
-    saveType = 'float32' # convert to singles to save memory
     thisRun = dict() # pre-allocate
     # combine so that each row of fn output Y is a col of [P; PI; L; R; K]
     if mP.saveAllNeuralTimecourses:
         Y = np.vstack((P, PI, L, R, K, E))
-        thisRun['Y'] = Y.T.astype(saveType)
+        thisRun['Y'] = Y.T
     else:
         thisRun['Y'] = []
 
-    thisRun['T'] = T.T.astype(saveType) # store T as a col
-    thisRun['E'] = E.T.astype(saveType) # length(T) x mP.nE matrix
-    thisRun['P2Kfinal'] = oldP2K.astype(saveType)
-    thisRun['K2Efinal'] = oldK2E.astype(saveType)
+    thisRun['T'] = T.T # store T as a col
+    thisRun['E'] = E.T # length(T) x mP.nE matrix
+    thisRun['P2Kfinal'] = oldP2K
+    thisRun['K2Efinal'] = oldK2E
 
     return thisRun
 
