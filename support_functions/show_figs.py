@@ -105,8 +105,8 @@ def view_EN_resp( simRes, modelParams, expP,
         (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
     # concurrent octopamine will be marked with yellow x's
 
-    if simRes['octoHits'].max() > 0:
-        octoTimes = simRes['T'][ simRes['octoHits'] > 0 ]
+    if simRes['octo_hits'].max() > 0:
+        octoTimes = simRes['T'][ simRes['octo_hits'] > 0 ]
     else:
         octoTimes = []
 

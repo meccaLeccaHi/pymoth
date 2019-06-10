@@ -47,8 +47,8 @@ def sde_wrap( model_params, exp_params, feature_array ):
 
     class_list = np.sort(np.unique(exp_params.whichClass))
     # classMags = exp_params.classMags
-    # create a classMagMatrix, each row giving the stimulus magnitudes of a different class:
-    classMagMatrix = np.zeros((len(class_list), len(time))) # ie 4 x len(time)
+    # create a class_mag_mat, each row giving the stimulus magnitudes of a different class:
+    class_mag_mat = np.zeros((len(class_list), len(time))) # ie 4 x len(time)
     for i,cl in enumerate(class_list):
         # extract the relevant odor puffs. All vectors should be same size, in same order
         puffs = (exp_params.whichClass == cl)
@@ -58,7 +58,7 @@ def sde_wrap( model_params, exp_params, feature_array ):
 
         for j in range(len(theseClassStarts)):
             cols = (theseClassStarts[j] < time) & (time < (theseClassStarts[j] + theseDurations[j]))
-            classMagMatrix[i, cols] = theseMags[j]
+            class_mag_mat[i, cols] = theseMags[j]
 
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
     # lpParam: default transition zone = 0.12 sec
@@ -68,18 +68,18 @@ def sde_wrap( model_params, exp_params, feature_array ):
 
     # window the stimulus time courses:
     for i in range(len(class_list)):
-        classMagMatrix[i,:] = np.convolve(classMagMatrix[i,:], lpWindow, 'same')
+        class_mag_mat[i,:] = np.convolve(class_mag_mat[i,:], lpWindow, 'same')
 
     # window the octopamine:
     # octoMag = exp_params.octoMag
-    octoHits = np.zeros(len(time))
+    octo_hits = np.zeros(len(time))
     # octoStart = exp_params.octoStart
     # durationOcto = exp_params.durationOcto
     octoStop = [i + exp_params.durationOcto for i in exp_params.octoStart]
     for i in range(len(exp_params.octoStart)):
         hits = (time >= exp_params.octoStart[i]) & (time < octoStop[i])
-        octoHits[ hits ] = exp_params.octoMag
-    octoHits = np.convolve(octoHits, lpWindow, 'same') # the low pass filter
+        octo_hits[ hits ] = exp_params.octoMag
+    octo_hits = np.convolve(octo_hits, lpWindow, 'same') # the low pass filter
 
     ## do SDE time-step evolution:
 
@@ -91,65 +91,65 @@ def sde_wrap( model_params, exp_params, feature_array ):
     Ro = model_params.Rspont
     Ko = np.ones(model_params.nK) # K are the normalized firing rates of the Kenyon cells
     Eo = np.zeros(model_params.nE) # start at zeros
-    initCond = np.concatenate((Po, PIo, Lo, Ro, Ko, Eo) , axis=None) # initial conditions for Y
+    init_cond = np.concatenate((Po, PIo, Lo, Ro, Ko, Eo) , axis=None) # initial conditions for Y
 
     tspan = [ sim_start, sim_stop ]
-    seedValue = 0 # to free up or fix randn
+    seed_val = 0 # to free up or fix randn
     # If = 0, a random seed value will be chosen. If > 0, the seed will be defined.
 
     # Run the SDE evolution:
-    thisRun = sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
-        octoHits, model_params, exp_params, seedValue )
+    this_run = sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
+        octo_hits, model_params, exp_params, seed_val )
     # Time stepping is now done.
 
     ## Unpack Y and save results:
     # Y is a matrix numTimePoints x nG.
     # Each col is a PN, each row holds values for a single timestep
-    # Y = thisRun['Y']
+    # Y = this_run['Y']
 
     # save some inputs and outputs to a struct for argout:
     sim_results = {
-        'T' : thisRun['T'], # timing information
-        'E' : thisRun['E'],
-        'octoHits' : octoHits,
-        'K2Efinal' : thisRun['K2Efinal'],
-        'P2Kfinal' : thisRun['P2Kfinal'],
+        'T' : this_run['T'], # timing information
+        'E' : this_run['E'],
+        'octo_hits' : octo_hits,
+        'K2Efinal' : this_run['K2Efinal'],
+        'P2Kfinal' : this_run['P2Kfinal'],
         }
 
     if model_params.saveAllNeuralTimecourses:
-        sim_results['P'] = thisRun['Y'][:,:nP]
-        sim_results['K'] = thisRun['Y'][:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
+        sim_results['P'] = this_run['Y'][:,:nP]
+        sim_results['K'] = this_run['Y'][:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
 
         # other neural timecourses
-        # sim_results['PI'] = thisRun['Y'][:,nP + 1:nP + nPI]
-        # sim_results['L'] = thisRun['Y'][:, nP + nPI + 1:nP + nPI + nG]
-        # sim_results['R'] = thisRun['Y'][:, nP + nPI + nG + 1: nP + nPI + nG + nR]
+        # sim_results['PI'] = this_run['Y'][:,nP + 1:nP + nPI]
+        # sim_results['L'] = this_run['Y'][:, nP + nPI + 1:nP + nPI + nG]
+        # sim_results['R'] = this_run['Y'][:, nP + nPI + nG + 1: nP + nPI + nG + nR]
 
     return sim_results
 
-def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
-    octoHits, mP, exP, seedValue):
+def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
+    octo_hits, mP, exP, seed_val):
     '''
     To include neural noise, evolve the differential equations using euler-
     maruyama, milstein version (see Higham's Algorithmic introduction to
-    numerical simulation of SDE)
+    numerical simulation of SDE).
     Called by sde_wrap(). For use with MNIST experiments.
     Inputs:
         1. tspan: 1 x 2 vector = start and stop timepoints (sec)
-        2. initCond: n x 1 vector = starting FRs for all neurons, order-specific
+        2. init_cond: n x 1 vector = starting FRs for all neurons, order-specific
         3. time: start:step:stop; vector of timepoints for stepping through the evolution
             Note we assume that noise and FRs have the same step size (based on Milstein's method)
-        4. classMagMatrix: nC x N matrix where nC = # of different classes (for
+        4. class_mag_mat: nC x N matrix where nC = # of different classes (for
             digits, up to 10), N = length(time = vector of time points). Each
             entry is the strength of a digit presentation.
         5. feature_array: numFeatures x numStimsPerClass x numClasses array
-        6. octoHits: 1 x length(t) vector with octopamine strengths at each timepoint
+        6. octo_hits: 1 x length(t) vector with octopamine strengths at each timepoint
         7. mP: model_params, including connection matrices, learning rates, etc
         8. exP: experiment parameters with some timing info
-        9. seedValue: optional arg for random number generation.
+        9. seed_val: optional arg for random number generation.
             0 means start a new seed.
     Output:
-        thisRun: object with attributes Y (vectors of all neural timecourses as rows),
+        this_run: object with attributes Y (vectors of all neural timecourses as rows),
             T (timepoints used in evolution), and final mP.P2K and mP.K2E connection matrices.
             1. T = m x 1 vector, timepoints used in evolution
             2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
@@ -174,16 +174,16 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
         we need to get an estimate of this mean spont FR first. Noise is not
         added while neurons settle to initial SpontFR values.
         Then noise is added, proportional to spontFR. After this noise
-        begins, meanSpontFRs converge to new values.
+        begins, mean_spont_FRs converge to new values.
     So there is a 'stepped' system, as follows:
-        1. no noise, neurons converge to initial meanSpontFRs = ms1
-        2. noise proportional to ms1. neurons converge to new meanSpontFRs = ms2
+        1. no noise, neurons converge to initial mean_spont_FRs = ms1
+        2. noise proportional to ms1. neurons converge to new mean_spont_FRs = ms2
         3. noise is proportional to ms2. neurons may converge to new
-            meanSpontFRs = ms3, but noise is not changed. stdSpontFRs are
+            mean_spont_FRs = ms3, but noise is not changed. stdSpontFRs are
             calculated from ms3 time period.
     This has the following effects on sim_results:
         1. In the heat maps and time-courses this will give a period of uniform FRs.
-        2. The meanSpontFRs and stdSpontFRs are not 'settled' until after
+        2. The mean_spont_FRs and stdSpontFRs are not 'settled' until after
         the exP.stopSpontMean3 timepoint.
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
@@ -193,28 +193,28 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     import numpy as np
     from scipy.special import erfinv
 
-    def piecewiseLinearPseudoSigmoid(x, span, slope):
+    def piecewise_lin_pseudo_sig(x, span, slope):
         # Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns.
         y = x*slope
         y = np.maximum(y, -span/2) # replace values below -span/2
         y = np.minimum(y, span/2) # replace values above span/2
         return y
 
-    def wiener(w_sig, meanSpont_, old_, tau_, inputs_):
+    def wiener(w_sig, mean_spont_, old_, tau_, inputs_):
         d_ = dt*(-old_*tau_ + inputs_)
         # Wiener noise:
-        dW_ = np.sqrt(dt)*w_sig*meanSpont_*np.random.normal(0,1,(d_.shape))
+        dW_ = np.sqrt(dt)*w_sig*mean_spont_*np.random.normal(0,1,(d_.shape))
         # combine them:
         return old_ + d_ + dW_
 
-    # if argin seedValue is nonzero, fix the rand seed for reproducible results
-    if seedValue:
-        np.random.seed(seedValue)  # Reset random state
+    # if argin seed_val is nonzero, fix the rand seed for reproducible results
+    if seed_val:
+        np.random.seed(seed_val)  # Reset random state
 
     spin = '/-\|' # create spinner for progress bar
 
     # numbers of objects
-    (nC,_) = classMagMatrix.shape
+    (nC,_) = class_mag_mat.shape
     nP = mP.nG
     nL = mP.nG
     nR = mP.nG
@@ -255,12 +255,12 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     E = np.zeros((mP.nE, N))
 
     # initialize the FR matrices with initial conditions
-    P[:,0] = initCond[ : nP ] # col vector
-    PI[:,0] = initCond[ nP : nP + mP.nPI ] # no PIs for mnist
-    L[:,0] = initCond[ nP + mP.nPI : nP + mP.nPI + nL ]
-    R[:,0] = initCond[ nP + mP.nPI + nL : nP + mP.nPI + nL + nR ]
-    K[:,0] = initCond[ nP + mP.nPI + nL + nR : nP + mP.nPI + nL + nR + mP.nK ]
-    E[:,0] = initCond[ -mP.nE : ]
+    P[:,0] = init_cond[ : nP ] # col vector
+    PI[:,0] = init_cond[ nP : nP + mP.nPI ] # no PIs for mnist
+    L[:,0] = init_cond[ nP + mP.nPI : nP + mP.nPI + nL ]
+    R[:,0] = init_cond[ nP + mP.nPI + nL : nP + mP.nPI + nL + nR ]
+    K[:,0] = init_cond[ nP + mP.nPI + nL + nR : nP + mP.nPI + nL + nR + mP.nK ]
+    E[:,0] = init_cond[ -mP.nE : ]
     # P2Kheb = mP.P2K # '-heb' suffix is used to show that it will vary with time
     # PI2Kheb = mP.PI2K # no PIs for mnist
     # K2Eheb = mP.K2E
@@ -273,7 +273,7 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     newK2E = mP.K2E.copy()
 
     # initialize the counters for the various classes
-    classCounter = np.zeros(nC)
+    class_counter = np.zeros(nC)
 
     # make a list of Ts for which heb is active
     hebRegion = np.zeros(T.shape)
@@ -295,12 +295,12 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     meanCalc2Done = False
     meanCalc3Done = False
 
-    meanSpontP = np.zeros(nP)
-    meanSpontPI = np.zeros(mP.nPI) # no PIs for mnist
-    meanSpontL = np.zeros(nL)
-    meanSpontR = np.zeros(nR)
-    meanSpontK = np.zeros(mP.nK)
-    # meanSpontE = np.zeros(mP.nE)
+    mean_spont_P = np.zeros(nP)
+    mean_spont_PI = np.zeros(mP.nPI) # no PIs for mnist
+    mean_spont_L = np.zeros(nL)
+    mean_spont_R = np.zeros(nR)
+    mean_spont_K = np.zeros(mP.nK)
+    # mean_spont_E = np.zeros(mP.nE)
     # ssMeanSpontP = np.zeros(nP)
     # ssStdSpontP = np.ones(nP)
 
@@ -339,11 +339,11 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
 #-------------------------------------------------------------------------------
 
         # set flags to say:
-        #   1. whether we are past the window where meanSpontFR is
+        #   1. whether we are past the window where mean_spont_FR is
         #       calculated, so noise should be weighted according to a first
-        #       estimate of meanSpontFR (meanSpont1)
-        #   2. whether we are past the window where meanSpontFR is recalculated
-        #       to meanSpont2 and
+        #       estimate of mean_spont_FR (mean_spont_1)
+        #   2. whether we are past the window where mean_spont_FR is recalculated
+        #       to mean_spont_2 and
         #   3. whether we are past the window where final stdSpontFR can be calculated.
 
         adjustNoiseFlag1 = oldT > exP.stopPreNoiseSpontMean1
@@ -354,24 +354,24 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
             # ie we have not yet calc'ed the noise weight vectors
             inds = np.nonzero(np.logical_and(T > exP.startPreNoiseSpontMean1,
                 T < exP.stopPreNoiseSpontMean1))[0]
-            meanSpontP = P[:,inds].mean(axis=1)
-            meanSpontPI = PI[:,inds].mean(axis=1)
-            meanSpontL = L[:,inds].mean(axis=1)
-            meanSpontR = R[:,inds].mean(axis=1)
-            meanSpontK = K[:,inds].mean(axis=1)
-            # meanSpontE = E[:,inds].mean(axis=1)
+            mean_spont_P = P[:,inds].mean(axis=1)
+            mean_spont_PI = PI[:,inds].mean(axis=1)
+            mean_spont_L = L[:,inds].mean(axis=1)
+            mean_spont_R = R[:,inds].mean(axis=1)
+            mean_spont_K = K[:,inds].mean(axis=1)
+            # mean_spont_E = E[:,inds].mean(axis=1)
             meanCalc1Done = 1 # so we don't calc this again
 
         if adjustNoiseFlag2 and not(meanCalc2Done):
             # ie we want to calc new noise weight vectors. This stage is surplus
             inds = np.nonzero(np.logical_and(T > exP.startSpontMean2,
                 T < exP.stopSpontMean2))[0]
-            meanSpontP = P[:,inds].mean(axis=1)
-            meanSpontPI = PI[:,inds].mean(axis=1)
-            meanSpontL = L[:,inds].mean(axis=1)
-            meanSpontR = R[:,inds].mean(axis=1)
-            meanSpontK = K[:,inds].mean(axis=1)
-            # meanSpontE = E[:,inds].mean(axis=1)
+            mean_spont_P = P[:,inds].mean(axis=1)
+            mean_spont_PI = PI[:,inds].mean(axis=1)
+            mean_spont_L = L[:,inds].mean(axis=1)
+            mean_spont_R = R[:,inds].mean(axis=1)
+            mean_spont_K = K[:,inds].mean(axis=1)
+            # mean_spont_E = E[:,inds].mean(axis=1)
             # stdSpontP = P[:,inds].std(axis=1) # for checking progress
             meanCalc2Done = 1 # so we don't calc this again
 
@@ -395,11 +395,9 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
             maxSpontP2KtimesPval = temp.max() # The minimum global damping on the MB
             meanCalc3Done = 1
 
-        # update classCounter
+        # create class_counter - the counters for the various classes
         if i: # if i is not zero
-            for j in range(nC):
-                if (classMagMatrix[j,i-1] == 0) and (classMagMatrix[j,i] > 0):
-                    classCounter[j] += 1
+            class_counter += np.logical_and(class_mag_mat[:,i-1]==0, class_mag_mat[:,i]>0)
 
         # get values of feature inputs at time index i, as a col vector.
         # This allows for simultaneous inputs by different classes, but current
@@ -407,17 +405,17 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
         thisInput = np.zeros(mP.nF)
         thisStimClassInd = []
         for j in range(nC):
-            if classMagMatrix[j,i]: # if classMagMatrix[j,i] is not zero
-                # thisInput += classMagMatrix[j,i]*feature_array[:,int(classCounter[j]),j]
-                imNum = int(classCounter[j] - 1) # indexing: need the '-1' so we don't run out of images
-                thisInput += classMagMatrix[j,i]*feature_array[:,imNum,j]
+            if class_mag_mat[j,i]: # if class_mag_mat[j,i] is not zero
+                # thisInput += class_mag_mat[j,i]*feature_array[:,int(class_counter[j]),j]
+                imNum = int(class_counter[j] - 1) # indexing: need the '-1' so we don't run out of images
+                thisInput += class_mag_mat[j,i]*feature_array[:,imNum,j]
                 thisStimClassInd.append(j)
 
 #-------------------------------------------------------------------------------
 
         # get value at t for octopamine:
-        thisOctoHit = octoHits[i]
-        # octoHits is a vector with an octopamine magnitude for each time point
+        thisOctoHit = octo_hits[i]
+        # octo_hits is a vector with an octopamine magnitude for each time point
 
 #-------------------------------------------------------------------------------
 
@@ -428,10 +426,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
         Pinputs += (mP.R2P.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2P).squeeze()
         # ie octo increases responsivity to positive inputs and to spont firing, and
         # decreases (to a lesser degree) responsivity to neg inputs.
-        Pinputs = piecewiseLinearPseudoSigmoid(Pinputs, mP.cP, pSlope)
+        Pinputs = piecewise_lin_pseudo_sig(Pinputs, mP.cP, pSlope)
 
         # Wiener noise
-        newP = wiener(wPsig, meanSpontP, oldP, mP.tauP, Pinputs)
+        newP = wiener(wPsig, mean_spont_P, oldP, mP.tauP, Pinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -442,10 +440,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
         PIinputs += mP.R2PI.dot(oldR)*(1 + thisOctoHit*mP.octo2PI).squeeze()
         # ie octo increases responsivity to positive inputs and to spont firing, and
         # decreases (to a lesser degree) responsivity to neg inputs.
-        PIinputs = piecewiseLinearPseudoSigmoid(PIinputs, mP.cPI, piSlope)
+        PIinputs = piecewise_lin_pseudo_sig(PIinputs, mP.cPI, piSlope)
 
         # Wiener noise
-        newPI = wiener(wPIsig, meanSpontPI, oldPI, mP.tauPI, PIinputs)
+        newPI = wiener(wPIsig, mean_spont_PI, oldPI, mP.tauPI, PIinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -454,10 +452,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
         Linputs = np.maximum(Linputs, 0) # pos. rectify
         Linputs *= -mP.L2L.dot(oldL)
         Linputs += (mP.R2L.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2L).squeeze()
-        Linputs = piecewiseLinearPseudoSigmoid(Linputs, mP.cL, lSlope)
+        Linputs = piecewise_lin_pseudo_sig(Linputs, mP.cL, lSlope)
 
         # Wiener noise
-        newL = wiener(wLsig, meanSpontL, oldL, mP.tauL, Linputs)
+        newL = wiener(wLsig, mean_spont_L, oldL, mP.tauL, Linputs)
 
 #-------------------------------------------------------------------------------
 
@@ -470,10 +468,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
         neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
         neur_act *= (1 + thisOctoHit*mP.octo2R).squeeze()
         Rinputs += neur_act + mP.Rspont.squeeze()
-        Rinputs = piecewiseLinearPseudoSigmoid(Rinputs, mP.cR, rSlope)
+        Rinputs = piecewise_lin_pseudo_sig(Rinputs, mP.cR, rSlope)
 
         # Wiener noise
-        newR = wiener(wRsig, meanSpontR, oldR, mP.tauR, Rinputs)
+        newR = wiener(wRsig, mean_spont_R, oldR, mP.tauR, Rinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -503,10 +501,10 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
 
         Kinputs = oldP2K.dot(oldP)*(1 + thisOctoHit*mP.octo2K).squeeze() # but note that mP.octo2K == 0
         Kinputs -= dampening*pos_octo # but no PIs for mnist
-        Kinputs = piecewiseLinearPseudoSigmoid(Kinputs, mP.cK, kSlope)
+        Kinputs = piecewise_lin_pseudo_sig(Kinputs, mP.cK, kSlope)
 
         # Wiener noise
-        newK = wiener(wKsig, meanSpontK, oldK, mP.tauK, Kinputs)
+        newK = wiener(wKsig, mean_spont_K, oldK, mP.tauK, Kinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -624,20 +622,20 @@ def sdeEvoMNIST(tspan, initCond, time, classMagMatrix, feature_array,
     print('\r')
     # Time-step simulation is now over.
 
-    thisRun = dict() # pre-allocate
+    this_run = dict() # pre-allocate
     # combine so that each row of fn output Y is a col of [P; PI; L; R; K]
     if mP.saveAllNeuralTimecourses:
         Y = np.vstack((P, PI, L, R, K, E))
-        thisRun['Y'] = Y.T
+        this_run['Y'] = Y.T
     else:
-        thisRun['Y'] = []
+        this_run['Y'] = []
 
-    thisRun['T'] = T.T # store T as a col
-    thisRun['E'] = E.T # length(T) x mP.nE matrix
-    thisRun['P2Kfinal'] = oldP2K
-    thisRun['K2Efinal'] = oldK2E
+    this_run['T'] = T.T # store T as a col
+    this_run['E'] = E.T # length(T) x mP.nE matrix
+    this_run['P2Kfinal'] = oldP2K
+    this_run['K2Efinal'] = oldK2E
 
-    return thisRun
+    return this_run
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
