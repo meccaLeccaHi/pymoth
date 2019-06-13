@@ -312,7 +312,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     for i in range(N-1): # i = index of the time point
         prog = int(15*(i/N))
         remain = 15-prog-1
-        print(f"{spin[i%4]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
+        mult = 50 # multiplier (spinner speed control)
+        print(f"{spin[int((i%(len(spin)*mult))/mult)]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
 
         # step = np.round(time[1] - time[0], 4)
 
