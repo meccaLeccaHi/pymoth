@@ -5,7 +5,7 @@ Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 
 Neural network modeled after the olfactory system of the hawkmoth, _Manduca sexta_ (shown above).
 > This repository contains a Python version of the code used in:
-> - "Putting a bug in ML: The moth olfactory network learns to read MNIST" (CB Delahunt and JN Kutz), Neural Networks 2019, https://doi.org/10.1016/j.neunet.2019.05.012
+> - "Putting a bug in ML: The moth olfactory network learns to read MNIST" (CB Delahunt and JN Kutz), _Neural Networks_ 2019, https://doi.org/10.1016/j.neunet.2019.05.012
 
 #### Dependencies:
 - [scipy](https://www.scipy.org/)
