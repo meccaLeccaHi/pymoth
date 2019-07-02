@@ -203,13 +203,32 @@ for run in range(numRuns):
 									titleStr, screen_size, saveResultsImageFolder)
 
 #-------------------------------------------------------------------------------
-	# Create a moth. Either load an existing moth, or create a new moth
+	# Re-organize train and val sets for classifiers:
+
+	# Build train and val feature matrices and class label vectors.
+	# X = n x numberPixels;  Y = n x 1, where n = 10*trPerClass.
+	trainX = np.zeros((10*trPerClass, fA.shape[0]))
+	valX = np.zeros((10*valPerClass, fA.shape[0]))
+	trainY = np.zeros((10*trPerClass, 1))
+	valY = np.zeros((10*valPerClass, 1))
+
+	# populate the labels one class at a time
+	for i in classLabels:
+		# skip the first 'valPerClass' digits,
+		# as these are used as baseline digits in the moth (formality)
+		temp = digitQueues[:,valPerClass:valPerClass+trPerClass,i]
+		trainX[i*trPerClass:(i+1)*trPerClass,:] = temp.T
+		temp = digitQueues[:,valPerClass+trPerClass:2*valPerClass+trPerClass,i]
+		valX[i*valPerClass:(i+1)*valPerClass,:] = temp.T
+		trainY[i*trPerClass:(i+1)*trPerClass] = i
+		valY[i*valPerClass:(i+1)*valPerClass,:] = i
+
+	# load an existing moth, or create a new moth
 	if useExistingConnectionMatrices:
 		params_fname = os.path.join(saveParamsFolder, 'modelParams.pkl')
 		# load modelParams
 		with open(params_fname,'rb') as f:
 			modelParams = dill.load(f)
-
 	else:
 		# Load template params
 		from support_functions.params import ModelParams
