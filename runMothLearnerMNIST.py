@@ -46,14 +46,14 @@ from support_functions.classify import classify_digits_log_likelihood, classify_
 #-------------------------------------------------------------------------------
 screen_size = (1920, 1080) # screen size (width, height)
 
-useExistingConnectionMatrices = False
+use_existing_conn_matrices = False
 # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
 # if False, generate new moth from template in params.py
 
-matrixParamsFilename = 'sampleMothModelParams'
+matrix_params_filename = 'sampleMothModelParams'
 # dict with all info, including connection matrices, of a particular moth
 
-numRuns = 1 # how many runs you wish to do with this moth or moth template,
+num_runs = 1 # how many runs you wish to do with this moth or moth template,
 # each run using random draws from the mnist set
 
 goal  = 15
@@ -62,38 +62,38 @@ goal  = 15
 # if goal == 0, the rate parameters defined the template will be used as-is
 # if goal > 1, the rate parameters will be updated, even in a pre-set moth
 
-trPerClass =  3 # the number of training samples per class
-numSniffs = 2 # number of exposures each training sample
+tr_per_class =  3 # the number of training samples per class
+num_sniffs = 2 # number of exposures each training sample
 
 ## Flags to show various images:
-showThumbnails = 0 # N means show N experiment inputs from each class
+show_thumbnails = 0 # N means show N experiment inputs from each class
 	# 0 means don't show any
-showENPlots = [1, 1] # 1 to plot, 0 to ignore
+show_EN_plots = [1, 1] # 1 to plot, 0 to ignore
 # arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN
 # arg2 refers to EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image)
 
 # To save results if wished:
-saveAllNeuralTimecourses = False # 0 -> save only EN (ie readout) timecourses
+save_all_neural_timecourses = False # 0 -> save only EN (ie readout) timecourses
 # Caution: 1 -> very high memory demands, hinders longer runs
-resultsFilename = 'results' # will get the run number appended to it
-saveResultsDataFolder = 'results/data' # String
-# If non-empty, 'resultsFilename' will be saved here
-saveResultsImageFolder = 'results' # String
-# If non-empty, results will be saved here (if showENPlots also non-zero)
-saveParamsFolder = 'params' # String
-# If non-empty, params will be saved here (if showENPlots also non-zero)
+results_filename = 'results' # will get the run number appended to it
+save_results_data_folder = 'results/data' # String
+# If non-empty, 'results_filename' will be saved here
+save_results_image_folder = 'results' # String
+# If non-empty, results will be saved here (if show_EN_plots also non-zero)
+save_params_folder = 'params' # String
+# If non-empty, params will be saved here (if show_EN_plots also non-zero)
 
 #-------------------------------------------------------------------------------
 
 ## Misc book-keeping
-classLabels = np.array(range(10))  # For MNIST. '0' is labeled as 10
-valPerClass = 15  # number of digits used in validation sets and in baseline sets
+class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
+val_per_class = 15  # number of digits used in validation sets and in baseline sets
 
 # make a vector of the classes of the training samples, randomly mixed:
-trClasses = np.repeat( classLabels, trPerClass )
-trClasses = np.random.permutation( trClasses )
+tr_classes = np.repeat( class_labels, tr_per_class )
+tr_classes = np.random.permutation( tr_classes )
 # repeat these inputs if taking multiple sniffs of each training sample:
-trClasses = np.tile( trClasses, [1, numSniffs] )[0]
+tr_classes = np.tile( tr_classes, [1, num_sniffs] )[0]
 
 #-------------------------------------------------------------------------------
 
@@ -111,14 +111,14 @@ trClasses = np.tile( trClasses, [1, numSniffs] )[0]
 # Define train and control pools for the experiment, and determine the receptive field.
 # This is done first because the receptive field determines the number of AL units, which
 #      must be updated in modelParams before 'initializeMatrixParams_fn' runs.
-# This dataset will be used for each simulation in numRuns. Each
+# This dataset will be used for each simulation in num_runs. Each
 #      simulation draws a new set of samples from this set.
 
 # Parameters:
 # Parameters required for the dataset generation function are attached to a dictionary: 'preP'.
 # 1. The images used. This includes pools for mean-subtraction, baseline, train, and val.
 #   This is NOT the number of training samples per class.
-# 	That is trPerClass, defined above.
+# 	That is tr_per_class, defined above.
 
 # Specify pools of indices from which to draw baseline, train, val sets.
 indPoolForBaseline = list(range(100)) # 1:100
@@ -138,16 +138,16 @@ preP['downsampleRate'] = 2
 preP['crop'] = 2
 preP['numFeatures'] =  85  # number of pixels in the receptive field
 preP['pixelSum'] = 6
-preP['showThumbnails'] = showThumbnails # boolean
+preP['showThumbnails'] = show_thumbnails # boolean
 preP['downsampleMethod'] = 1 # 0 means sum square patches of pixels
 							 # 1 means use bicubic interpolation
 
-preP['classLabels'] = classLabels # append
-preP['useExistingConnectionMatrices'] = useExistingConnectionMatrices # boolean
-preP['matrixParamsFilename'] = matrixParamsFilename
+preP['classLabels'] = class_labels # append
+preP['useExistingConnectionMatrices'] = use_existing_conn_matrices # boolean
+preP['matrixParamsFilename'] = matrix_params_filename
 
 # generate the data array:
-fA, activePixelInds, lengthOfSide = generate_ds_MNIST(preP, saveResultsImageFolder)
+fA, activePixelInds, lengthOfSide = generate_ds_MNIST(preP, save_results_image_folder)
 # argin = preprocessingParams
 
 pixNum, numPerClass, classNum = fA.shape
@@ -159,73 +159,73 @@ pixNum, numPerClass, classNum = fA.shape
 #-------------------------------------------------------------------------------
 
 # Loop through the number of simulations specified:
-print(f'starting sim(s) for goal = {goal}, trPerClass = {trPerClass}, numSniffsPerSample = {numSniffs}')
+print(f'starting sim(s) for goal = {goal}, tr_per_class = {tr_per_class}, numSniffsPerSample = {num_sniffs}')
 
-for run in range(numRuns):
+for run in range(num_runs):
 
 	## Subsample the dataset for this simulation
 	# Line up the images for the experiment (in 10 parallel queues)
 	digitQueues = np.zeros(fA.shape)
 
-	for i in classLabels:
+	for i in class_labels:
 
 		## 1. Baseline (pre-train) images
 		# choose some images from the baselineIndPool
 		rangeTopEnd = max(indPoolForBaseline) - min(indPoolForBaseline) + 1
-		r_sample = np.random.choice(rangeTopEnd, valPerClass) # select random digits
+		r_sample = np.random.choice(rangeTopEnd, val_per_class) # select random digits
 		theseInds = min(indPoolForBaseline) + r_sample
-		digitQueues[:,:valPerClass,i] = fA[:,theseInds,i]
+		digitQueues[:,:val_per_class,i] = fA[:,theseInds,i]
 
 		## 2. Training images
 		# choose some images from the trainingIndPool
 		rangeTopEnd = max(indPoolForTrain) - min(indPoolForTrain) + 1
-		r_sample = np.random.choice(rangeTopEnd, trPerClass) # select random digits
+		r_sample = np.random.choice(rangeTopEnd, tr_per_class) # select random digits
 		theseInds = min(indPoolForTrain) + r_sample
 		# repeat these inputs if taking multiple sniffs of each training sample
-		theseInds = np.tile(theseInds, numSniffs)
-		digitQueues[:, valPerClass:(valPerClass+trPerClass*numSniffs), i] = fA[:, theseInds, i]
+		theseInds = np.tile(theseInds, num_sniffs)
+		digitQueues[:, val_per_class:(val_per_class+tr_per_class*num_sniffs), i] = fA[:, theseInds, i]
 
 		## 3. Post-training (val) images
 		# choose some images from the postTrainIndPool
 		rangeTopEnd = max(indPoolForPostTrain) - min(indPoolForPostTrain) + 1
-		r_sample = np.random.choice(rangeTopEnd, valPerClass) # select random digits
+		r_sample = np.random.choice(rangeTopEnd, val_per_class) # select random digits
 		theseInds = min(indPoolForPostTrain) + r_sample
-		digitQueues[:,(valPerClass+trPerClass*numSniffs):(valPerClass+trPerClass*numSniffs+valPerClass),
+		digitQueues[:,(val_per_class+tr_per_class*num_sniffs):(val_per_class+tr_per_class*num_sniffs+val_per_class),
 			i] = fA[:, theseInds, i]
 
 	# show the final versions of thumbnails to be used, if wished
-	if showThumbnails:
+	if show_thumbnails:
 		tempArray = np.zeros((lengthOfSide, numPerClass, classNum))
 		tempArray[activePixelInds,:,:] = digitQueues
 		normalize = 1
 		titleStr = 'Input thumbnails'
-		show_FA_thumbs(tempArray, showThumbnails, normalize,
-									titleStr, screen_size, saveResultsImageFolder)
+		show_FA_thumbs(tempArray, show_thumbnails, normalize,
+									titleStr, screen_size, save_results_image_folder)
 
 #-------------------------------------------------------------------------------
 	# Re-organize train and val sets for classifiers:
 
 	# Build train and val feature matrices and class label vectors.
-	# X = n x numberPixels;  Y = n x 1, where n = 10*trPerClass.
-	trainX = np.zeros((10*trPerClass, fA.shape[0]))
-	valX = np.zeros((10*valPerClass, fA.shape[0]))
-	trainY = np.zeros((10*trPerClass, 1))
-	valY = np.zeros((10*valPerClass, 1))
+	# X = n x numberPixels;  Y = n x 1, where n = 10*tr_per_class.
+	trainX = np.zeros((10*tr_per_class, fA.shape[0]))
+	valX = np.zeros((10*val_per_class, fA.shape[0]))
+	trainY = np.zeros((10*tr_per_class, 1))
+	valY = np.zeros((10*val_per_class, 1))
 
 	# populate the labels one class at a time
-	for i in classLabels:
-		# skip the first 'valPerClass' digits,
+	for i in class_labels:
+		# skip the first 'val_per_class' digits,
 		# as these are used as baseline digits in the moth (formality)
-		temp = digitQueues[:,valPerClass:valPerClass+trPerClass,i]
-		trainX[i*trPerClass:(i+1)*trPerClass,:] = temp.T
-		temp = digitQueues[:,valPerClass+trPerClass:2*valPerClass+trPerClass,i]
-		valX[i*valPerClass:(i+1)*valPerClass,:] = temp.T
-		trainY[i*trPerClass:(i+1)*trPerClass] = i
-		valY[i*valPerClass:(i+1)*valPerClass,:] = i
+		temp = digitQueues[:,val_per_class:val_per_class+tr_per_class,i]
+		trainX[i*tr_per_class:(i+1)*tr_per_class,:] = temp.T
+		temp = digitQueues[:,val_per_class+tr_per_class:2*val_per_class+tr_per_class,i]
+		valX[i*val_per_class:(i+1)*val_per_class,:] = temp.T
+		trainY[i*tr_per_class:(i+1)*tr_per_class] = i
+		valY[i*val_per_class:(i+1)*val_per_class,:] = i
 
 	# load an existing moth, or create a new moth
-	if useExistingConnectionMatrices:
-		params_fname = os.path.join(saveParamsFolder, 'modelParams.pkl')
+	if use_existing_conn_matrices:
+		params_fname = os.path.join(save_params_folder, 'modelParams.pkl')
 		# load modelParams
 		with open(params_fname,'rb') as f:
 			modelParams = dill.load(f)
@@ -237,26 +237,26 @@ for run in range(numRuns):
 		# Now populate the moth's connection matrices using the modelParams
 		modelParams = init_connection_matrix(modelParams)
 
-		# save params to file (if saveParamsFolder not empty)
-		if saveParamsFolder:
-			if not os.path.isdir(saveParamsFolder):
-				os.mkdir(saveParamsFolder)
+		# save params to file (if save_params_folder not empty)
+		if save_params_folder:
+			if not os.path.isdir(save_params_folder):
+				os.mkdir(save_params_folder)
 				# pickle parameters for other branch of if construct
-				params_fname = os.path.join(saveParamsFolder, 'modelParams.pkl')
+				params_fname = os.path.join(save_params_folder, 'modelParams.pkl')
 				dill.dump(modelParams, open(params_fname, 'wb'))
 
-	modelParams.trueClassLabels = classLabels # misc parameter tagging along
-	modelParams.saveAllNeuralTimecourses = saveAllNeuralTimecourses
+	modelParams.trueClassLabels = class_labels # misc parameter tagging along
+	modelParams.saveAllNeuralTimecourses = save_all_neural_timecourses
 
 	# # Define the experiment parameters, including book-keeping for time-stepped
 	# # 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# # 	responses, windowing of Firing rates, etc
-	# experimentParams = experimentFn( trClasses, classLabels, valPerClass )
+	# experimentParams = experimentFn( tr_classes, class_labels, val_per_class )
 
 	# Load experiment params, including book-keeping for time-stepped
 	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# 	responses, windowing of Firing rates, etc
-	experimentParams = ExpParams( trClasses, classLabels, valPerClass )
+	experimentParams = ExpParams( tr_classes, class_labels, val_per_class )
 
 #-------------------------------------------------------------------------------
 
@@ -266,13 +266,13 @@ for run in range(numRuns):
 #-------------------------------------------------------------------------------
 
 	# Experiment Results: EN behavior, classifier calculations:
-	if saveResultsImageFolder:
-		if not os.path.isdir(saveResultsImageFolder):
-			os.mkdir(saveResultsImageFolder)
+	if save_results_image_folder:
+		if not os.path.isdir(save_results_image_folder):
+			os.mkdir(save_results_image_folder)
 
 	# Process the sim results to group EN responses by class and time:
 	respOrig = view_EN_resp(simResults, modelParams, experimentParams,
-		showENPlots, classLabels, screen_size, resultsFilename, saveResultsImageFolder)
+		show_EN_plots, class_labels, screen_size, results_filename, save_results_image_folder)
 
 	# Calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in respOrig:
@@ -304,15 +304,15 @@ for run in range(numRuns):
 	respOrig[0]['outputTrainedLogL'] = outputTrainedLogL
 	respOrig[0]['outputNaiveThresholding'] = outputNaiveThresholding
 	respOrig[0]['outputTrainedThresholding'] = outputTrainedThresholding
-	respOrig[0]['matrixParamsFilename'] = matrixParamsFilename
+	respOrig[0]['matrixParamsFilename'] = matrix_params_filename
 	respOrig[0]['K2Efinal'] = simResults['K2Efinal']
 
-	if saveResultsDataFolder:
-		if not os.path.isdir(saveResultsDataFolder):
-			os.mkdir(saveResultsDataFolder)
+	if save_results_data_folder:
+		if not os.path.isdir(save_results_data_folder):
+			os.mkdir(save_results_data_folder)
 
 		# save results data
-		results_fname = os.path.join(saveResultsDataFolder, f'{resultsFilename}_{run}.pkl')
+		results_fname = os.path.join(save_results_data_folder, f'{results_filename}_{run}.pkl')
 		dill.dump(respOrig, open(results_fname, 'wb'))
 		# open via:
 		# >>> with open(results_fname,'rb') as f:
