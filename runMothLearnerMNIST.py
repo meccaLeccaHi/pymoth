@@ -57,6 +57,7 @@ from support_functions.classify import classify_digits_log_likelihood, classify_
 
 # DEV NOTE: Add test for Python vers == 3
 
+### 1. Object initialization ###
 ## USER ENTRIES (Edit parameters below):
 #-------------------------------------------------------------------------------
 screen_size = (1920, 1080) # screen size (width, height)
@@ -81,13 +82,13 @@ tr_per_class =  3 # the number of training samples per class
 num_sniffs = 2 # number of exposures each training sample
 
 # nearest neighbors
-runNearestNeighbors = True
+runNearestNeighbors = True # this option requires the sklearn library be installed
 num_neighbors = 1 # optimization param for nearest neighbors
 # Suggested values: tr_per_class ->
 #	num_neighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
 
 # SVM
-runSVM = True
+runSVM = True # this option requires the sklearn library be installed
 boxConstraint = 1e1 # optimization parameter for svm
 # Suggested values: tr_per_class ->
 #	boxConstraint:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
@@ -125,7 +126,7 @@ tr_classes = np.tile( tr_classes, [1, num_sniffs] )[0]
 
 #-------------------------------------------------------------------------------
 
-## Load and preprocess the dataset.
+### 2. Load and preprocess MNIST dataset ###
 
 # The dataset:
 # Because the moth brain architecture, as evolved, only handles ~60 features, we need to
@@ -149,16 +150,16 @@ tr_classes = np.tile( tr_classes, [1, num_sniffs] )[0]
 # 	That is tr_per_class, defined above.
 
 # Specify pools of indices from which to draw baseline, train, val sets.
-indPoolForBaseline = list(range(100)) # 1:100
-indPoolForTrain = list(range(100,300)) # 101:300
-indPoolForPostTrain = list(range(300,400)) # 301:400
+ind_pool_baseline = list(range(100)) # 1:100
+ind_pool_train = list(range(100,300)) # 101:300
+ind_pool_post = list(range(300,400)) # 301:400
 
 # Population preprocessing pools of indices:
 preP = dict()
 preP['indsToAverageGeneral'] = list(range(550,1000)) # 551:1000
 preP['indsToCalculateReceptiveField'] = list(range(550,1000)) # 551:1000
 preP['maxInd'] = max( [ preP['indsToCalculateReceptiveField'] + \
-	indPoolForTrain ][0] ) # we'll throw out unused samples
+	ind_pool_train ][0] ) # we'll throw out unused samples
 
 ## 2. Pre-processing parameters for the thumbnails:
 preP['screen_size'] = screen_size
@@ -175,16 +176,18 @@ preP['useExistingConnectionMatrices'] = use_existing_conn_matrices # boolean
 preP['matrixParamsFilename'] = matrix_params_filename
 
 # generate the data array:
-fA, activePixelInds, lengthOfSide = generate_ds_MNIST(preP, save_results_image_folder)
+fA, active_pixel_inds, len_side = generate_ds_MNIST(preP, save_results_image_folder)
 # argin = preprocessingParams
 
-pixNum, numPerClass, classNum = fA.shape
+_, num_per_class, class_num = fA.shape
 # The dataset fA is a feature array ready for running experiments.
 # Each experiment uses a random draw from this dataset.
 # fA = n x m x 10 array where n = #active pixels, m = #digits from each class
 # that will be used. The 3rd dimension gives the class, 1:10 where 10 = '0'.
 
 #-------------------------------------------------------------------------------
+
+### 3. Run MothNet simulation ###
 
 # Loop through the number of simulations specified:
 print(f'starting sim(s) for goal = {goal}, tr_per_class = {tr_per_class}, numSniffsPerSample = {num_sniffs}')
@@ -193,42 +196,42 @@ for run in range(num_runs):
 
 	## Subsample the dataset for this simulation
 	# Line up the images for the experiment (in 10 parallel queues)
-	digitQueues = np.zeros(fA.shape)
+	digit_queues = np.zeros(fA.shape)
 
 	for i in class_labels:
 
 		## 1. Baseline (pre-train) images
 		# choose some images from the baselineIndPool
-		rangeTopEnd = max(indPoolForBaseline) - min(indPoolForBaseline) + 1
+		rangeTopEnd = max(ind_pool_baseline) - min(ind_pool_baseline) + 1
 		r_sample = np.random.choice(rangeTopEnd, val_per_class) # select random digits
-		theseInds = min(indPoolForBaseline) + r_sample
-		digitQueues[:,:val_per_class,i] = fA[:,theseInds,i]
+		theseInds = min(ind_pool_baseline) + r_sample
+		digit_queues[:,:val_per_class,i] = fA[:,theseInds,i]
 
 		## 2. Training images
 		# choose some images from the trainingIndPool
-		rangeTopEnd = max(indPoolForTrain) - min(indPoolForTrain) + 1
+		rangeTopEnd = max(ind_pool_train) - min(ind_pool_train) + 1
 		r_sample = np.random.choice(rangeTopEnd, tr_per_class) # select random digits
-		theseInds = min(indPoolForTrain) + r_sample
+		theseInds = min(ind_pool_train) + r_sample
 		# repeat these inputs if taking multiple sniffs of each training sample
 		theseInds = np.tile(theseInds, num_sniffs)
-		digitQueues[:, val_per_class:(val_per_class+tr_per_class*num_sniffs), i] = fA[:, theseInds, i]
+		digit_queues[:, val_per_class:(val_per_class+tr_per_class*num_sniffs), i] = fA[:, theseInds, i]
 
 		## 3. Post-training (val) images
 		# choose some images from the postTrainIndPool
-		rangeTopEnd = max(indPoolForPostTrain) - min(indPoolForPostTrain) + 1
+		rangeTopEnd = max(ind_pool_post) - min(ind_pool_post) + 1
 		r_sample = np.random.choice(rangeTopEnd, val_per_class) # select random digits
-		theseInds = min(indPoolForPostTrain) + r_sample
-		digitQueues[:,(val_per_class+tr_per_class*num_sniffs):(val_per_class+tr_per_class*num_sniffs+val_per_class),
+		theseInds = min(ind_pool_post) + r_sample
+		digit_queues[:,(val_per_class+tr_per_class*num_sniffs):(val_per_class+tr_per_class*num_sniffs+val_per_class),
 			i] = fA[:, theseInds, i]
 
 	# show the final versions of thumbnails to be used, if wished
 	if show_thumbnails:
-		tempArray = np.zeros((lengthOfSide, numPerClass, classNum))
-		tempArray[activePixelInds,:,:] = digitQueues
+		tempArray = np.zeros((len_side, num_per_class, class_num))
+		tempArray[active_pixel_inds,:,:] = digit_queues
 		normalize = 1
 		titleStr = 'Input thumbnails'
 		show_FA_thumbs(tempArray, show_thumbnails, normalize,
-									titleStr, screen_size, save_results_image_folder)
+						titleStr, screen_size, save_results_image_folder)
 
 #-------------------------------------------------------------------------------
 	# Re-organize train and val sets for classifiers:
@@ -244,35 +247,12 @@ for run in range(num_runs):
 	for i in class_labels:
 		# skip the first 'val_per_class' digits,
 		# as these are used as baseline digits in the moth (formality)
-		temp = digitQueues[:,val_per_class:val_per_class+tr_per_class,i]
+		temp = digit_queues[:,val_per_class:val_per_class+tr_per_class,i]
 		trainX[i*tr_per_class:(i+1)*tr_per_class,:] = temp.T
-		temp = digitQueues[:,val_per_class+tr_per_class:2*val_per_class+tr_per_class,i]
+		temp = digit_queues[:,val_per_class+tr_per_class:2*val_per_class+tr_per_class,i]
 		valX[i*val_per_class:(i+1)*val_per_class,:] = temp.T
 		trainY[i*tr_per_class:(i+1)*tr_per_class] = i
 		valY[i*val_per_class:(i+1)*val_per_class,:] = i
-
-	# nearest neighbors
-	if runNearestNeighbors:
-
-		from sklearn.neighbors import KNeighborsClassifier
-		neigh = KNeighborsClassifier(n_neighbors=num_neighbors)
-		neigh.fit(trainX, trainY.ravel())
-		y_hat = neigh.predict(valX)
-		nn_acc = neigh.score(valX, valY)
-
-		# Accuracy:
-		overall_acc = np.round(100*nn_acc)
-		# old acc. metric: np.sum(y_hat == valY.squeeze()) / len(valY)
-		class_acc = np.zeros_like(class_labels)
-
-		for i in class_labels:
-			inds = np.where(valY==i)[0]
-			class_acc[i] = np.round(100*np.sum( y_hat[inds]==valY[inds].squeeze()) /
-				len(valY[inds]) )
-
-		print( f'Nearest neighbor: {tr_per_class} training samples per class.',
-            f' Accuracy = {overall_acc}%. numNeigh = {num_neighbors}.',
-            f' Class accs (%): {class_acc}' )
 
 	# load an existing moth, or create a new moth
 	if use_existing_conn_matrices:
@@ -283,7 +263,7 @@ for run in range(num_runs):
 	else:
 		# Load template params
 		from support_functions.params import ModelParams
-		modelParams = ModelParams(nF=len(activePixelInds), goal=goal)
+		modelParams = ModelParams(nF=len(active_pixel_inds), goal=goal)
 
 		# Now populate the moth's connection matrices using the modelParams
 		modelParams = init_connection_matrix(modelParams)
@@ -312,7 +292,7 @@ for run in range(num_runs):
 #-------------------------------------------------------------------------------
 
 	# 3. run this experiment as sde time-step evolution:
-	simResults = sde_wrap( modelParams, experimentParams, digitQueues )
+	simResults = sde_wrap( modelParams, experimentParams, digit_queues )
 
 #-------------------------------------------------------------------------------
 
@@ -370,6 +350,57 @@ for run in range(num_runs):
     	# >>> 	B = dill.load(f)
 
 		print(f'Results saved to: {results_fname}')
+
+### 4. Run simulation with alternative models ###
+#-------------------------------------------------------------------------------
+
+	# nearest neighbors
+	if runNearestNeighbors:
+
+		from sklearn.neighbors import KNeighborsClassifier
+		neigh = KNeighborsClassifier(n_neighbors=num_neighbors)
+		neigh.fit(trainX, trainY.ravel())
+		y_hat = neigh.predict(valX)
+
+		# measure overall accuracy
+		nn_acc = neigh.score(valX, valY)
+		# old acc. metric: np.sum(y_hat == valY.squeeze()) / len(valY)
+
+		# measure accuracy for each class
+		class_acc = np.zeros_like(class_labels) # preallocate
+		for i in class_labels:
+			inds = np.where(valY==i)[0]
+			class_acc[i] = np.round(100*np.sum( y_hat[inds]==valY[inds].squeeze()) /
+				len(valY[inds]) )
+
+		print( f'Nearest neighbor: {tr_per_class} training samples per class.',
+            f' Accuracy = {np.round(100*nn_acc)}%. numNeigh = {num_neighbors}.',
+            f' Class accs (%): {class_acc}' )
+
+#-------------------------------------------------------------------------------
+
+	# support vector machine
+	if runSVM:
+
+		from sklearn import svm
+		svm_clf = svm.SVC(gamma='scale', C=boxConstraint)
+		svm_clf.fit(trainX, trainY.ravel())
+		y_hat = svm_clf.predict(valX)
+
+		# measure overall accuracy
+		svm_acc = svm_clf.score(valX, valY)
+		# old acc. metric: np.sum(y_hat == valY.squeeze()) / len(valY)
+
+		# measure accuracy for each class
+		class_acc = np.zeros_like(class_labels) # preallocate
+		for i in class_labels:
+			inds = np.where(valY==i)[0]
+			class_acc[i] = np.round(100*np.sum( y_hat[inds]==valY[inds].squeeze()) /
+				len(valY[inds]) )
+
+		print( f'Support vector machine: {tr_per_class} training samples per class.',
+            f' Accuracy = {np.round(100*svm_acc)}%. BoxConstraint(i.e. C) = {boxConstraint}.',
+            f' Class accs (%): {class_acc}' )
 
 print('         -------------All done-------------         ')
 
