@@ -4,10 +4,25 @@ runMothLearnerOnReducedMnist
 Main script to train a moth brain model on a crude (downsampled) MNIST set.
 The moth can be generated from template or loaded complete from file.
 
-Preparation:
-	1.  Modify 'specifyModelParamsMnist_fn' with the desired parameters for
+Modifying parameters:
+	1. Modify 'specifyModelParamsMnist_fn' with the desired parameters for
 		generating a moth (ie neural network), or specify a pre-existing 'modelParams' file to load.
 	2. Edit USER ENTRIES
+
+The dataset:
+	Because the moth brain architecture, as evolved, only handles ~60 features, we need to
+create a new, MNIST-like task but with many fewer than 28x 28 pixels-as-features.
+We do this by cropping and downsampling the mnist thumbnails, then selecting a subset of the
+remaining pixels.
+	This results in a cruder dataset (set various view flags to see thumbnails).
+However, it is sufficient for testing the moth brain's learning ability. Other ML methods need
+to be tested on this same cruder dataset to make useful comparisons.
+
+Define train and control pools for the experiment, and determine the receptive field.
+This is done first because the receptive field determines the number of AL units, which
+     must be updated in modelParams before 'initializeMatrixParams_fn' runs.
+This dataset will be used for each simulation in numRuns. Each
+     simulation draws a new set of samples from this set.
 
 Order of events:
 	1. Load and pre-process dataset
@@ -64,6 +79,19 @@ goal  = 15
 
 tr_per_class =  3 # the number of training samples per class
 num_sniffs = 2 # number of exposures each training sample
+
+# nearest neighbors
+runNearestNeighbors = True
+numNeighbors = 1 # optimization param for nearest neighbors
+# Suggested values: trPerClass ->
+#	numNeighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
+
+# SVM
+runSVM = True
+boxConstraint = 1e1 # optimization parameter for svm
+# Suggested values: trPerClass ->
+#	boxConstraint:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
+#					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
 
 ## Flags to show various images:
 show_thumbnails = 0 # N means show N experiment inputs from each class
@@ -223,6 +251,28 @@ for run in range(num_runs):
 		trainY[i*tr_per_class:(i+1)*tr_per_class] = i
 		valY[i*val_per_class:(i+1)*val_per_class,:] = i
 
+	# nearest neighbors
+	if runNearestNeighbors:
+
+		pass
+		# import pdb; pdb.set_trace()
+
+		# from sklearn.neighbors import KNeighborsClassifier
+		# neigh = KNeighborsClassifier(n_neighbors=numNeighbors)
+		# neigh.fit(trainX, trainY)
+		# y_hat = neigh.predict(valX)
+		# nn_acc = neigh.score(valX, valY)
+
+		# # Accuracy:
+        # overallAcc = round(100* sum(yHat == valY) / len(valY) )
+        # for i = classLabels
+        #     inds = find(valY == classLabels(i))
+        #     classAcc(i) = round(100*sum( yHat(inds) == valY(inds) ) / length(valY(inds) ) )
+        #
+        # disp( [ type,  ': ', num2str(trPerClass), ' training samples per class. ',...
+        #     ' Accuracy = ', num2str(overallAcc), '%. numNeigh = ', num2str(numNeighbors), ...
+        #     '. Class accs (%): ', num2str(classAcc) ] )
+
 	# load an existing moth, or create a new moth
 	if use_existing_conn_matrices:
 		params_fname = os.path.join(save_params_folder, 'modelParams.pkl')
@@ -250,13 +300,13 @@ for run in range(num_runs):
 
 	# # Define the experiment parameters, including book-keeping for time-stepped
 	# # 	evolutions, eg when octopamine occurs, time regions to poll for digit
-	# # 	responses, windowing of Firing rates, etc
+	# # 	responses, windowing of firing rates, etc
 	# experimentParams = experimentFn( tr_classes, class_labels, val_per_class )
 
 	# Load experiment params, including book-keeping for time-stepped
 	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# 	responses, windowing of Firing rates, etc
-	experimentParams = ExpParams( tr_classes, class_labels, val_per_class )
+	experimentParams = ExpParams(tr_classes, class_labels, val_per_class)
 
 #-------------------------------------------------------------------------------
 
