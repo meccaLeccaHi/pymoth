@@ -82,14 +82,14 @@ num_sniffs = 2 # number of exposures each training sample
 
 # nearest neighbors
 runNearestNeighbors = True
-numNeighbors = 1 # optimization param for nearest neighbors
-# Suggested values: trPerClass ->
-#	numNeighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
+num_neighbors = 1 # optimization param for nearest neighbors
+# Suggested values: tr_per_class ->
+#	num_neighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
 
 # SVM
 runSVM = True
 boxConstraint = 1e1 # optimization parameter for svm
-# Suggested values: trPerClass ->
+# Suggested values: tr_per_class ->
 #	boxConstraint:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
 #					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
 
@@ -254,24 +254,25 @@ for run in range(num_runs):
 	# nearest neighbors
 	if runNearestNeighbors:
 
-		pass
-		# import pdb; pdb.set_trace()
+		from sklearn.neighbors import KNeighborsClassifier
+		neigh = KNeighborsClassifier(n_neighbors=num_neighbors)
+		neigh.fit(trainX, trainY.ravel())
+		y_hat = neigh.predict(valX)
+		nn_acc = neigh.score(valX, valY)
 
-		# from sklearn.neighbors import KNeighborsClassifier
-		# neigh = KNeighborsClassifier(n_neighbors=numNeighbors)
-		# neigh.fit(trainX, trainY)
-		# y_hat = neigh.predict(valX)
-		# nn_acc = neigh.score(valX, valY)
+		# Accuracy:
+		overall_acc = np.round(100*nn_acc)
+		# old acc. metric: np.sum(y_hat == valY.squeeze()) / len(valY)
+		class_acc = np.zeros_like(class_labels)
 
-		# # Accuracy:
-        # overallAcc = round(100* sum(yHat == valY) / len(valY) )
-        # for i = classLabels
-        #     inds = find(valY == classLabels(i))
-        #     classAcc(i) = round(100*sum( yHat(inds) == valY(inds) ) / length(valY(inds) ) )
-        #
-        # disp( [ type,  ': ', num2str(trPerClass), ' training samples per class. ',...
-        #     ' Accuracy = ', num2str(overallAcc), '%. numNeigh = ', num2str(numNeighbors), ...
-        #     '. Class accs (%): ', num2str(classAcc) ] )
+		for i in class_labels:
+			inds = np.where(valY==i)[0]
+			class_acc[i] = np.round(100*np.sum( y_hat[inds]==valY[inds].squeeze()) /
+				len(valY[inds]) )
+
+		print( f'Nearest neighbor: {tr_per_class} training samples per class.',
+            f' Accuracy = {overall_acc}%. numNeigh = {num_neighbors}.',
+            f' Class accs (%): {class_acc}' )
 
 	# load an existing moth, or create a new moth
 	if use_existing_conn_matrices:
