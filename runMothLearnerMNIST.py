@@ -48,22 +48,22 @@ import os
 import copy # for deep copy of nested lists
 import sys
 
+# test for Python version > 2
+python_version = "{}.{}".format(sys.version_info.major,sys.version_info.minor)
+if sys.version_info.major > 2:
+	print("Python version {} detected.".format(python_version))
+else:
+	version_error = "Python version {} detected.\n".format(python_version) + \
+					"Python version 3 or higher is required to run this module.\n" + \
+					"Please install Python 3+."
+	raise Exception(version_error)
+
 # Experiment details
 from support_functions.generate import generate_ds_MNIST
 from support_functions.show_figs import show_FA_thumbs, show_EN_resp
 from support_functions.params import init_connection_matrix, ExpParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
-
-# test for Python version > 2
-python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-if sys.version_info.major > 2:
-	print(f"Python version {python_version} detected. ")
-else:
-	version_error = f"Python version {python_version} detected.\n" + \
-					f"Python version 3 or higher is required to run this module.\n" + \
-					"Please install Python 3+."
-	raise Exception(version_error)
 
 ### 1. Object initialization ###
 
@@ -126,10 +126,12 @@ save_params_folder = 'params' # String
 #-------------------------------------------------------------------------------
 
 if run_nearest_neighbors or runSVM:
-	pass
 	##TEST to see if sklearn is installed,
-	## if not, print message instructing to install it or
-	## set run_nearest_neighbors and runSVM to False
+	try:
+	    import sklearn
+	except ImportError:
+	    print('sklearn is not installed, and it is required to run ML models.\n' + \
+			"Install it or set run_nearest_neighbors and runSVM to 'False'.")
 
 if save_results_data: # or save_results_image_data:
 	pass
@@ -212,7 +214,8 @@ _, num_per_class, class_num = fA.shape
 ### 3. Run MothNet simulation ###
 
 # Loop through the number of simulations specified:
-print(f'starting sim(s) for goal = {goal}, tr_per_class = {tr_per_class}, numSniffsPerSample = {num_sniffs}')
+sim_loop_disp = 'starting sim(s) for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'
+print(sim_loop_disp.format(goal, tr_per_class, num_sniffs))
 
 for run in range(num_runs):
 
@@ -336,13 +339,13 @@ for run in range(num_runs):
 	# Baseline accuracy:
 	output_naive_log_loss = classify_digits_log_likelihood( resp_naive )
 	print( 'LogLikelihood:' )
-	print( f"Naive Accuracy: {round(output_naive_log_loss['total_acc'])}" + \
-		f"#, by class: {np.round(output_naive_log_loss['acc_perc'])} #.   ")
+	print( "Naive Accuracy: {}".format(round(output_naive_log_loss['total_acc'])) + \
+		"#, by class: {} #. ".format(np.round(output_naive_log_loss['acc_perc'])))
 
 	# Post-training accuracy using log-likelihood over all ENs:
 	output_trained_log_loss = classify_digits_log_likelihood( resp_orig )
-	print( f"Trained Accuracy: {round(output_trained_log_loss['total_acc'])}" + \
-		f"#, by class: {np.round(output_trained_log_loss['acc_perc'])} #.   ")
+	print( "Trained Accuracy: {}".format(round(output_trained_log_loss['total_acc'])) + \
+		"#, by class: {} #. ".format(np.round(output_trained_log_loss['acc_perc'])))
 
 	# 2. Using single EN thresholding:
 	output_naive_thresholding = classify_digits_thresholding( resp_naive, 1e9, -1, 10 )
@@ -360,18 +363,19 @@ for run in range(num_runs):
 	if save_results_data_folder and save_results_data:
 		if not os.path.isdir(save_results_data_folder):
 			os.mkdir(save_results_data_folder)
-			print(f"Creating results directory:\n{save_results_data_folder}")
+			print('Creating results directory:\n{}'.format(save_results_data_folder))
 
 		import dill # for pickling module object (optional)
 
 		# save results data
-		results_fname = os.path.join(save_results_data_folder, f'{results_filename}_{run}.pkl')
+		results_fname = '{}_{}.pkl'.format(results_filename, run)
+		results_fname = os.path.join(save_results_data_folder, results_fname)
 		dill.dump(resp_orig, open(results_fname, 'wb'))
 		# open via:
 		# >>> with open(results_fname,'rb') as f:
     	# >>> 	B = dill.load(f)
 
-		print(f'Results saved to: {results_fname}')
+		print('Results saved to: {}'.format(results_fname))
 
 ### 4. Run simulation with alternative models ###
 #-------------------------------------------------------------------------------
@@ -395,9 +399,9 @@ for run in range(num_runs):
 			class_acc[i] = np.round(100*np.sum( y_hat[inds]==val_y[inds].squeeze()) /
 				len(val_y[inds]) )
 
-		print( f'Nearest neighbor: {tr_per_class} training samples per class.',
-            f' Accuracy = {np.round(100*nn_acc)}%. numNeigh = {num_neighbors}.',
-            f' Class accs (%): {class_acc}' )
+		print( 'Nearest neighbor: {} training samples per class.'.format(tr_per_class),
+            ' Accuracy = {}%. numNeigh = {}.'.format(np.round(100*nn_acc), num_neighbors),
+            ' Class accs (%): {}'.format(class_acc) )
 
 #-------------------------------------------------------------------------------
 
@@ -420,14 +424,14 @@ for run in range(num_runs):
 			class_acc[i] = np.round(100*np.sum( y_hat[inds]==val_y[inds].squeeze()) /
 				len(val_y[inds]) )
 
-		print( f'Support vector machine: {tr_per_class} training samples per class.',
-            f' Accuracy = {np.round(100*svm_acc)}%. BoxConstraint(i.e. C) = {box_constraint}.',
-            f' Class accs (%): {class_acc}' )
+		print('Support vector machine: {} training samples per class.'.format(tr_per_class),
+        	' Accuracy = {}%. BoxConstraint(i.e. C) = {}.'.format(np.round(100*svm_acc), box_constraint),
+            ' Class accs (%): {}'.format(class_acc))
 
 print('         -------------All done-------------         ')
 
 runDuration = time.time() - runStart
-print(f'{__file__} executed in {runDuration/60:.3f} minutes')
+print('{} executed in {:.3f} minutes'.format(__file__, runDuration/60))
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

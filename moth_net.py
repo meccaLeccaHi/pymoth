@@ -189,4 +189,17 @@ mothra = Moth("Mikey", 6)
 
 # call our instance methods
 print(mothra.description())
-print(mothra.speak("Gruff Gruff"))
+
+
+# ##IDEAL USAGE
+# from moth_net import MothNet
+#
+# # Load MNIST dataset
+# X_vals, y_vals = moth_net.load_MNIST()
+# 
+# # Instantiate the MothNet object
+# mothra = moth_net.MothNet(moth_parameters)
+#
+# mothra.fit(X_train, y_train)
+#
+# moth_accuracy = mothra.score(X_test, y_test)
