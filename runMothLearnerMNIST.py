@@ -5,8 +5,8 @@ Main script to train a moth brain model on a crude (downsampled) MNIST set.
 The moth can be generated from template or loaded complete from file.
 
 Modifying parameters:
-	1. Modify 'specifyModelParamsMnist_fn' with the desired parameters for
-		generating a moth (ie neural network), or specify a pre-existing 'model_params' file to load.
+	1. Modify 'ModelParams' with the desired parameters for generating a moth
+	(ie neural network), or specify a pre-existing 'model_params' file to load.
 	2. Edit USER ENTRIES
 
 The dataset:
@@ -29,12 +29,12 @@ Order of events:
 	Within the loop over number of simulations:
 	2. Select a subset of the dataset for this simulation (only a few samples are used).
 	3. Create a moth (neural net). Either select an existing moth file, or generate a new moth in 2 steps:
-		a) run 'specifyModelParamsMnist' and
-		   incorporate user entry edits such as 'goal'.
+		a) run 'ModelParams' and incorporate user entry edits such as 'goal'.
 		b) create connection matrices via 'init_connection_matrix'
 	4. Load the experiment parameters.
 	5. Run the simulation with 'sde_wrap'
 	6. Plot results, print results to console
+	7. Run addition ML models for comparison (optional)
 
 Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
 MIT License
