@@ -6,7 +6,7 @@ The moth can be generated from template or loaded complete from file.
 
 Modifying parameters:
 	1. Modify 'specifyModelParamsMnist_fn' with the desired parameters for
-		generating a moth (ie neural network), or specify a pre-existing 'modelParams' file to load.
+		generating a moth (ie neural network), or specify a pre-existing 'model_params' file to load.
 	2. Edit USER ENTRIES
 
 The dataset:
@@ -20,7 +20,7 @@ to be tested on this same cruder dataset to make useful comparisons.
 
 Define train and control pools for the experiment, and determine the receptive field.
 This is done first because the receptive field determines the number of AL units, which
-     must be updated in modelParams before 'initializeMatrixParams_fn' runs.
+     must be updated in model_params before 'initializeMatrixParams_fn' runs.
 This dataset will be used for each simulation in numRuns. Each
      simulation draws a new set of samples from this set.
 
@@ -45,7 +45,6 @@ import time
 runStart = time.time() # time execution duration
 import numpy as np
 import os
-import dill # for pickling module object (optional)
 import copy # for deep copy of nested lists
 
 # Experiment details
@@ -55,9 +54,10 @@ from support_functions.params import init_connection_matrix, ExpParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
 
-# DEV NOTE: Add test for Python vers == 3
+##TEST for Python vers == 3
 
 ### 1. Object initialization ###
+
 ## USER ENTRIES (Edit parameters below):
 #-------------------------------------------------------------------------------
 screen_size = (1920, 1080) # screen size (width, height)
@@ -78,20 +78,20 @@ goal  = 15
 # if goal == 0, the rate parameters defined the template will be used as-is
 # if goal > 1, the rate parameters will be updated, even in a pre-set moth
 
-tr_per_class =  3 # the number of training samples per class
+tr_per_class = 3 # the number of training samples per class
 num_sniffs = 2 # number of exposures each training sample
 
 # nearest neighbors
-runNearestNeighbors = True # this option requires the sklearn library be installed
+run_nearest_neighbors = True # this option requires the sklearn library be installed
 num_neighbors = 1 # optimization param for nearest neighbors
 # Suggested values: tr_per_class ->
 #	num_neighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
 
 # SVM
 runSVM = True # this option requires the sklearn library be installed
-boxConstraint = 1e1 # optimization parameter for svm
+box_constraint = 1e1 # optimization parameter for svm
 # Suggested values: tr_per_class ->
-#	boxConstraint:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
+#	box_constraint:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
 #					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
 
 ## Flags to show various images:
@@ -104,9 +104,11 @@ show_EN_plots = [1, 1] # 1 to plot, 0 to ignore
 # To save results if wished:
 save_all_neural_timecourses = False # 0 -> save only EN (ie readout) timecourses
 # Caution: 1 -> very high memory demands, hinders longer runs
+save_results_data = True
+# save_results_image_data = True
 results_filename = 'results' # will get the run number appended to it
 save_results_data_folder = 'results/data' # String
-# If non-empty, 'results_filename' will be saved here
+# If `save_results_data` is True, 'results_filename' will be saved here
 save_results_image_folder = 'results' # String
 # If non-empty, results will be saved here (if show_EN_plots also non-zero)
 save_params_folder = 'params' # String
@@ -114,6 +116,17 @@ save_params_folder = 'params' # String
 
 #-------------------------------------------------------------------------------
 
+if run_nearest_neighbors or runSVM:
+	pass
+	##TEST to see if sklearn is installed,
+	## if not, print message instructing to install it or
+	## set run_nearest_neighbors and runSVM to False
+
+if save_results_data: # or save_results_image_data:
+	pass
+	##TEST to see if dill is installed,
+	## if not, print message instructing to install it or
+	## set save_results_data to False
 ## Misc book-keeping
 class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
 val_per_class = 15  # number of digits used in validation sets and in baseline sets
@@ -139,7 +152,7 @@ tr_classes = np.tile( tr_classes, [1, num_sniffs] )[0]
 
 # Define train and control pools for the experiment, and determine the receptive field.
 # This is done first because the receptive field determines the number of AL units, which
-#      must be updated in modelParams before 'initializeMatrixParams_fn' runs.
+#      must be updated in model_params before 'initializeMatrixParams_fn' runs.
 # This dataset will be used for each simulation in num_runs. Each
 #      simulation draws a new set of samples from this set.
 
@@ -154,6 +167,7 @@ ind_pool_baseline = list(range(100)) # 1:100
 ind_pool_train = list(range(100,300)) # 101:300
 ind_pool_post = list(range(300,400)) # 301:400
 
+## Create preP (preprocessingParams)
 # Population preprocessing pools of indices:
 preP = dict()
 preP['indsToAverageGeneral'] = list(range(550,1000)) # 551:1000
@@ -176,8 +190,7 @@ preP['useExistingConnectionMatrices'] = use_existing_conn_matrices # boolean
 preP['matrixParamsFilename'] = matrix_params_filename
 
 # generate the data array:
-fA, active_pixel_inds, len_side = generate_ds_MNIST(preP, save_results_image_folder)
-# argin = preprocessingParams
+fA, active_pixel_inds, len_side = generate_ds_MNIST(preP, saveImageFolder=save_results_image_folder)
 
 _, num_per_class, class_num = fA.shape
 # The dataset fA is a feature array ready for running experiments.
@@ -196,103 +209,100 @@ for run in range(num_runs):
 
 	## Subsample the dataset for this simulation
 	# Line up the images for the experiment (in 10 parallel queues)
-	digit_queues = np.zeros(fA.shape)
+	digit_queues = np.zeros_like(fA)
 
 	for i in class_labels:
 
 		## 1. Baseline (pre-train) images
 		# choose some images from the baselineIndPool
-		rangeTopEnd = max(ind_pool_baseline) - min(ind_pool_baseline) + 1
-		r_sample = np.random.choice(rangeTopEnd, val_per_class) # select random digits
-		theseInds = min(ind_pool_baseline) + r_sample
-		digit_queues[:,:val_per_class,i] = fA[:,theseInds,i]
+		range_top_end = max(ind_pool_baseline) - min(ind_pool_baseline) + 1
+		r_sample = np.random.choice(range_top_end, val_per_class) # select random digits
+		these_inds = min(ind_pool_baseline) + r_sample
+		digit_queues[:,:val_per_class,i] = fA[:,these_inds,i]
 
 		## 2. Training images
 		# choose some images from the trainingIndPool
-		rangeTopEnd = max(ind_pool_train) - min(ind_pool_train) + 1
-		r_sample = np.random.choice(rangeTopEnd, tr_per_class) # select random digits
-		theseInds = min(ind_pool_train) + r_sample
+		range_top_end = max(ind_pool_train) - min(ind_pool_train) + 1
+		r_sample = np.random.choice(range_top_end, tr_per_class) # select random digits
+		these_inds = min(ind_pool_train) + r_sample
 		# repeat these inputs if taking multiple sniffs of each training sample
-		theseInds = np.tile(theseInds, num_sniffs)
-		digit_queues[:, val_per_class:(val_per_class+tr_per_class*num_sniffs), i] = fA[:, theseInds, i]
+		these_inds = np.tile(these_inds, num_sniffs)
+		digit_queues[:, val_per_class:(val_per_class+tr_per_class*num_sniffs), i] = fA[:, these_inds, i]
 
 		## 3. Post-training (val) images
 		# choose some images from the postTrainIndPool
-		rangeTopEnd = max(ind_pool_post) - min(ind_pool_post) + 1
-		r_sample = np.random.choice(rangeTopEnd, val_per_class) # select random digits
-		theseInds = min(ind_pool_post) + r_sample
+		range_top_end = max(ind_pool_post) - min(ind_pool_post) + 1
+		r_sample = np.random.choice(range_top_end, val_per_class) # select random digits
+		these_inds = min(ind_pool_post) + r_sample
 		digit_queues[:,(val_per_class+tr_per_class*num_sniffs):(val_per_class+tr_per_class*num_sniffs+val_per_class),
-			i] = fA[:, theseInds, i]
+			i] = fA[:, these_inds, i]
 
 	# show the final versions of thumbnails to be used, if wished
 	if show_thumbnails:
-		tempArray = np.zeros((len_side, num_per_class, class_num))
-		tempArray[active_pixel_inds,:,:] = digit_queues
+		temp_array = np.zeros((len_side, num_per_class, class_num))
+		temp_array[active_pixel_inds,:,:] = digit_queues
 		normalize = 1
-		titleStr = 'Input thumbnails'
-		show_FA_thumbs(tempArray, show_thumbnails, normalize,
-						titleStr, screen_size, save_results_image_folder)
+		show_FA_thumbs(temp_array, show_thumbnails, normalize, 'Input thumbnails',
+							screen_size, save_results_image_folder)
 
 #-------------------------------------------------------------------------------
 	# Re-organize train and val sets for classifiers:
 
 	# Build train and val feature matrices and class label vectors.
 	# X = n x numberPixels;  Y = n x 1, where n = 10*tr_per_class.
-	trainX = np.zeros((10*tr_per_class, fA.shape[0]))
-	valX = np.zeros((10*val_per_class, fA.shape[0]))
-	trainY = np.zeros((10*tr_per_class, 1))
-	valY = np.zeros((10*val_per_class, 1))
+	train_X = np.zeros((10*tr_per_class, fA.shape[0]))
+	val_X = np.zeros((10*val_per_class, fA.shape[0]))
+	train_y = np.zeros((10*tr_per_class, 1))
+	val_y = np.zeros((10*val_per_class, 1))
 
 	# populate the labels one class at a time
 	for i in class_labels:
 		# skip the first 'val_per_class' digits,
 		# as these are used as baseline digits in the moth (formality)
 		temp = digit_queues[:,val_per_class:val_per_class+tr_per_class,i]
-		trainX[i*tr_per_class:(i+1)*tr_per_class,:] = temp.T
+		train_X[i*tr_per_class:(i+1)*tr_per_class,:] = temp.T
 		temp = digit_queues[:,val_per_class+tr_per_class:2*val_per_class+tr_per_class,i]
-		valX[i*val_per_class:(i+1)*val_per_class,:] = temp.T
-		trainY[i*tr_per_class:(i+1)*tr_per_class] = i
-		valY[i*val_per_class:(i+1)*val_per_class,:] = i
+		val_X[i*val_per_class:(i+1)*val_per_class,:] = temp.T
+		train_y[i*tr_per_class:(i+1)*tr_per_class] = i
+		val_y[i*val_per_class:(i+1)*val_per_class,:] = i
 
 	# load an existing moth, or create a new moth
 	if use_existing_conn_matrices:
-		params_fname = os.path.join(save_params_folder, 'modelParams.pkl')
-		# load modelParams
+		params_fname = os.path.join(save_params_folder, 'model_params.pkl')
+		# load model_params
 		with open(params_fname,'rb') as f:
-			modelParams = dill.load(f)
+			model_params = dill.load(f)
 	else:
 		# Load template params
 		from support_functions.params import ModelParams
-		modelParams = ModelParams(nF=len(active_pixel_inds), goal=goal)
+		model_params = ModelParams(nF=len(active_pixel_inds), goal=goal)
 
-		# Now populate the moth's connection matrices using the modelParams
-		modelParams = init_connection_matrix(modelParams)
+		# Now populate the moth's connection matrices using the model_params
+		model_params = init_connection_matrix(model_params)
 
 		# save params to file (if save_params_folder not empty)
 		if save_params_folder:
 			if not os.path.isdir(save_params_folder):
 				os.mkdir(save_params_folder)
 				# pickle parameters for other branch of if construct
-				params_fname = os.path.join(save_params_folder, 'modelParams.pkl')
-				dill.dump(modelParams, open(params_fname, 'wb'))
+				params_fname = os.path.join(save_params_folder, 'model_params.pkl')
+				dill.dump(model_params, open(params_fname, 'wb'))
 
-	modelParams.trueClassLabels = class_labels # misc parameter tagging along
-	modelParams.saveAllNeuralTimecourses = save_all_neural_timecourses
+	model_params.trueClassLabels = class_labels # misc parameter tagging along
+	model_params.saveAllNeuralTimecourses = save_all_neural_timecourses
 
 	# # Define the experiment parameters, including book-keeping for time-stepped
 	# # 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# # 	responses, windowing of firing rates, etc
-	# experimentParams = experimentFn( tr_classes, class_labels, val_per_class )
-
 	# Load experiment params, including book-keeping for time-stepped
 	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# 	responses, windowing of Firing rates, etc
-	experimentParams = ExpParams(tr_classes, class_labels, val_per_class)
+	experiment_params = ExpParams(tr_classes, class_labels, val_per_class)
 
 #-------------------------------------------------------------------------------
 
 	# 3. run this experiment as sde time-step evolution:
-	simResults = sde_wrap( modelParams, experimentParams, digit_queues )
+	sim_results = sde_wrap( model_params, experiment_params, digit_queues )
 
 #-------------------------------------------------------------------------------
 
@@ -302,49 +312,52 @@ for run in range(num_runs):
 			os.mkdir(save_results_image_folder)
 
 	# Process the sim results to group EN responses by class and time:
-	respOrig = view_EN_resp(simResults, modelParams, experimentParams,
+	resp_orig = view_EN_resp(sim_results, model_params, experiment_params,
 		show_EN_plots, class_labels, screen_size, results_filename, save_results_image_folder)
 
 	# Calculate the classification accuracy:
-	# for baseline accuracy function argin, substitute pre- for post-values in respOrig:
-	respNaive = copy.deepcopy(respOrig)
-	for i, resp in enumerate(respOrig):
-		respNaive[i]['postMeanResp'] = resp['preMeanResp'].copy()
-		respNaive[i]['postStdResp'] = resp['preStdResp'].copy()
-		respNaive[i]['postTrainOdorResp'] = resp['preTrainOdorResp'].copy()
+	# for baseline accuracy function argin, substitute pre- for post-values in resp_orig:
+	resp_naive = copy.deepcopy(resp_orig)
+	for i, resp in enumerate(resp_orig):
+		resp_naive[i]['postMeanResp'] = resp['preMeanResp'].copy()
+		resp_naive[i]['postStdResp'] = resp['preStdResp'].copy()
+		resp_naive[i]['postTrainOdorResp'] = resp['preTrainOdorResp'].copy()
 
 	# 1. Using Log-likelihoods over all ENs:
 	# Baseline accuracy:
-	outputNaiveLogL = classify_digits_log_likelihood( respNaive )
+	output_naive_log_loss = classify_digits_log_likelihood( resp_naive )
 	print( 'LogLikelihood:' )
-	print( f"Naive Accuracy: {round(outputNaiveLogL['total_acc'])}" + \
-		f"#, by class: {np.round(outputNaiveLogL['acc_perc'])} #.   ")
+	print( f"Naive Accuracy: {round(output_naive_log_loss['total_acc'])}" + \
+		f"#, by class: {np.round(output_naive_log_loss['acc_perc'])} #.   ")
 
 	# Post-training accuracy using log-likelihood over all ENs:
-	outputTrainedLogL = classify_digits_log_likelihood( respOrig )
-	print( f"Trained Accuracy: {round(outputTrainedLogL['total_acc'])}" + \
-		f"#, by class: {np.round(outputTrainedLogL['acc_perc'])} #.   ")
+	output_trained_log_loss = classify_digits_log_likelihood( resp_orig )
+	print( f"Trained Accuracy: {round(output_trained_log_loss['total_acc'])}" + \
+		f"#, by class: {np.round(output_trained_log_loss['acc_perc'])} #.   ")
 
 	# 2. Using single EN thresholding:
-	outputNaiveThresholding = classify_digits_thresholding( respNaive, 1e9, -1, 10 )
-	outputTrainedThresholding = classify_digits_thresholding( respOrig, 1e9, -1, 10 )
+	output_naive_thresholding = classify_digits_thresholding( resp_naive, 1e9, -1, 10 )
+	output_trained_thresholding = classify_digits_thresholding( resp_orig, 1e9, -1, 10 )
 
-	# append the accuracy results, and other run data, to the first entry of respOrig:
-	respOrig[0]['modelParams'] = modelParams  # will include all connection weights of this moth
-	respOrig[0]['outputNaiveLogL'] = outputNaiveLogL
-	respOrig[0]['outputTrainedLogL'] = outputTrainedLogL
-	respOrig[0]['outputNaiveThresholding'] = outputNaiveThresholding
-	respOrig[0]['outputTrainedThresholding'] = outputTrainedThresholding
-	respOrig[0]['matrixParamsFilename'] = matrix_params_filename
-	respOrig[0]['K2Efinal'] = simResults['K2Efinal']
+	# append the accuracy results, and other run data, to the first entry of resp_orig:
+	resp_orig[0]['modelParams'] = model_params  # will include all connection weights of this moth
+	resp_orig[0]['outputNaiveLogL'] = output_naive_log_loss
+	resp_orig[0]['outputTrainedLogL'] = output_trained_log_loss
+	resp_orig[0]['outputNaiveThresholding'] = output_naive_thresholding
+	resp_orig[0]['outputTrainedThresholding'] = output_trained_thresholding
+	resp_orig[0]['matrixParamsFilename'] = matrix_params_filename
+	resp_orig[0]['K2Efinal'] = sim_results['K2Efinal']
 
-	if save_results_data_folder:
+	if save_results_data_folder and save_results_data:
 		if not os.path.isdir(save_results_data_folder):
 			os.mkdir(save_results_data_folder)
+			print(f"Creating results directory:\n{save_results_data_folder}")
+
+		import dill # for pickling module object (optional)
 
 		# save results data
 		results_fname = os.path.join(save_results_data_folder, f'{results_filename}_{run}.pkl')
-		dill.dump(respOrig, open(results_fname, 'wb'))
+		dill.dump(resp_orig, open(results_fname, 'wb'))
 		# open via:
 		# >>> with open(results_fname,'rb') as f:
     	# >>> 	B = dill.load(f)
@@ -355,23 +368,23 @@ for run in range(num_runs):
 #-------------------------------------------------------------------------------
 
 	# nearest neighbors
-	if runNearestNeighbors:
+	if run_nearest_neighbors:
 
 		from sklearn.neighbors import KNeighborsClassifier
 		neigh = KNeighborsClassifier(n_neighbors=num_neighbors)
-		neigh.fit(trainX, trainY.ravel())
-		y_hat = neigh.predict(valX)
+		neigh.fit(train_X, train_y.ravel())
+		y_hat = neigh.predict(val_X)
 
 		# measure overall accuracy
-		nn_acc = neigh.score(valX, valY)
-		# old acc. metric: np.sum(y_hat == valY.squeeze()) / len(valY)
+		nn_acc = neigh.score(val_X, val_y)
+		# old acc. metric: np.sum(y_hat == val_y.squeeze()) / len(val_y)
 
 		# measure accuracy for each class
 		class_acc = np.zeros_like(class_labels) # preallocate
 		for i in class_labels:
-			inds = np.where(valY==i)[0]
-			class_acc[i] = np.round(100*np.sum( y_hat[inds]==valY[inds].squeeze()) /
-				len(valY[inds]) )
+			inds = np.where(val_y==i)[0]
+			class_acc[i] = np.round(100*np.sum( y_hat[inds]==val_y[inds].squeeze()) /
+				len(val_y[inds]) )
 
 		print( f'Nearest neighbor: {tr_per_class} training samples per class.',
             f' Accuracy = {np.round(100*nn_acc)}%. numNeigh = {num_neighbors}.',
@@ -383,23 +396,23 @@ for run in range(num_runs):
 	if runSVM:
 
 		from sklearn import svm
-		svm_clf = svm.SVC(gamma='scale', C=boxConstraint)
-		svm_clf.fit(trainX, trainY.ravel())
-		y_hat = svm_clf.predict(valX)
+		svm_clf = svm.SVC(gamma='scale', C=box_constraint)
+		svm_clf.fit(train_X, train_y.ravel())
+		y_hat = svm_clf.predict(val_X)
 
 		# measure overall accuracy
-		svm_acc = svm_clf.score(valX, valY)
-		# old acc. metric: np.sum(y_hat == valY.squeeze()) / len(valY)
+		svm_acc = svm_clf.score(val_X, val_y)
+		# old acc. metric: np.sum(y_hat == val_y.squeeze()) / len(val_y)
 
 		# measure accuracy for each class
 		class_acc = np.zeros_like(class_labels) # preallocate
 		for i in class_labels:
-			inds = np.where(valY==i)[0]
-			class_acc[i] = np.round(100*np.sum( y_hat[inds]==valY[inds].squeeze()) /
-				len(valY[inds]) )
+			inds = np.where(val_y==i)[0]
+			class_acc[i] = np.round(100*np.sum( y_hat[inds]==val_y[inds].squeeze()) /
+				len(val_y[inds]) )
 
 		print( f'Support vector machine: {tr_per_class} training samples per class.',
-            f' Accuracy = {np.round(100*svm_acc)}%. BoxConstraint(i.e. C) = {boxConstraint}.',
+            f' Accuracy = {np.round(100*svm_acc)}%. BoxConstraint(i.e. C) = {box_constraint}.',
             f' Class accs (%): {class_acc}' )
 
 print('         -------------All done-------------         ')
