@@ -1,5 +1,5 @@
 '''
-runMothLearnerOnReducedMnist
+runMothLearnerMNIST
 
 Main script to train a moth brain model on a crude (downsampled) MNIST set.
 The moth can be generated from template or loaded complete from file.
@@ -11,7 +11,7 @@ Modifying parameters:
 
 The dataset:
 	Because the moth brain architecture, as evolved, only handles ~60 features, we need to
-create a new, MNIST-like task but with many fewer than 28x 28 pixels-as-features.
+create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features.
 We do this by cropping and downsampling the mnist thumbnails, then selecting a subset of the
 remaining pixels.
 	This results in a cruder dataset (set various view flags to see thumbnails).
@@ -27,14 +27,14 @@ This dataset will be used for each simulation in numRuns. Each
 Order of events:
 	1. Load and pre-process dataset
 	Within the loop over number of simulations:
-	2. Select a subset of the dataset for this simulation (only a few samples are used).
+	2. Select a subset of the dataset for this simulation (only a few samples are used)
 	3. Create a moth (neural net). Either select an existing moth file, or generate a new moth in 2 steps:
-		a) run 'ModelParams' and incorporate user entry edits such as 'goal'.
+		a) run 'ModelParams' and incorporate user entry edits such as 'goal'
 		b) create connection matrices via 'init_connection_matrix'
-	4. Load the experiment parameters.
-	5. Run the simulation with 'sde_wrap'
-	6. Plot results, print results to console
-	7. Run addition ML models for comparison (optional)
+	4. Load the experiment parameters
+	5. Run the simulation with 'sde_wrap', print results to console
+	6. Plot results (optional)
+	7. Run addition ML models for comparison, print results to console (optional)
 
 Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
 MIT License
