@@ -59,8 +59,8 @@ def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
         thumbsFig.savefig(thumbName)
         print(f'Image thumbnails saved: {thumbName}')
 
-def view_EN_resp( simRes, modelParams, expP,
-    showPlots, classLabels, screen_size, resultsFilename=[], saveImageFolder=[] ):
+def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
+                screen_size, resultsFilename=[], saveImageFolder=[] ):
     '''
     View readout neurons (EN):
         Color-code them dots by class and by concurrent octopamine.

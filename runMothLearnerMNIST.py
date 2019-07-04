@@ -10,19 +10,19 @@ Modifying parameters:
 	2. Edit USER ENTRIES
 
 The dataset:
-	Because the moth brain architecture, as evolved, only handles ~60 features, we need to
-create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features.
-We do this by cropping and downsampling the mnist thumbnails, then selecting a subset of the
-remaining pixels.
+	Because the moth brain architecture, as evolved, only handles ~60 features,
+we need to create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features.
+We do this by cropping and downsampling the mnist thumbnails, then selecting a subset
+of the remaining pixels.
 	This results in a cruder dataset (set various view flags to see thumbnails).
-However, it is sufficient for testing the moth brain's learning ability. Other ML methods need
-to be tested on this same cruder dataset to make useful comparisons.
+However, it is sufficient for testing the moth brain's learning ability. Other ML
+methods need to be tested on this same cruder dataset to make useful comparisons.
 
 Define train and control pools for the experiment, and determine the receptive field.
 This is done first because the receptive field determines the number of AL units, which
-     must be updated in model_params before 'initializeMatrixParams_fn' runs.
-This dataset will be used for each simulation in numRuns. Each
-     simulation draws a new set of samples from this set.
+     must be updated in model_params before 'init_connection_matrix' runs.
+This dataset will be used for each simulation in numRuns. Each simulation draws
+	a new set of samples from this set.
 
 Order of events:
 	1. Load and pre-process dataset
@@ -46,15 +46,24 @@ runStart = time.time() # time execution duration
 import numpy as np
 import os
 import copy # for deep copy of nested lists
+import sys
 
 # Experiment details
 from support_functions.generate import generate_ds_MNIST
-from support_functions.show_figs import show_FA_thumbs, view_EN_resp
+from support_functions.show_figs import show_FA_thumbs, show_EN_resp
 from support_functions.params import init_connection_matrix, ExpParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
 
-##TEST for Python vers == 3
+# test for Python version > 2
+python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+if sys.version_info.major > 2:
+	print(f"Python version {python_version} detected. ")
+else:
+	version_error = f"Python version {python_version} detected.\n" + \
+					f"Python version 3 or higher is required to run this module.\n" + \
+					"Please install Python 3+."
+	raise Exception(version_error)
 
 ### 1. Object initialization ###
 
@@ -312,7 +321,7 @@ for run in range(num_runs):
 			os.mkdir(save_results_image_folder)
 
 	# Process the sim results to group EN responses by class and time:
-	resp_orig = view_EN_resp(sim_results, model_params, experiment_params,
+	resp_orig = show_EN_resp(sim_results, model_params, experiment_params,
 		show_EN_plots, class_labels, screen_size, results_filename, save_results_image_folder)
 
 	# Calculate the classification accuracy:
