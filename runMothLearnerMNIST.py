@@ -104,27 +104,33 @@ box_constraint = 1e1 # optimization parameter for svm
 #					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
 
 ## Flags to show various images:
-show_thumbnails = 0 # N means show N experiment inputs from each class
+n_thumbnails = 1 # N means show N experiment inputs from each class
 	# 0 means don't show any
-show_EN_plots = [1, 1] # 1 to plot, 0 to ignore
-# arg1 refers to statistical plots of EN response changes: One image (with 8 subplots) per EN
-# arg2 refers to EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image)
 
 # To save results if wished:
 save_all_neural_timecourses = False # 0 -> save only EN (ie readout) timecourses
 # Caution: 1 -> very high memory demands, hinders longer runs
+
 save_results_data = True
-# save_results_image_data = True
-results_filename = 'results' # will get the run number appended to it
-save_results_data_folder = 'results/data' # String
-# If `save_results_data` is True, 'results_filename' will be saved here
-save_results_image_folder = 'results' # String
+save_results_data_folder = 'results/data' # String (relative path)
+# If `save_results_data` is True, 'results_filename' will be saved above
+
+# flag for statistical plots of EN response changes: One image (with 8 subplots) per EN
+show_acc_plots = True # True to plot, False to ignore
+# flag for EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image)
+show_time_plots = True # True to plot, False to ignore
+save_image_results_folder = 'results' # String (relative path)
 # If non-empty, results will be saved here (if show_EN_plots also non-zero)
-save_params_folder = 'params' # String
+
+save_params = True
+save_params_folder = 'params' # String (relative path)
 # If non-empty, params will be saved here (if show_EN_plots also non-zero)
+
+results_filename = 'results' # will get the run number appended to it
 
 #-------------------------------------------------------------------------------
 
+# Test parameters for compatibility
 if run_nearest_neighbors or runSVM:
 	##TEST to see if sklearn is installed,
 	try:
@@ -133,20 +139,48 @@ if run_nearest_neighbors or runSVM:
 	    print('sklearn is not installed, and it is required to run ML models.\n' + \
 			"Install it or set run_nearest_neighbors and runSVM to 'False'.")
 
-if save_results_data: # or save_results_image_data:
-	pass
-	##TEST to see if dill is installed,
-	## if not, print message instructing to install it or
-	## set save_results_data to False
-## Misc book-keeping
-class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
-val_per_class = 15  # number of digits used in validation sets and in baseline sets
+def check_for_dir(directory):
+	'''Test for existence of results folder, else create it'''
+	if not os.path.isdir(directory):
+		os.mkdir('./'+directory)
+		print('Creating results directory: {}'.format(os.path.join(os.getcwd(),directory)))
 
-# make a vector of the classes of the training samples, randomly mixed:
-tr_classes = np.repeat( class_labels, tr_per_class )
-tr_classes = np.random.permutation( tr_classes )
-# repeat these inputs if taking multiple sniffs of each training sample:
-tr_classes = np.tile( tr_classes, [1, num_sniffs] )[0]
+if show_acc_plots or show_time_plots:
+	##TEST that directory string is not empty
+	if not save_image_results_folder:
+		folder_error = "save_image_results_folder parameter is empty.\n" + \
+			"Please add directory or set show_acc_plots and show_time_plots to 'False'."
+		raise Exception(folder_error)
+
+	##TEST for existence of image results folder, else create it
+	check_for_dir(save_image_results_folder)
+
+if save_results_data:
+	##TEST to see if dill is installed,
+	try:
+	    import dill # for pickling module object
+	except ImportError:
+	    print('dill is not installed, and it is required to save the results data.\n' + \
+			"Install it or set save_results_data to 'False'.")
+
+	##TEST that directory string is not empty
+	if not save_results_data_folder:
+		folder_error = "save_results_data_folder parameter is empty.\n" + \
+						"Please add directory or set save_results_data to 'False'."
+		raise Exception(folder_error)
+
+	##TEST for existence of results folder, else create it
+	check_for_dir(save_results_data_folder)
+
+if save_params:
+	##TEST that directory string is not empty
+	if not save_params_folder:
+		folder_error = "save_params_folder parameter is empty.\n" + \
+			"Please add directory or set save_params to 'False'."
+		raise Exception(folder_error)
+
+	##TEST for existence of parameters folder, else create it
+	check_for_dir(save_params_folder)
 
 #-------------------------------------------------------------------------------
 
@@ -173,6 +207,15 @@ tr_classes = np.tile( tr_classes, [1, num_sniffs] )[0]
 #   This is NOT the number of training samples per class.
 # 	That is tr_per_class, defined above.
 
+class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
+val_per_class = 15  # number of digits used in validation sets and in baseline sets
+
+# make a vector of the classes of the training samples, randomly mixed:
+tr_classes = np.repeat( class_labels, tr_per_class )
+tr_classes = np.random.permutation( tr_classes )
+# repeat these inputs if taking multiple sniffs of each training sample:
+tr_classes = np.tile( tr_classes, [1, num_sniffs] )[0]
+
 # Specify pools of indices from which to draw baseline, train, val sets.
 ind_pool_baseline = list(range(100)) # 1:100
 ind_pool_train = list(range(100,300)) # 101:300
@@ -192,16 +235,17 @@ preP['downsampleRate'] = 2
 preP['crop'] = 2
 preP['numFeatures'] =  85  # number of pixels in the receptive field
 preP['pixelSum'] = 6
-preP['showThumbnails'] = show_thumbnails # boolean
+preP['showThumbnails'] = n_thumbnails # boolean
 preP['downsampleMethod'] = 1 # 0 means sum square patches of pixels
 							 # 1 means use bicubic interpolation
 
 preP['classLabels'] = class_labels # append
 preP['useExistingConnectionMatrices'] = use_existing_conn_matrices # boolean
 preP['matrixParamsFilename'] = matrix_params_filename
+preP['saveResultsImageFolder'] = save_image_results_folder
 
 # generate the data array:
-fA, active_pixel_inds, len_side = generate_ds_MNIST(preP, saveImageFolder=save_results_image_folder)
+fA, active_pixel_inds, len_side = generate_ds_MNIST(preP)
 
 _, num_per_class, class_num = fA.shape
 # The dataset fA is a feature array ready for running experiments.
@@ -250,12 +294,12 @@ for run in range(num_runs):
 			i] = fA[:, these_inds, i]
 
 	# show the final versions of thumbnails to be used, if wished
-	if show_thumbnails:
+	if n_thumbnails:
 		temp_array = np.zeros((len_side, num_per_class, class_num))
 		temp_array[active_pixel_inds,:,:] = digit_queues
 		normalize = 1
-		show_FA_thumbs(temp_array, show_thumbnails, normalize, 'Input thumbnails',
-							screen_size, save_results_image_folder)
+		show_FA_thumbs(temp_array, n_thumbnails, normalize, 'Input thumbnails',
+			screen_size, os.path.join(save_image_results_folder,'thumbnails'))
 
 #-------------------------------------------------------------------------------
 	# Re-organize train and val sets for classifiers:
@@ -294,11 +338,9 @@ for run in range(num_runs):
 
 		# save params to file (if save_params_folder not empty)
 		if save_params_folder:
-			if not os.path.isdir(save_params_folder):
-				os.mkdir(save_params_folder)
-				# pickle parameters for other branch of if construct
-				params_fname = os.path.join(save_params_folder, 'model_params.pkl')
-				dill.dump(model_params, open(params_fname, 'wb'))
+			# pickle parameters for other branch of if construct
+			params_fname = os.path.join(save_params_folder, 'model_params.pkl')
+			dill.dump(model_params, open(params_fname, 'wb'))
 
 	model_params.trueClassLabels = class_labels # misc parameter tagging along
 	model_params.saveAllNeuralTimecourses = save_all_neural_timecourses
@@ -318,14 +360,10 @@ for run in range(num_runs):
 
 #-------------------------------------------------------------------------------
 
-	# Experiment Results: EN behavior, classifier calculations:
-	if save_results_image_folder:
-		if not os.path.isdir(save_results_image_folder):
-			os.mkdir(save_results_image_folder)
-
 	# Process the sim results to group EN responses by class and time:
 	resp_orig = show_EN_resp(sim_results, model_params, experiment_params,
-		show_EN_plots, class_labels, screen_size, results_filename, save_results_image_folder)
+		show_acc_plots, show_time_plots, class_labels, screen_size,
+		images_filename = os.path.join(save_image_results_folder, results_filename))
 
 	# Calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in resp_orig:
@@ -340,12 +378,12 @@ for run in range(num_runs):
 	output_naive_log_loss = classify_digits_log_likelihood( resp_naive )
 	print( 'LogLikelihood:' )
 	print( "Naive Accuracy: {}".format(round(output_naive_log_loss['total_acc'])) + \
-		"#, by class: {} #. ".format(np.round(output_naive_log_loss['acc_perc'])))
+		"%, by class: {} % ".format(np.round(output_naive_log_loss['acc_perc'])))
 
 	# Post-training accuracy using log-likelihood over all ENs:
 	output_trained_log_loss = classify_digits_log_likelihood( resp_orig )
 	print( "Trained Accuracy: {}".format(round(output_trained_log_loss['total_acc'])) + \
-		"#, by class: {} #. ".format(np.round(output_trained_log_loss['acc_perc'])))
+		"%, by class: {}% ".format(np.round(output_trained_log_loss['acc_perc'])))
 
 	# 2. Using single EN thresholding:
 	output_naive_thresholding = classify_digits_thresholding( resp_naive, 1e9, -1, 10 )
@@ -360,22 +398,17 @@ for run in range(num_runs):
 	resp_orig[0]['matrixParamsFilename'] = matrix_params_filename
 	resp_orig[0]['K2Efinal'] = sim_results['K2Efinal']
 
-	if save_results_data_folder and save_results_data:
-		if not os.path.isdir(save_results_data_folder):
-			os.mkdir(save_results_data_folder)
-			print('Creating results directory:\n{}'.format(save_results_data_folder))
-
-		import dill # for pickling module object (optional)
+	if save_results_data:
 
 		# save results data
-		results_fname = '{}_{}.pkl'.format(results_filename, run)
-		results_fname = os.path.join(save_results_data_folder, results_fname)
-		dill.dump(resp_orig, open(results_fname, 'wb'))
+		pickle_filename = '{}_{}.pkl'.format(results_filename, run)
+		pickle_filename = os.path.join(save_results_data_folder, pickle_filename)
+		dill.dump(resp_orig, open(pickle_filename, 'wb'))
 		# open via:
-		# >>> with open(results_fname,'rb') as f:
+		# >>> with open(pickle_filename,'rb') as f:
     	# >>> 	B = dill.load(f)
 
-		print('Results saved to: {}'.format(results_fname))
+		print('Results saved to: {}'.format(pickle_filename))
 
 ### 4. Run simulation with alternative models ###
 #-------------------------------------------------------------------------------
@@ -399,9 +432,9 @@ for run in range(num_runs):
 			class_acc[i] = np.round(100*np.sum( y_hat[inds]==val_y[inds].squeeze()) /
 				len(val_y[inds]) )
 
-		print( 'Nearest neighbor: {} training samples per class.'.format(tr_per_class),
-            ' Accuracy = {}%. numNeigh = {}.'.format(np.round(100*nn_acc), num_neighbors),
-            ' Class accs (%): {}'.format(class_acc) )
+		print( 'Nearest neighbor: \n',
+            ' Accuracy = {}%, numNeigh = {},'.format(np.round(100*nn_acc), num_neighbors),
+            ' by class: {}% '.format(class_acc) )
 
 #-------------------------------------------------------------------------------
 
@@ -424,9 +457,9 @@ for run in range(num_runs):
 			class_acc[i] = np.round(100*np.sum( y_hat[inds]==val_y[inds].squeeze()) /
 				len(val_y[inds]) )
 
-		print('Support vector machine: {} training samples per class.'.format(tr_per_class),
-        	' Accuracy = {}%. BoxConstraint(i.e. C) = {}.'.format(np.round(100*svm_acc), box_constraint),
-            ' Class accs (%): {}'.format(class_acc))
+		print('Support vector machine: \n',
+        	' Accuracy = {}%, BoxConstraint(i.e. C) = {},'.format(np.round(100*svm_acc), box_constraint),
+            ' by class: {}% '.format(class_acc))
 
 print('         -------------All done-------------         ')
 

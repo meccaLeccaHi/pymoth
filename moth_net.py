@@ -126,7 +126,7 @@ save_params_folder = 'params' # String
 
 #-------------------------------------------------------------------------------
 
-class Moth:
+class MothNet:
     """
     This is a class for mathematical operations on complex numbers.
 
@@ -185,10 +185,12 @@ class Moth:
 # from moth_net import MothNet
 
 # Instantiate the Dog object
-mothra = Moth("Mikey", 6)
+mothra = MothNet("Mikey", 6)
 
 # call our instance methods
 print(mothra.description())
+
+
 
 
 # ##IDEAL USAGE
@@ -196,10 +198,12 @@ print(mothra.description())
 #
 # # Load MNIST dataset
 # X_vals, y_vals = moth_net.load_MNIST()
-# 
+#
 # # Instantiate the MothNet object
-# mothra = moth_net.MothNet(moth_parameters)
+# mothra = moth_net.MothNet(moth_parameters, experiment_parameters)
 #
-# mothra.fit(X_train, y_train)
+# mothra.fit_on_MNIST()
+# # mothra.fit(X_train, y_train)
 #
-# moth_accuracy = mothra.score(X_test, y_test)
+# mnist_accuracy = mothra.score_on_MNIST()
+# # moth_accuracy = mothra.score(X_test, y_test)

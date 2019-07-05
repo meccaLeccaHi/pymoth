@@ -1,14 +1,16 @@
-def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
-    screen_size, saveImageFolder=[], saveString='' ):
+def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
+    screen_size, images_filename ):
     '''
     Show thumbnails of inputs used in the experiment.
     Inputs:
-        1. featureArray = either 3-D
+        1. feature_array = either 3-D
             (1 = cols of features, 2 = within class samples, 3 = class)
             or 2-D (1 = cols of features, 2 = within class samples, no 3)
-        2. showPerClass = how many of the thumbnails from each class to show.
+        2. show_per_class = how many of the thumbnails from each class to show.
         3. normalize = 1 if you want to rescale thumbs to [0 1], 0 if you don't
-        4. titleString = string
+        4. title_string = string
+        5. screen_size = tuple
+        6. images_filename = string (including path)
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
@@ -18,27 +20,34 @@ def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
     import matplotlib.pyplot as plt
     import os
 
+    if images_filename:
+        images_folder = os.path.dirname(images_filename)
+
+    if not os.path.isdir(images_folder):
+        os.mkdir(images_folder)
+        print('Creating results directory: {}'.format(images_filename))
+
     # bookkeeping: change dim if needed
-    if len(featureArray.shape)==2:
-        f = np.zeros((featureArray.shape[0],featureArray.shape[1],1))
-        f[:,:,0] = featureArray
-        featureArray = f[:,:,:]  #.squeeze()
+    if len(feature_array.shape)==2:
+        f = np.zeros((feature_array.shape[0],feature_array.shape[1],1))
+        f[:,:,0] = feature_array
+        feature_array = f[:,:,:]  #.squeeze()
 
-    pixNum, numPerClass, nC  = featureArray.shape
+    pixNum, numPerClass, nC  = feature_array.shape
 
-    total = nC*showPerClass # total number of subplots
+    total = nC*show_per_class # total number of subplots
     numRows = np.ceil(np.sqrt(total/2)) # n of rows
     numCols = np.ceil(np.sqrt(total*2)) # n of cols
     vert = 1/(numRows + 1) # vertical step size
     horiz = 1/(numCols + 1) # horizontal step size
 
     fig_sz = [np.floor((i/100)*0.5) for i in screen_size]
-    thumbsFig = plt.figure(figsize=fig_sz, dpi=100)
+    thumbs_fig = plt.figure(figsize=fig_sz, dpi=100)
 
     for cl in range(nC): # 'class' is a keyword in Python; renamed to 'cl'
-        for i in range(showPerClass):
-            ax_i = showPerClass*(cl) + i + 1
-            thisInput = featureArray[:, i, cl]
+        for i in range(show_per_class):
+            ax_i = show_per_class*(cl) + i + 1
+            thisInput = feature_array[:, i, cl]
 
             # renormalize, to offset effect of classMagMatrix scaling
             if normalize:
@@ -51,16 +60,16 @@ def show_FA_thumbs( featureArray, showPerClass, normalize, titleString,
             plt.imshow(thisInput.reshape((side,side)), cmap='gray', vmin=0, vmax=1)
 
     # add a title at the bottom
-    plt.xlabel(titleString, fontweight='bold')
+    plt.xlabel(title_string, fontweight='bold')
 
     # Save plot
-    if saveImageFolder and os.path.isdir(saveImageFolder):
-        thumbName = os.path.join(saveImageFolder, 'thumbnails_'+saveString+'.png')
-        thumbsFig.savefig(thumbName)
-        print(f'Image thumbnails saved: {thumbName}')
+    if os.path.isdir(images_folder):
+        thumb_name = os.path.join(os.getcwd(), images_filename+'.png')
+        thumbs_fig.savefig(thumb_name)
+        print(f'Image thumbnails saved: {thumb_name}')
 
-def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
-                screen_size, resultsFilename=[], saveImageFolder=[] ):
+def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
+                classLabels, screen_size, images_filename='' ):
     '''
     View readout neurons (EN):
         Color-code them dots by class and by concurrent octopamine.
@@ -73,12 +82,12 @@ def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
         2. modelParams: object containing model parameters for this moth
         3. expP: object containing experiment parameters with timing
             and digit class info from the experiment.
-        4. showPlots: 1 x 2 vector. First entry: show changes in accuracy.
-            2nd entry: show EN timecourses.
-        5. classLabels: 1 to 10
-        6. resultsFilename: to generate image filenames if saving. Optional argin
-        7. saveImageFolder: where to save images. If this = [], images will not
-            be saved (ie its also a flag). Optional argin.
+        4. show_acc_plots: show changes in accuracy.
+        5. show_time_plots: show EN timecourses.
+        6. classLabels: 1 to 10
+        7. screen_size: tuple
+        8. images_filename: to generate image filenames when saving (includes path).
+            Optional argin. If this = '', images will not be saved (ie it's also a flag).
 
     Outputs (as fields of resultsStruct):
         1. preMeanResp = numENs x numOdors matrix = mean of EN pre-training
@@ -100,6 +109,15 @@ def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
     # import matplotlib
     # matplotlib.use("TKAgg") # DEV NOTE: Remove later (APJ)
     from matplotlib import pyplot as plt
+
+    if images_filename:
+        images_folder = os.path.dirname(images_filename)
+
+    # create directory for images (if doesnt exist)
+    if not os.path.isdir(images_folder):
+        os.mkdir(images_folder)
+        print('Creating results directory: {}'.format(images_filename))
+
 
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
         (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
@@ -230,7 +248,7 @@ def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
                                 /preMedianResp[preSA]
 
         # plot stats if wished:
-        if showPlots[0]:
+        if show_acc_plots:
             fig_sz = [np.floor((i/100)*0.8) for i in screen_size]
             thisFig = plt.figure(figsize=fig_sz, dpi=100)
 
@@ -351,9 +369,8 @@ def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
             ax.set_xticklabels(classLabels)
 
         # Save plot
-        if saveImageFolder and os.path.isdir(saveImageFolder) and showPlots[0]:
-
-            thisFig.savefig(os.path.join(saveImageFolder,f'{resultsFilename}_en{enInd}.png'))
+        if os.path.isdir(images_folder) and show_acc_plots:
+            thisFig.savefig(images_filename + '_en{}.png'.format(enInd))
 
         #-----------------------------------------------------------------------
 
@@ -388,7 +405,7 @@ def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
     ## Plot EN timecourses normalized by mean digit response
 
     # labels = whichClass
-    if showPlots[1]:
+    if show_time_plots:
 
         # go through each EN
         for enInd in range(modelParams.nE): # recal EN1 targets digit class 1, EN2 targets digit class 2, etc
@@ -397,9 +414,9 @@ def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
                 # make a new figure at ENs 4, 7, 10
                 #? test this (below)
                 fig_sz = [np.floor(i/100) for i in screen_size]
-                enFig2 = plt.figure(figsize=fig_sz, dpi=100)
+                enFig = plt.figure(figsize=fig_sz, dpi=100)
 
-            ax = enFig2.add_subplot(3, 1, (enInd%3)+1)
+            ax = enFig.add_subplot(3, 1, (enInd%3)+1)
             ax.set_xlim([-30, max(simRes['T'])])
 
             # plot octo
@@ -459,10 +476,11 @@ def show_EN_resp( simRes, modelParams, expP, showPlots, classLabels,
             ax.set_title(f'EN {enInd} for class {enInd}')
 
             # Save EN timecourse:
-            if saveImageFolder and os.path.isdir(saveImageFolder) and \
+            if os.path.isdir(images_folder) and \
             (enInd%3 == 2 or enInd == (modelParams.nE-1)):
-                enFig2.savefig(os.path.join(saveImageFolder, \
-                f'{resultsFilename}_enTimecourses{enInd}.png'))
+                fig_name = os.path.join(os.getcwd(), images_filename+'_enTimecourses{}.png'.format(enInd))
+                enFig.savefig(fig_name)
+                print(f'Figures saved: {fig_name}')
 
     return results
 

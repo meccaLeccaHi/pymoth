@@ -159,13 +159,13 @@ def selectActivePixels( feature_array, num_features, screen_size,
     # make a classAves matrix (cA), each col a class ave 1 to 10 (ie 0),
     #  and add a col for the overallAve
     import numpy as np
+    import os
     from support_functions.show_figs import show_FA_thumbs
 
     num_pix, num_per_class, num_classes  = feature_array.shape
     cA = np.zeros((num_pix, num_classes+1))
 
     for i in range(num_classes):
-
         cA[:,i] = averageImageStack(feature_array[:,:,i], list(range(num_per_class)))
 
     # last col = average image over all digits
@@ -201,7 +201,7 @@ def selectActivePixels( feature_array, num_features, screen_size,
         normalize = 0
         title_str = 'class aves, all pixels'
         show_FA_thumbs(cA_norm, num_classes+1, normalize, title_str,
-            screen_size, saveImageFolder=save_image_folder, saveString='all')
+            screen_size, os.path.join(save_image_folder,'thumbnails_all'))
 
         # look at active pixels of the classAves, ie post-ablation
         normalize = 0
@@ -209,7 +209,7 @@ def selectActivePixels( feature_array, num_features, screen_size,
         cA_active_only[active_pixel_inds, : ] = cA_norm[active_pixel_inds, :]
         title_str = 'class aves, active pixels only'
         show_FA_thumbs(cA_active_only, num_classes+1, normalize, title_str,
-            screen_size, saveImageFolder=save_image_folder, saveString='active')
+            screen_size, os.path.join(save_image_folder,'thumbnails_active'))
 
     return active_pixel_inds
 
