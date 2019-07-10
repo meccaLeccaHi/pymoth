@@ -119,7 +119,7 @@ def generate_ds_MNIST( preP ):
 	# reduce pixel number (downsample) to reflect # of features in moth brain
 	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]
 	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'],
-		preP['screen_size'], save_image_folder=preP['saveResultsImageFolder'],
+		preP['screen_size'], save_image_folder=preP['saveResultsFolder'],
 		show_thumbnails=preP['showThumbnails'])
 	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
 

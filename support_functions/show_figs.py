@@ -480,7 +480,7 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
             (enInd%3 == 2 or enInd == (modelParams.nE-1)):
                 fig_name = os.path.join(os.getcwd(), images_filename+'_enTimecourses{}.png'.format(enInd))
                 enFig.savefig(fig_name)
-                print(f'Figures saved: {fig_name}')
+                print(f'Figure saved: {fig_name}')
 
     return results
 

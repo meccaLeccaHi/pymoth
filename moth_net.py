@@ -199,11 +199,14 @@ print(mothra.description())
 # # Load MNIST dataset
 # X_vals, y_vals = moth_net.load_MNIST()
 #
-# # Instantiate the MothNet object
+# ## Instantiate the MothNet object
+# # Load moth parameters
+# moth_parameters = moth_net.load_moth()
 # mothra = moth_net.MothNet(moth_parameters, experiment_parameters)
 #
 # mothra.fit_on_MNIST()
 # # mothra.fit(X_train, y_train)
 #
 # mnist_accuracy = mothra.score_on_MNIST()
-# # moth_accuracy = mothra.score(X_test, y_test)
+# svm_accuracy = mothra.score_svm(X_test, y_test)
+# knn_accuracy = mothra.score_knn(X_test, y_test)
