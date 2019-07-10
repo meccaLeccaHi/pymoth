@@ -1,4 +1,7 @@
-def generate_ds_MNIST( preP ):
+def generate_ds_MNIST( max_ind, class_labels, crop, downsample_rate, downsample_method,
+inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
+show_thumbnails ):
+
 	'''
 	Loads the MNIST dataset (from Yann LeCun's website),
 	then applies various preprocessing steps to reduce the number of pixels
@@ -9,8 +12,20 @@ def generate_ds_MNIST( preP ):
 	can be embedded in a 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
 	Modify the path for the MNIST data file as needed.
 
-	Inputs:
-		1. preP = preprocessingParams = dictionary with keys corresponding to relevant variables
+	Inputs (preprocessing parameters):
+		max_ind, class_labels, crop,
+		downsample_rate: downsample ratio
+		downsample_method: method for downsampling image
+
+		inds_to_ave, pixel_sum, inds_to_calc_RF,
+
+		num_features: number of pixels in the receptive field
+
+		screen_size: screen size (width, height) for images
+
+		save_results_folder,
+
+		show_thumbnails: number of thumbnails to show for each class (0 means none)
 
 	Outputs:
 		1. featureArray = n x m x 10 array. n = #active pixels, m = #digits from
@@ -58,15 +73,15 @@ def generate_ds_MNIST( preP ):
 	#              .teL_* = test_labels of class *
 
 	# extract the required images and classes
-	imageIndices = range(preP['maxInd']+1)
-	imageArray = extractMNISTFeatureArray(mnist, preP['classLabels'], imageIndices, 'train')
+	imageIndices = range(max_ind+1)
+	imageArray = extractMNISTFeatureArray(mnist, class_labels, imageIndices, 'train')
 	# imageArray = numberImages x h x w x numberClasses 4-D array. class order: 1 to 10 (10 = '0')
 
 	# calc new dimensions
 	im_z, im_height, im_width, label_len = imageArray.shape
-	cropVal = preP['crop']*np.ones(4,dtype = int)
-	new_width = (im_width-np.sum(cropVal[2:]))/preP['downsampleRate']
-	new_height = (im_height-np.sum(cropVal[0:2]))/preP['downsampleRate']
+	cropVal = crop*np.ones(4,dtype = int)
+	new_width = (im_width-np.sum(cropVal[2:]))/downsample_rate
+	new_height = (im_height-np.sum(cropVal[0:2]))/downsample_rate
 	new_length = int(new_width*new_height)
 
 	featureArray = np.zeros((new_length, im_z, label_len)) # pre-allocate
@@ -76,7 +91,7 @@ def generate_ds_MNIST( preP ):
 		# featureArray[...,n] : [a x numImages] array,
 		# 	where a = number of pixels in the cropped and downsampled images
 		featureArray[...,c] = cropDownsampleVectorizeImageStack(imageArray[...,c],
-		 	preP['crop'], preP['downsampleRate'], preP['downsampleMethod'])
+		 	crop, downsample_rate, downsample_method)
 
 	del imageArray # to save memory
 
@@ -86,8 +101,8 @@ def generate_ds_MNIST( preP ):
 	overallAve = np.zeros((new_length, )) # pre-allocate col vector
 	classAvesRaw = np.zeros((new_length, label_len))
 	for c in range(label_len):
-		classAvesRaw[:,c] = averageImageStack(featureArray[:, preP['indsToAverageGeneral'], c],
-			list(range(len(preP['indsToAverageGeneral']))) )
+		classAvesRaw[:,c] = averageImageStack(featureArray[:, inds_to_ave, c],
+			list(range(len(inds_to_ave))) )
 		overallAve += classAvesRaw[:,c]
 	overallAve /= label_len
 
@@ -102,7 +117,7 @@ def generate_ds_MNIST( preP ):
 	# c. Normalize each image so the pixels sum to the same amount
 	fSums = np.sum(featureArray, axis=0)
 	normArray = np.repeat(fSums[np.newaxis,:,:],new_length,0)
-	featureArray *= preP['pixelSum']
+	featureArray *= pixel_sum
 	featureArray /= normArray
 	# featureArray now consists of mean-subtracted, non-negative,
 	# normalized (by sum of pixels) columns, each column a vectorized thumbnail.
@@ -117,10 +132,10 @@ def generate_ds_MNIST( preP ):
 	# (since this is defined by the AL architecture):
 
 	# reduce pixel number (downsample) to reflect # of features in moth brain
-	fA_sub = featureArray[:, preP['indsToCalculateReceptiveField'], :]
-	activePixelInds = selectActivePixels(fA_sub, preP['numFeatures'],
-		preP['screen_size'], save_image_folder=preP['saveResultsFolder'],
-		show_thumbnails=preP['showThumbnails'])
+	fA_sub = featureArray[:, inds_to_calc_RF, :]
+	activePixelInds = selectActivePixels(fA_sub, num_features,
+		screen_size, save_image_folder=save_results_folder,
+		show_thumbnails=show_thumbnails)
 	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
 
 	return featureArray, activePixelInds, lengthOfSide

@@ -75,8 +75,8 @@ screen_size = (1920, 1080) # screen size (width, height)
 # # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
 # # if False, generate new moth from template in params.py
 
-matrix_params_filename = 'sampleMothModelParams'
-# dict with all info, including connection matrices, of a particular moth
+# matrix_params_filename = 'sampleMothModelParams'
+# # dict with all info, including connection matrices, of a particular moth
 
 num_runs = 1 # how many runs you wish to do with this moth or moth template,
 # each run using random draws from the mnist set
@@ -162,8 +162,7 @@ if show_acc_plots or show_time_plots:
 # This dataset will be used for each simulation in num_runs. Each
 #      simulation draws a new set of samples from this set.
 
-# Parameters:
-# Parameters required for the dataset generation function are attached to a dictionary: 'preP'.
+# Parameters required for the dataset generation function:
 # 1. The images used. This includes pools for mean-subtraction, baseline, train, and val.
 #   This is NOT the number of training samples per class.
 # 	That is tr_per_class, defined above.
@@ -182,39 +181,33 @@ ind_pool_baseline = list(range(100)) # 1:100
 ind_pool_train = list(range(100,300)) # 101:300
 ind_pool_post = list(range(300,400)) # 301:400
 
-### ELIMINATE preP
-## Create preP (preprocessingParams)
-# Population preprocessing pools of indices:
-preP = dict()
-preP['indsToAverageGeneral'] = list(range(550,1000)) # 551:1000
-preP['indsToCalculateReceptiveField'] = list(range(550,1000)) # 551:1000
-preP['maxInd'] = max( [ preP['indsToCalculateReceptiveField'] + \
-	ind_pool_train ][0] ) # we'll throw out unused samples
+## Create preprocessing parameters
+# Population pre-processing pools of indices:
+inds_to_ave = list(range(550,1000))
+inds_to_calc_RF = list(range(550,1000))
+max_ind = max( [ inds_to_calc_RF + ind_pool_train ][0] ) # we'll throw out unused samples
 
 ## 2. Pre-processing parameters for the thumbnails:
-preP['screen_size'] = screen_size
-preP['downsampleRate'] = 2
-preP['crop'] = 2
-preP['numFeatures'] =  85  # number of pixels in the receptive field
-preP['pixelSum'] = 6
-preP['showThumbnails'] = n_thumbnails # boolean
-preP['downsampleMethod'] = 1 # 0 means sum square patches of pixels
-							 # 1 means use bicubic interpolation
-
-preP['classLabels'] = class_labels # append
-# preP['useExistingConnectionMatrices'] = use_existing_conn_matrices # boolean
-preP['matrixParamsFilename'] = matrix_params_filename
-preP['saveResultsFolder'] = save_results_folder
+downsample_rate = 2
+crop = 2
+num_features = 85 # number of pixels in the receptive field
+pixel_sum = 6
+show_thumbnails = n_thumbnails
+downsample_method = 1 # 0 means sum square patches of pixels
+					# 1 means use bicubic interpolation
 
 # generate the data array:
-fA, active_pixel_inds, len_side = generate_ds_MNIST(preP)
-
-_, num_per_class, class_num = fA.shape
-
 # The dataset fA is a feature array ready for running experiments.
 # Each experiment uses a random draw from this dataset.
+fA, active_pixel_inds, len_side = generate_ds_MNIST(
+	max_ind, class_labels, crop, downsample_rate, downsample_method, inds_to_ave,
+	pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
+	show_thumbnails
+	)
+
+_, num_per_class, class_num = fA.shape
 # fA = n x m x 10 array where n = #active pixels, m = #digits from each class
-# that will be used. The 3rd dimension gives the class, 1:10 where 10 = '0'.
+# that will be used. The 3rd dimension gives the class: 0:9.
 
 #-------------------------------------------------------------------------------
 
@@ -285,19 +278,13 @@ for run in range(num_runs):
 		train_y[i*tr_per_class:(i+1)*tr_per_class] = i
 		val_y[i*val_per_class:(i+1)*val_per_class,:] = i
 
-	# load an existing moth, or create a new moth
+	## Create a new moth:
 	# Load template params
 	from support_functions.params import ModelParams
 	model_params = ModelParams(nF=len(active_pixel_inds), goal=goal)
 
 	# Now populate the moth's connection matrices using the model_params
 	model_params = init_connection_matrix(model_params)
-
-	# # save params to file (if save_params_folder not empty)
-	# if save_params_folder:
-	# 	# pickle parameters for other branch of if construct
-	# 	params_fname = os.path.join(save_params_folder, 'model_params.pkl')
-	# 	dill.dump(model_params, open(params_fname, 'wb'))
 
 	model_params.trueClassLabels = class_labels # misc parameter tagging along
 	model_params.saveAllNeuralTimecourses = save_all_neural_timecourses
@@ -336,11 +323,11 @@ for run in range(num_runs):
 
 	# Post-training accuracy using log-likelihood over all ENs:
 	output_trained_log_loss = classify_digits_log_likelihood( resp_orig )
-	print( 'LogLikelihood:',
- 		"Baseline (Naive) Accuracy: {}%,".format(round(output_naive_log_loss['total_acc'])) + \
-		"by class: {}%".format(np.round(output_naive_log_loss['acc_perc'])),
-		"Trained Accuracy: {}%,".format(round(output_trained_log_loss['total_acc'])) + \
-		"by class: {}%".format(np.round(output_trained_log_loss['acc_perc'])))
+	print('LogLikelihood:')
+	print(' Baseline (Naive) Accuracy: {}%,'.format(round(output_naive_log_loss['total_acc'])) + \
+		'by class: {}%'.format(np.round(output_naive_log_loss['acc_perc'])))
+	print(' Trained Accuracy: {}%,'.format(round(output_trained_log_loss['total_acc'])) + \
+		'by class: {}%'.format(np.round(output_trained_log_loss['acc_perc'])))
 
 	# 2. Using single EN thresholding:
 	output_naive_thresholding = classify_digits_thresholding( resp_naive, 1e9, -1, 10 )
@@ -354,18 +341,6 @@ for run in range(num_runs):
 	resp_orig[0]['outputTrainedThresholding'] = output_trained_thresholding
 	resp_orig[0]['matrixParamsFilename'] = matrix_params_filename
 	resp_orig[0]['K2Efinal'] = sim_results['K2Efinal']
-
-	# if save_results_data:
-	#
-	# 	# save results data
-	# 	pickle_filename = '{}_{}.pkl'.format(results_filename, run)
-	# 	pickle_filename = os.path.join(save_results_data_folder, pickle_filename)
-	# 	dill.dump(resp_orig, open(pickle_filename, 'wb'))
-	# 	# open via:
-	# 	# >>> with open(pickle_filename,'rb') as f:
-    # 	# >>> 	B = dill.load(f)
-	#
-	# 	print('Results saved to: {}'.format(pickle_filename))
 
 ### 4. Run simulation with alternative models ###
 #-------------------------------------------------------------------------------

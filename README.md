@@ -13,12 +13,11 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 - [scikit-learn](https://scikit-learn.org/)(for kNN and SVM models)
 - [pillow](https://pillow.readthedocs.io/en/stable/)
 - [keras](https://keras.io/) (for loading MNIST)
-- [dill](https://pypi.org/project/dill/)
 
 #### Install manually:  
-> `$ pip install scipy matplotlib scikit-learn pillow keras dill`  
+> `$ pip install scipy matplotlib scikit-learn pillow keras`  
 > *-or-*  
-> `$ conda create -n <env_name> python=3.6 scipy matplotlib scikit-learn pillow keras dill`  
+> `$ conda create -n <env_name> python=3.6 scipy matplotlib scikit-learn pillow keras`  
 
 #### Or, install from .txt file:  
 > **First**, 
