@@ -61,9 +61,10 @@ else:
 # Experiment details
 from support_functions.generate import generate_ds_MNIST
 from support_functions.show_figs import show_FA_thumbs, show_EN_resp
-from support_functions.params import init_connection_matrix, ExpParams
+from support_functions.params import ExpParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
+from support_functions.params import ModelParams
 
 ### 1. Object initialization ###
 
@@ -72,11 +73,11 @@ from support_functions.classify import classify_digits_log_likelihood, classify_
 screen_size = (1920, 1080) # screen size (width, height)
 
 # use_existing_conn_matrices = False
-# # if True, load 'matrixParamsFilename', which includes filled-in connection matrices
-# # if False, generate new moth from template in params.py
+## if True, load 'matrixParamsFilename', which includes filled-in connection matrices
+## if False, generate new moth from template in params.py
 
 # matrix_params_filename = 'sampleMothModelParams'
-# # dict with all info, including connection matrices, of a particular moth
+## dict with all info, including connection matrices, of a particular moth
 
 num_runs = 1 # how many runs you wish to do with this moth or moth template,
 # each run using random draws from the mnist set
@@ -217,9 +218,8 @@ _, num_per_class, class_num = fA.shape
 sim_loop_disp = 'starting sim(s) for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'
 print(sim_loop_disp.format(goal, tr_per_class, num_sniffs))
 
-for run in range(num_runs):
-
-	## Subsample the dataset for this simulation
+def setup_digit_queues(fA):
+	''' Subsample the dataset for this simulation '''
 	# Line up the images for the experiment (in 10 parallel queues)
 	digit_queues = np.zeros_like(fA)
 
@@ -249,18 +249,10 @@ for run in range(num_runs):
 		digit_queues[:,(val_per_class+tr_per_class*num_sniffs):(val_per_class+tr_per_class*num_sniffs+val_per_class),
 			i] = fA[:, these_inds, i]
 
-	# show the final versions of thumbnails to be used, if wished
-	if n_thumbnails:
-		temp_array = np.zeros((len_side, num_per_class, class_num))
-		temp_array[active_pixel_inds,:,:] = digit_queues
-		normalize = 1
-		show_FA_thumbs(temp_array, n_thumbnails, normalize, 'Input thumbnails',
-			screen_size, os.path.join(save_results_folder,'thumbnails'))
+	return digit_queues
 
-#-------------------------------------------------------------------------------
-	# Train/test split: Re-organize train and val sets for classifiers
-
-	# Build train and val feature matrices and class label vectors.
+def train_test_split(digit_queues):
+	''' Build train and val feature matrices and class label vectors. '''
 	# X = n x numberPixels;  Y = n x 1, where n = 10*tr_per_class.
 	train_X = np.zeros((10*tr_per_class, fA.shape[0]))
 	val_X = np.zeros((10*val_per_class, fA.shape[0]))
@@ -278,14 +270,29 @@ for run in range(num_runs):
 		train_y[i*tr_per_class:(i+1)*tr_per_class] = i
 		val_y[i*val_per_class:(i+1)*val_per_class,:] = i
 
+	return train_X, val_X, train_y, val_y
+
+for run in range(num_runs):
+
+	digit_queues = setup_digit_queues(fA)
+
+	# show the final versions of thumbnails to be used, if wished
+	if n_thumbnails:
+		temp_array = np.zeros((len_side, num_per_class, class_num))
+		temp_array[active_pixel_inds,:,:] = digit_queues
+		normalize = 1
+		show_FA_thumbs(temp_array, n_thumbnails, normalize, 'Input thumbnails',
+			screen_size, os.path.join(save_results_folder,'thumbnails'))
+
+#-------------------------------------------------------------------------------
+	# Train/test split: Re-organize train and val sets for classifiers
+	train_X, val_X, train_y, val_y = train_test_split(digit_queues)
+
 	## Create a new moth:
-	# Load template params
-	from support_functions.params import ModelParams
+	# instantiate template params
 	model_params = ModelParams(nF=len(active_pixel_inds), goal=goal)
-
 	# Now populate the moth's connection matrices using the model_params
-	model_params = init_connection_matrix(model_params)
-
+	model_params.init_connection_matrix()
 	model_params.trueClassLabels = class_labels # misc parameter tagging along
 	model_params.saveAllNeuralTimecourses = save_all_neural_timecourses
 
@@ -305,9 +312,9 @@ for run in range(num_runs):
 #-------------------------------------------------------------------------------
 
 	# Process the sim results to group EN responses by class and time:
-	resp_orig = show_EN_resp(sim_results, model_params, experiment_params,
+	resp_orig = show_EN_resp( sim_results, model_params, experiment_params,
 		show_acc_plots, show_time_plots, class_labels, screen_size,
-		images_filename = os.path.join(save_results_folder, results_filename))
+		images_filename=os.path.join(save_results_folder, results_filename) )
 
 	# Calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in resp_orig:
@@ -339,7 +346,7 @@ for run in range(num_runs):
 	resp_orig[0]['outputTrainedLogL'] = output_trained_log_loss
 	resp_orig[0]['outputNaiveThresholding'] = output_naive_thresholding
 	resp_orig[0]['outputTrainedThresholding'] = output_trained_thresholding
-	resp_orig[0]['matrixParamsFilename'] = matrix_params_filename
+	# resp_orig[0]['matrixParamsFilename'] = matrix_params_filename
 	resp_orig[0]['K2Efinal'] = sim_results['K2Efinal']
 
 ### 4. Run simulation with alternative models ###
