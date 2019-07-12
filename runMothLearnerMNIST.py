@@ -288,11 +288,11 @@ for run in range(num_runs):
 
 	## Create a new moth:
 	# instantiate template params
-	model_params = ModelParams(nF=len(active_pixel_inds), goal=goal)
-	# Now populate the moth's connection matrices using the model_params
-	model_params.init_connection_matrix()
+	model_params = ModelParams( len(active_pixel_inds), goal )
 	model_params.trueClassLabels = class_labels # misc parameter tagging along
-	model_params.saveAllNeuralTimecourses = save_all_neural_timecourses
+
+	# Populate the moth's connection matrices using the model_params
+	model_params.init_connection_matrix()
 
 	# # Define the experiment parameters, including book-keeping for time-stepped
 	# # 	evolutions, eg when octopamine occurs, time regions to poll for digit

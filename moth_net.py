@@ -65,7 +65,6 @@ class MothNet:
     from support_functions.params import ExpParams
     from support_functions.sde import sde_wrap
     from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
-    from support_functions.params import ModelParams
 
     # Initializer / Instance Attributes
     def __init__(self):
@@ -225,8 +224,11 @@ class MothNet:
         '''
         Subsample the dataset for this simulation,
         then build train and val feature matrices and class label vectors.
+
+        Returns: train_X, val_X, train_y, val_y
         '''
-        ##ADD TEST for presence of fA,
+
+        ##ADD TEST for presence of self.fA,
         # ELSE print warning to load data first
 
         # Line up the images for the experiment (in 10 parallel queues)
@@ -280,6 +282,19 @@ class MothNet:
 
         return train_X, val_X, train_y, val_y
 
+    def load_moth(self):
+
+        from support_functions.params import ModelParams
+
+        ## Create a new moth:
+    	# instantiate template params
+        model_params = ModelParams( len(self.active_pixel_inds), self.goal )
+
+    	# Populate the moth's connection matrices using the model_params
+        model_params.init_connection_matrix()
+
+        return model_params
+
     # # instance method
     # def description(self):
     #     """
@@ -321,20 +336,9 @@ class MothNet:
 # mothra.load_MNIST()
 # train_X, val_X, train_y, val_y = mothra.train_test_split()
 #
-
-
-
-
-# ##IDEAL USAGE
-# from moth_net import MothNet
-#
-# # Load MNIST dataset
-# X_vals, y_vals = moth_net.load_MNIST()
-#
-# ## Instantiate the MothNet object
-# # Load moth parameters
-# moth_parameters = moth_net.load_moth()
-# mothra = moth_net.MothNet(moth_parameters, experiment_parameters)
+# # Load parameters
+# moth_parameters = mothra.load_moth() # define moth model parameters
+# experiment_parameters = mothra.load_exp() # define parameters of a time-evolution experiment
 #
 # mothra.fit_on_MNIST()
 # # mothra.fit(X_train, y_train)
