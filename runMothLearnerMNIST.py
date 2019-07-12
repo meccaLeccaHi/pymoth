@@ -48,7 +48,7 @@ import os
 import copy # for deep copy of nested lists
 import sys
 
-# test for Python version > 2
+##TEST for Python version > 2
 python_version = "{}.{}".format(sys.version_info.major,sys.version_info.minor)
 if sys.version_info.major > 2:
 	print("Python version {} detected.".format(python_version))
@@ -147,6 +147,7 @@ if show_acc_plots or show_time_plots:
 #-------------------------------------------------------------------------------
 
 ### 2. Load and preprocess MNIST dataset ###
+# def load_MNIST(self):
 
 # The dataset:
 # Because the moth brain architecture, as evolved, only handles ~60 features, we need to
@@ -214,10 +215,6 @@ _, num_per_class, class_num = fA.shape
 
 ### 3. Run MothNet simulation ###
 
-# Loop through the number of simulations specified:
-sim_loop_disp = 'starting sim(s) for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'
-print(sim_loop_disp.format(goal, tr_per_class, num_sniffs))
-
 def setup_digit_queues(fA):
 	''' Subsample the dataset for this simulation '''
 	# Line up the images for the experiment (in 10 parallel queues)
@@ -273,6 +270,10 @@ def train_test_split(digit_queues):
 	return train_X, val_X, train_y, val_y
 
 for run in range(num_runs):
+
+	# Loop through the number of simulations specified:
+	sim_loop_disp = 'starting sim for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'
+	print(sim_loop_disp.format(goal, tr_per_class, num_sniffs))
 
 	digit_queues = setup_digit_queues(fA)
 
@@ -362,7 +363,6 @@ for run in range(num_runs):
 
 		# measure overall accuracy
 		nn_acc = neigh.score(val_X, val_y)
-		# old acc. metric: np.sum(y_hat == val_y.squeeze()) / len(val_y)
 
 		# measure accuracy for each class
 		class_acc = np.zeros_like(class_labels) # preallocate
@@ -387,7 +387,6 @@ for run in range(num_runs):
 
 		# measure overall accuracy
 		svm_acc = svm_clf.score(val_X, val_y)
-		# old acc. metric: np.sum(y_hat == val_y.squeeze()) / len(val_y)
 
 		# measure accuracy for each class
 		class_acc = np.zeros_like(class_labels) # preallocate

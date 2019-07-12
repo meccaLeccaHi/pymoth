@@ -1,4 +1,4 @@
-def generate_ds_MNIST( max_ind, class_labels, crop, downsample_rate, downsample_method,
+def generate_ds_MNIST( self, max_ind, class_labels, crop, downsample_rate, downsample_method,
 inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
 show_thumbnails ):
 
