@@ -147,8 +147,6 @@ if show_acc_plots or show_time_plots:
 #-------------------------------------------------------------------------------
 
 ### 2. Load and preprocess MNIST dataset ###
-# def load_MNIST(self):
-
 # The dataset:
 # Because the moth brain architecture, as evolved, only handles ~60 features, we need to
 # create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features.
@@ -201,7 +199,7 @@ downsample_method = 1 # 0 means sum square patches of pixels
 # generate the data array:
 # The dataset fA is a feature array ready for running experiments.
 # Each experiment uses a random draw from this dataset.
-fA, active_pixel_inds, len_side = generate_ds_MNIST(
+fA, active_pixel_inds, len_side = generate_ds_MNIST('',
 	max_ind, class_labels, crop, downsample_rate, downsample_method, inds_to_ave,
 	pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
 	show_thumbnails
@@ -210,10 +208,6 @@ fA, active_pixel_inds, len_side = generate_ds_MNIST(
 _, num_per_class, class_num = fA.shape
 # fA = n x m x 10 array where n = #active pixels, m = #digits from each class
 # that will be used. The 3rd dimension gives the class: 0:9.
-
-#-------------------------------------------------------------------------------
-
-### 3. Run MothNet simulation ###
 
 def setup_digit_queues(fA):
 	''' Subsample the dataset for this simulation '''
@@ -269,6 +263,10 @@ def train_test_split(digit_queues):
 
 	return train_X, val_X, train_y, val_y
 
+#-------------------------------------------------------------------------------
+
+### 3. Run MothNet simulation ###
+
 for run in range(num_runs):
 
 	# Loop through the number of simulations specified:
@@ -285,7 +283,6 @@ for run in range(num_runs):
 		show_FA_thumbs(temp_array, n_thumbnails, normalize, 'Input thumbnails',
 			screen_size, os.path.join(save_results_folder,'thumbnails'))
 
-#-------------------------------------------------------------------------------
 	# Train/test split: Re-organize train and val sets for classifiers
 	train_X, val_X, train_y, val_y = train_test_split(digit_queues)
 
@@ -305,12 +302,12 @@ for run in range(num_runs):
 	# 	responses, windowing of Firing rates, etc
 	experiment_params = ExpParams( tr_classes, class_labels, val_per_class )
 
-#-------------------------------------------------------------------------------
+	#-------------------------------------------------------------------------------
 
 	# 3. run this experiment as sde time-step evolution:
 	sim_results = sde_wrap( model_params, experiment_params, digit_queues )
 
-#-------------------------------------------------------------------------------
+	#-------------------------------------------------------------------------------
 
 	# Process the sim results to group EN responses by class and time:
 	resp_orig = show_EN_resp( sim_results, model_params, experiment_params,
@@ -350,8 +347,8 @@ for run in range(num_runs):
 	# resp_orig[0]['matrixParamsFilename'] = matrix_params_filename
 	resp_orig[0]['K2Efinal'] = sim_results['K2Efinal']
 
-### 4. Run simulation with alternative models ###
-#-------------------------------------------------------------------------------
+	### 4. Run simulation with alternative models ###
+	#-------------------------------------------------------------------------------
 
 	# nearest neighbors
 	if run_nearest_neighbors:
@@ -372,10 +369,10 @@ for run in range(num_runs):
 				len(val_y[inds]) )
 
 		print('Nearest neighbor (k[# of neighbors]={}):\n'.format(num_neighbors),
-            'Trained Accuracy = {}%,'.format(np.round(100*nn_acc)),
-            'by class: {}% '.format(class_acc) )
+	        'Trained Accuracy = {}%,'.format(np.round(100*nn_acc)),
+	        'by class: {}% '.format(class_acc) )
 
-#-------------------------------------------------------------------------------
+	#-------------------------------------------------------------------------------
 
 	# support vector machine
 	if runSVM:
@@ -396,8 +393,8 @@ for run in range(num_runs):
 				len(val_y[inds]) )
 
 		print('Support vector machine (BoxConstraint[i.e. C]={}):\n'.format(box_constraint),
-        	'Trained Accuracy = {}%,'.format(np.round(100*svm_acc)),
-            'by class: {}% '.format(class_acc))
+	    	'Trained Accuracy = {}%,'.format(np.round(100*svm_acc)),
+	        'by class: {}% '.format(class_acc))
 
 print('         -------------All done-------------         ')
 
