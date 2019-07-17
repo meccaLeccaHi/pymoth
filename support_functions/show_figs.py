@@ -1,3 +1,7 @@
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+
 def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     screen_size, images_filename ):
     '''
@@ -15,10 +19,6 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
     '''
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import os
 
     if images_filename:
         images_folder = os.path.dirname(images_filename)
@@ -65,7 +65,7 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     # Save plot
     if os.path.isdir(images_folder):
         thumb_name = os.path.join(os.getcwd(), images_filename+'.png')
-        thumbs_fig.savefig(thumb_name)
+        thumbs_fig.savefig(thumb_name, dpi=100)
         print(f'Image thumbnails saved: {thumb_name}')
 
 def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
@@ -104,12 +104,7 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
     MIT License
     '''
 
-    import os
-    import numpy as np
-    # import matplotlib
-    # matplotlib.use("TKAgg") # DEV NOTE: Remove later (APJ)
-    from matplotlib import pyplot as plt
-
+    # from matplotlib import pyplot as plt
     if images_filename:
         images_folder = os.path.dirname(images_filename)
 
@@ -141,14 +136,14 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
 
     ## Set regions to examine:
     # 1. data from expP
-    # simStart = expP.simStart;
-    # classMags = expP.classMags;
-    # stimStarts = expP.stimStarts; % to get timeSteps from very start of sim
+    # simStart = expP.simStart
+    # classMags = expP.classMags
+    # stimStarts = expP.stimStarts # to get timeSteps from very start of sim
     stimStarts = expP.stimStarts*(expP.classMags > 0) # ie only use non-zero puffs
-    # whichClass = expP.whichClass;
+    # whichClass = expP.whichClass
     whichClass = expP.whichClass*(expP.classMags > 0)
-    # startTrain = expP.startTrain;
-    # endTrain = expP.endTrain;
+    # startTrain = expP.startTrain
+    # endTrain = expP.endTrain
 
     classList = np.unique(whichClass)
     # numClasses = len(classList)
@@ -370,7 +365,7 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
 
         # Save plot
         if os.path.isdir(images_folder) and show_acc_plots:
-            thisFig.savefig(images_filename + '_en{}.png'.format(enInd))
+            thisFig.savefig(images_filename + '_en{}.png'.format(enInd), dpi=100)
 
         #-----------------------------------------------------------------------
 
@@ -479,10 +474,59 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
             if os.path.isdir(images_folder) and \
             (enInd%3 == 2 or enInd == (modelParams.nE-1)):
                 fig_name = os.path.join(os.getcwd(), images_filename+'_enTimecourses{}.png'.format(enInd))
-                enFig.savefig(fig_name)
+                enFig.savefig(fig_name, dpi=100)
                 print(f'Figure saved: {fig_name}')
 
     return results
+
+def show_roc_curves(fpr, tpr, roc_auc, class_labels, images_filename=''):
+    '''
+    Plot all ROC curves
+    Input: fpr, tpr, roc_auc, images_filename=''
+    '''
+    from itertools import cycle
+
+    if images_filename:
+        images_folder = os.path.dirname(images_filename)
+
+    # create directory for images (if doesnt exist)
+    if not os.path.isdir(images_folder):
+        os.mkdir(images_folder)
+        print('Creating results directory: {}'.format(images_filename))
+
+    lw = 1.5
+
+    fig, ax = plt.subplots()
+    ax.plot(fpr["micro"], tpr["micro"],
+             label='micro-average (area = {0:0.2f})'
+                   ''.format(roc_auc["micro"]),
+             color='deeppink', linestyle=':', linewidth=4)
+
+    ax.plot(fpr["macro"], tpr["macro"],
+             label='macro-average (area = {0:0.2f})'
+                   ''.format(roc_auc["macro"]),
+             color='navy', linestyle=':', linewidth=4)
+
+    colors = cycle(['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9'])
+    for i, color in zip(range(len(class_labels)), colors):
+        ax.plot(fpr[i], tpr[i], color=color, lw=lw,
+                 label='Digit: {0} (area = {1:0.2f})'
+                 ''.format(i, roc_auc[i]))
+
+    ax.plot([0, 1], [0, 1], 'k--', lw=lw)
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.05])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    ax.set_title('Some extension of Receiver operating characteristic to multi-class')
+    ax.legend(loc="lower right")
+
+    # Save plot
+    if os.path.isdir(images_folder):
+        roc_fname = os.path.join(os.getcwd(), images_filename+'.png')
+        fig.savefig(roc_fname, dpi=150)
+        print(f'ROC curves saved: {roc_fname}')
+
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

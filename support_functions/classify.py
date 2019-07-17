@@ -1,11 +1,11 @@
+import numpy as np
+import itertools
+
 def confusion_matrix( true_classes, pred_classes ):
     '''
     Calculate confusion matrix
     ex: confusion = confusion_matrix(true_classes, pred_classes)
     '''
-
-    import numpy as np
-    import itertools
 
     class_members = list(set(true_classes))
 
@@ -20,6 +20,47 @@ def confusion_matrix( true_classes, pred_classes ):
     # reshape to square based on number of different classes
     return np.reshape(np.array(conf_mat), (-1, len(set(true_classes))))
 
+def roc_multi(true_classes, likelihoods):
+    '''Measure ROC AUC for multi-class classifiers'''
+
+    from scipy import interp
+    from sklearn.metrics import roc_curve, auc
+
+    n_classes = len(set(true_classes))
+
+    # one-hot-encode target labels
+    targets = true_classes.astype(int)
+    targets = np.eye(n_classes)[targets]
+
+    # compute ROC curve and ROC area for each class
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in set(true_classes.astype(int)):
+        fpr[i], tpr[i], _ = roc_curve(targets[:,i], likelihoods[:,i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # compute micro-average ROC curve and ROC area
+    fpr["micro"], tpr["micro"], _ = roc_curve(targets.ravel(), likelihoods.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+    ## compute macro-average ROC curve and ROC area
+    # first aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+
+    # then interpolate all ROC curves at this points
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(n_classes):
+        mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+
+    # finally, average it and compute AUC
+    mean_tpr /= n_classes
+
+    fpr["macro"] = all_fpr
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+
+    return targets, roc_auc, fpr, tpr
 
 def classify_digits_log_likelihood( results ):
     '''
@@ -35,13 +76,13 @@ def classify_digits_log_likelihood( results ):
     3. odorClass: gives the true labels of each digit, 0 to 9 (10 = '0'). this is the same in each EN
 
     output:
-    output = struct with the following fields:
-    1. likelihoods = n x 10 matrix, each row a postTraining digit (entries are summed log likelihoods)
-    2. true_classes = shortened version of whichOdor (with only postTrain, ie validation, entries)
-    3. pred_classes = predicted classes
-    4. conf_mat = raw counts, rows = ground truth, cols = predicted
-    5. class_acc = 1 x 10 vector, with class accuracies as percentages
-    6. total_acc = overall accuracy as percentage
+    - output = struct with the following fields:
+        1. likelihoods = n x 10 matrix, each row a postTraining digit (entries are summed log likelihoods)
+        2. true_classes = shortened version of whichOdor (with only postTrain, ie validation, entries)
+        3. pred_classes = predicted classes
+        4. conf_mat = raw counts, rows = ground truth, cols = predicted
+        5. class_acc = 1 x 10 vector, with class accuracies as percentages
+        6. total_acc = overall accuracy as percentage
 
     ------------------------------------------------------------------------------
 
@@ -57,20 +98,17 @@ def classify_digits_log_likelihood( results ):
     MIT License
     '''
 
-    import numpy as np
-
-    # r = results
     nEn = len(results) # number of ENs, same as number of classes
     pre_train_inds = np.nonzero(results[1]['postTrainOdorResp'] >= 0)[0] # indices of post-train (ie validation) digits
     # DEV NOTE: Why use 2 (1, here) as index above? Ask CBD
-    nP = len(pre_train_inds) # number of post-train digits
+    n_post = len(pre_train_inds) # number of post-train digits
 
     # extract true classes:
     true_classes = results[0]['odorClass'][pre_train_inds] # throughout, digits may be referred to as odors or 'odor puffs'
     # DEV NOTE: Why use 1 (0, here) as index above? Ask CBD
 
     # extract the relevant odor puffs: Each row is an EN, each col is an odor puff
-    post_train_resp = np.full((nEn,nP), np.nan)
+    post_train_resp = np.full((nEn,n_post), np.nan)
     for i,resp in enumerate(results):
         post_train_resp[i,:] = resp['postTrainOdorResp'][pre_train_inds]
 
@@ -83,8 +121,8 @@ def classify_digits_log_likelihood( results ):
 
     # for each EN:
     # get the likelihood of each puff (ie each col of post_train_resp)
-    likelihoods = np.zeros((nP,nEn))
-    for i in range(nP):
+    likelihoods = np.zeros((n_post,nEn))
+    for i in range(n_post):
         # Caution: post_train_resp[:,i] becomes a row vector, but we need it to stay as a
         # col vector so we can make 10 identical columns. So transpose it back with [np.newaxis]
         a = post_train_resp[:,i][np.newaxis]
@@ -110,8 +148,16 @@ def classify_digits_log_likelihood( results ):
     # i,j'th entry is number of test digits with true label i that were predicted to be j
     confusion = confusion_matrix(true_classes, pred_classes)
 
+    # measure ROC AUC for each class
+    targets, roc_auc, fpr, tpr = roc_multi(true_classes, likelihoods*-1)
+
     output = dict()
     output['true_classes'] = true_classes
+    output['targets'] = targets
+    output['roc_auc'] = roc_auc
+    output['fpr'] = fpr
+    output['tpr'] = tpr
+    output['true_classes']
     output['pred_classes'] = pred_classes
     output['likelihoods'] = likelihoods
     output['acc_perc'] = class_acc
@@ -152,16 +198,15 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
             reduces the log likelihood score for that EN.
 
     Output:
-       A dictionary with the following fields:
-       1. likelihoods = n x 10 matrix, each row a postTraining digit. The entries
-       are summed log likelihoods.
-       2. true_classes = shortened version of whichOdor (with only postTrain, ie
-       validation, entries)
-       3. pred_classes = predicted classes
-       4. conf_mat = raw counts, rows = ground truth, cols = predicted
-       5. class_acc = 1 x 10 vector, with class accuracies as percentages
-       6. total_acc = overall accuracy as percentage
-
+        - A dictionary with the following fields:
+            1. likelihoods = n x 10 matrix, each row a postTraining digit. The entries
+            are summed log likelihoods.
+            2. true_classes = shortened version of whichOdor (with only postTrain, ie
+            validation, entries)
+            3. pred_classes = predicted classes
+            4. conf_mat = raw counts, rows = ground truth, cols = predicted
+            5. class_acc = 1 x 10 vector, with class accuracies as percentages
+            6. total_acc = overall accuracy as percentage
     ----------------------------------------------------------------------------
 
     plan:
@@ -185,20 +230,17 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
     MIT License
     '''
 
-    import numpy as np
-
-    # r = results
     nEn = len(results) # number of ENs, same as number of classes
     pre_train_inds = np.nonzero(results[1]['postTrainOdorResp'] >= 0)[0] # indices of post-train (ie validation) digits
     # DEV NOTE: Why use 2 (1, in Python) as index above? Ask CBD
-    nP = len(pre_train_inds) # number of post-train digits
+    n_post = len(pre_train_inds) # number of post-train digits
 
     # extract true classes:
     true_classes = results[0]['odorClass'][pre_train_inds] # throughout, digits may be referred to as odors or 'odor puffs'
     # DEV NOTE: Why use 1 (0, in Python) as index above? Ask CBD
 
     # extract the relevant odor puffs: Each row is an EN, each col is an odor puff
-    post_train_resp = np.full((nEn,nP), np.nan)
+    post_train_resp = np.full((nEn,n_post), np.nan)
     for i,resp in enumerate(results):
         post_train_resp[i,:] = resp['postTrainOdorResp'][pre_train_inds]
 
@@ -214,8 +256,8 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 
     # for each EN:
     # get the likelihood of each puff (ie each col of post_train_resp)
-    likelihoods = np.zeros((nP,nEn))
-    for i in range(nP):
+    likelihoods = np.zeros((n_post,nEn))
+    for i in range(n_post):
 
         dist = (np.tile(post_train_resp[:,i],(10,1)) - mu) / sig # 10 x 10 matrix
         # The ith row, jth col entry is the mahalanobis distance of this test
@@ -242,7 +284,7 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 
     # make predictions:
     pred_classes = np.argmin(likelihoods, axis=1)
-    # for i in range(nP):
+    # for i in range(n_post):
         # pred_classes[i] = find(likelihoods(i,:) == min(likelihoods(i,:) ) )
 
     # calc accuracy percentages:
@@ -256,8 +298,15 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
     # i,j'th entry is number of test digits with true label i that were predicted to be j.
     confusion = confusion_matrix(true_classes, pred_classes)
 
+    # measure ROC AUC for each class
+    targets, roc_auc, fpr, tpr = roc_multi(true_classes, likelihoods)
+
     output = dict() # initialize dictionary
     output['true_classes'] = true_classes
+    output['targets'] = targets
+    output['roc_auc'] = roc_auc
+    output['fpr'] = fpr
+    output['tpr'] = tpr
     output['pred_classes'] = pred_classes
     output['likelihoods'] = likelihoods
     output['acc_perc'] = class_acc

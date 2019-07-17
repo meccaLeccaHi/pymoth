@@ -60,7 +60,7 @@ else:
 
 # Experiment details
 from support_functions.generate import generate_ds_MNIST
-from support_functions.show_figs import show_FA_thumbs, show_EN_resp
+from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves
 from support_functions.params import ExpParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
@@ -88,12 +88,12 @@ goal  = 15
 # if goal == 0, the rate parameters defined the template will be used as-is
 # if goal > 1, the rate parameters will be updated, even in a pre-set moth
 
-tr_per_class = 3 # the number of training samples per class
-num_sniffs = 2 # number of exposures each training sample
+tr_per_class = 3 # (try 3) the number of training samples per class
+num_sniffs = 2 # (try 2) number of exposures each training sample
 
 # nearest neighbors
 run_nearest_neighbors = True # this option requires the sklearn library be installed
-num_neighbors = 1 # optimization param for nearest neighbors
+num_neighbors = 1 # hyper param for nearest neighbors
 # Suggested values: tr_per_class ->
 #	num_neighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
 
@@ -325,9 +325,9 @@ for run in range(num_runs):
 	# 1. Using Log-likelihoods over all ENs:
 	# Baseline accuracy:
 	output_naive_log_loss = classify_digits_log_likelihood( resp_naive )
-
 	# Post-training accuracy using log-likelihood over all ENs:
 	output_trained_log_loss = classify_digits_log_likelihood( resp_orig )
+
 	print('LogLikelihood:')
 	print(' Baseline (Naive) Accuracy: {}%,'.format(round(output_naive_log_loss['total_acc'])) + \
 		'by class: {}%'.format(np.round(output_naive_log_loss['acc_perc'])))
@@ -338,14 +338,9 @@ for run in range(num_runs):
 	output_naive_thresholding = classify_digits_thresholding( resp_naive, 1e9, -1, 10 )
 	output_trained_thresholding = classify_digits_thresholding( resp_orig, 1e9, -1, 10 )
 
-	# append the accuracy results, and other run data, to the first entry of resp_orig:
-	resp_orig[0]['modelParams'] = model_params  # will include all connection weights of this moth
-	resp_orig[0]['outputNaiveLogL'] = output_naive_log_loss
-	resp_orig[0]['outputTrainedLogL'] = output_trained_log_loss
-	resp_orig[0]['outputNaiveThresholding'] = output_naive_thresholding
-	resp_orig[0]['outputTrainedThresholding'] = output_trained_thresholding
-	# resp_orig[0]['matrixParamsFilename'] = matrix_params_filename
-	resp_orig[0]['K2Efinal'] = sim_results['K2Efinal']
+	# Compute macro-average ROC curve
+	show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
+		output_trained_log_loss['roc_auc'], class_labels, images_filename='./results/ROC_moth')
 
 	### 4. Run simulation with alternative models ###
 	#-------------------------------------------------------------------------------
@@ -372,6 +367,9 @@ for run in range(num_runs):
 	        'Trained Accuracy = {}%,'.format(np.round(100*nn_acc)),
 	        'by class: {}% '.format(class_acc) )
 
+		# # Compute macro-average ROC curve
+		# show_roc_curves(fpr, tpr, roc_auc, class_labels, images_filename='./results/ROC_knn')
+
 	#-------------------------------------------------------------------------------
 
 	# support vector machine
@@ -395,6 +393,9 @@ for run in range(num_runs):
 		print('Support vector machine (BoxConstraint[i.e. C]={}):\n'.format(box_constraint),
 	    	'Trained Accuracy = {}%,'.format(np.round(100*svm_acc)),
 	        'by class: {}% '.format(class_acc))
+
+		# # Compute macro-average ROC curve
+		# show_roc_curves(fpr, tpr, roc_auc, class_labels, images_filename='./results/ROC_knn')
 
 print('         -------------All done-------------         ')
 
