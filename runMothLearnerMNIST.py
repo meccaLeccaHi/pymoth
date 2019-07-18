@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 runMothLearnerMNIST
 
@@ -60,7 +62,7 @@ else:
 
 # Experiment details
 from support_functions.generate import generate_ds_MNIST
-from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves
+from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
 from support_functions.params import ExpParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
@@ -92,20 +94,20 @@ tr_per_class = 3 # (try 3) the number of training samples per class
 num_sniffs = 2 # (try 2) number of exposures each training sample
 
 # nearest neighbors
-run_nearest_neighbors = True # this option requires the sklearn library be installed
+run_knn = True # this option requires the sklearn library be installed
 num_neighbors = 1 # hyper param for nearest neighbors
 # Suggested values: tr_per_class ->
 #	num_neighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
 
 # SVM
-runSVM = True # this option requires the sklearn library be installed
+run_svm = True # this option requires the sklearn library be installed
 box_constraint = 1e1 # optimization parameter for svm
 # Suggested values: tr_per_class ->
 #	box_constraint:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
 #					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
 
 ## Flags to show various images:
-n_thumbnails = 1 # N means show N experiment inputs from each class
+n_thumbnails = 0 # N means show N experiment inputs from each class
 	# 0 means don't show any
 
 # To save results if wished:
@@ -124,13 +126,13 @@ results_filename = 'results' # will get the run number appended to it
 #-------------------------------------------------------------------------------
 
 # Test parameters for compatibility
-if run_nearest_neighbors or runSVM:
+if run_knn or run_svm:
 	##TEST to see if sklearn is installed,
 	try:
 	    import sklearn
 	except ImportError:
 	    print('sklearn is not installed, and it is required to run ML models.\n' + \
-			"Install it or set run_nearest_neighbors and runSVM to 'False'.")
+			"Install it or set run_knn and run_svm to 'False'.")
 
 if show_acc_plots or show_time_plots:
 	##TEST that directory string is not empty
@@ -294,9 +296,6 @@ for run in range(num_runs):
 	# Populate the moth's connection matrices using the model_params
 	model_params.init_connection_matrix()
 
-	# # Define the experiment parameters, including book-keeping for time-stepped
-	# # 	evolutions, eg when octopamine occurs, time regions to poll for digit
-	# # 	responses, windowing of firing rates, etc
 	# Load experiment params, including book-keeping for time-stepped
 	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# 	responses, windowing of Firing rates, etc
@@ -347,7 +346,7 @@ for run in range(num_runs):
 	#-------------------------------------------------------------------------------
 
 	# nearest neighbors
-	if run_nearest_neighbors:
+	if run_knn:
 
 		from sklearn.neighbors import KNeighborsClassifier
 		neigh = KNeighborsClassifier(n_neighbors=num_neighbors)
@@ -358,10 +357,10 @@ for run in range(num_runs):
 		probabilities = neigh.predict_proba(val_X)
 
 		# measure ROC AUC for each class
-		_, roc_auc, fpr, tpr = roc_multi(val_y.flatten(), probabilities)
+		roc_knn = roc_multi(val_y.flatten(), probabilities)
 
 		# compute macro-average ROC curve
-		show_roc_curves(fpr, tpr, roc_auc, class_labels,
+		show_roc_curves(roc_knn['fpr'], roc_knn['tpr'], roc_knn['roc_auc'], class_labels,
 		 	title_str='KNN', images_filename='./results/ROC_knn')
 
 		# measure overall accuracy
@@ -378,13 +377,10 @@ for run in range(num_runs):
 	        'Trained Accuracy = {}%,'.format(np.round(100*nn_acc)),
 	        'by class: {}% '.format(class_acc) )
 
-		# # Compute macro-average ROC curve
-		# show_roc_curves(fpr, tpr, roc_auc, class_labels, images_filename='./results/ROC_knn')
-
 	#-------------------------------------------------------------------------------
 
 	# support vector machine
-	if runSVM:
+	if run_svm:
 
 		from sklearn import svm
 		svm_clf = svm.SVC(gamma='scale', C=box_constraint, probability=True)
@@ -395,10 +391,10 @@ for run in range(num_runs):
 		probabilities = svm_clf.predict_proba(val_X)
 
 		# measure ROC AUC for each class
-		_, roc_auc, fpr, tpr = roc_multi(val_y.flatten(), probabilities)
+		roc_svm = roc_multi(val_y.flatten(), probabilities)
 
 		# compute macro-average ROC curve
-		show_roc_curves(fpr, tpr, roc_auc, class_labels,
+		show_roc_curves(roc_svm['fpr'], roc_svm['tpr'], roc_svm['roc_auc'], class_labels,
 			title_str='SVM', images_filename='./results/ROC_svm')
 
 		# measure overall accuracy
@@ -414,6 +410,10 @@ for run in range(num_runs):
 		print('Support vector machine (BoxConstraint[i.e. C]={}):\n'.format(box_constraint),
 	    	'Trained Accuracy = {}%,'.format(np.round(100*svm_acc)),
 	        'by class: {}% '.format(class_acc))
+
+	if run_knn and run_svm:
+		show_roc_subplots([output_trained_log_loss, roc_svm, roc_knn], ['MothNet', 'SVM', 'KNN'],
+			class_labels, images_filename='./results/ROC_multi')
 
 print('         -------------All done-------------         ')
 

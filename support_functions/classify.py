@@ -60,7 +60,12 @@ def roc_multi(true_classes, likelihoods):
     tpr["macro"] = mean_tpr
     roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
 
-    return targets, roc_auc, fpr, tpr
+    output = dict()
+    output['targets'] = targets
+    output['roc_auc'] = roc_auc
+    output['fpr'] = fpr
+    output['tpr'] = tpr
+    return output
 
 def classify_digits_log_likelihood( results ):
     '''
@@ -149,14 +154,14 @@ def classify_digits_log_likelihood( results ):
     confusion = confusion_matrix(true_classes, pred_classes)
 
     # measure ROC AUC for each class
-    targets, roc_auc, fpr, tpr = roc_multi(true_classes, likelihoods*-1)
+    roc_dict = roc_multi(true_classes, likelihoods*-1)
 
     output = dict()
     output['true_classes'] = true_classes
-    output['targets'] = targets
-    output['roc_auc'] = roc_auc
-    output['fpr'] = fpr
-    output['tpr'] = tpr
+    output['targets'] = roc_dict['targets']
+    output['roc_auc'] = roc_dict['roc_auc']
+    output['fpr'] = roc_dict['fpr']
+    output['tpr'] = roc_dict['tpr']
     output['true_classes']
     output['pred_classes'] = pred_classes
     output['likelihoods'] = likelihoods
@@ -299,14 +304,14 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
     confusion = confusion_matrix(true_classes, pred_classes)
 
     # measure ROC AUC for each class
-    targets, roc_auc, fpr, tpr = roc_multi(true_classes, likelihoods)
+    roc_dict = roc_multi(true_classes, likelihoods)
 
     output = dict() # initialize dictionary
     output['true_classes'] = true_classes
-    output['targets'] = targets
-    output['roc_auc'] = roc_auc
-    output['fpr'] = fpr
-    output['tpr'] = tpr
+    output['targets'] = roc_dict['targets']
+    output['roc_auc'] = roc_dict['roc_auc']
+    output['fpr'] = roc_dict['fpr']
+    output['tpr'] = roc_dict['tpr']
     output['pred_classes'] = pred_classes
     output['likelihoods'] = likelihoods
     output['acc_perc'] = class_acc

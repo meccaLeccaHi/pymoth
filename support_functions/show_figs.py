@@ -22,10 +22,9 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
 
     if images_filename:
         images_folder = os.path.dirname(images_filename)
-
-    if not os.path.isdir(images_folder):
-        os.mkdir(images_folder)
-        print('Creating results directory: {}'.format(images_filename))
+        if not os.path.isdir(images_folder):
+            os.mkdir(images_folder)
+            print('Creating results directory: {}'.format(images_filename))
 
     # bookkeeping: change dim if needed
     if len(feature_array.shape)==2:
@@ -67,6 +66,8 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
         thumb_name = os.path.join(os.getcwd(), images_filename+'.png')
         thumbs_fig.savefig(thumb_name, dpi=100)
         print(f'Image thumbnails saved: {thumb_name}')
+    else:
+        print('Image thumbnails NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
 
 def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
                 classLabels, screen_size, images_filename='' ):
@@ -107,11 +108,10 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
     # from matplotlib import pyplot as plt
     if images_filename:
         images_folder = os.path.dirname(images_filename)
-
-    # create directory for images (if doesnt exist)
-    if not os.path.isdir(images_folder):
-        os.mkdir(images_folder)
-        print('Creating results directory: {}'.format(images_filename))
+        # create directory for images (if doesnt exist)
+        if not os.path.isdir(images_folder):
+            os.mkdir(images_folder)
+            print('Creating results directory: {}'.format(images_filename))
 
 
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
@@ -479,24 +479,13 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
 
     return results
 
-def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''):
-    '''
-    Plot all ROC curves
-    Input: fpr, tpr, roc_auc, images_filename=''
-    '''
+def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
+    y_axis_label=True, legend=True):
+
     from itertools import cycle
-
-    if images_filename:
-        images_folder = os.path.dirname(images_filename)
-
-    # create directory for images (if doesnt exist)
-    if not os.path.isdir(images_folder):
-        os.mkdir(images_folder)
-        print('Creating results directory: {}'.format(images_filename))
 
     lw = 1.5
 
-    fig, ax = plt.subplots()
     ax.plot(fpr["micro"], tpr["micro"],
              label='micro-average (area = {0:0.2f})'
                    ''.format(roc_auc["micro"]),
@@ -517,15 +506,69 @@ def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filena
     ax.set_xlim([0.0, 1.0])
     ax.set_ylim([0.0, 1.05])
     ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
+    if y_axis_label:
+        ax.set_ylabel('True Positive Rate')
     ax.set_title(title_str + ': ROC extended to multi-class')
-    ax.legend(loc="lower right")
+    if legend:
+        ax.legend(loc="lower right")
+    # return ax
+
+def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''):
+    '''
+    Plot all ROC curves
+    Input: fpr, tpr, roc_auc, images_filename=''
+    '''
+
+    if images_filename:
+        images_folder = os.path.dirname(images_filename)
+        # create directory for images (if doesnt exist)
+        if not os.path.isdir(images_folder):
+            os.mkdir(images_folder)
+            print('Creating results directory: {}'.format(images_filename))
+
+    fig, ax = plt.subplots()
+    ax = plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str)
 
     # Save plot
     if os.path.isdir(images_folder):
         roc_fname = os.path.join(os.getcwd(), images_filename+'.png')
         fig.savefig(roc_fname, dpi=150)
         print(f'ROC curves saved: {roc_fname}')
+
+def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filename=''):
+
+    if images_filename:
+        images_folder = os.path.dirname(images_filename)
+        # create directory for images (if doesnt exist)
+        if images_folder and not os.path.isdir(images_folder):
+            os.mkdir(images_folder)
+            print('Creating results directory: {}'.format(images_filename))
+
+    fig, axes = plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
+
+    y_ax_list = [True, False, False]
+    legend_list = [True, False, False]
+
+    for i in range(len(roc_dict_list)):
+        ax = axes[i]
+        fpr = roc_dict_list[i]['fpr']
+        tpr = roc_dict_list[i]['tpr']
+        roc_auc = roc_dict_list[i]['roc_auc']
+        title_str = title_str_list[i]
+
+        plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
+            y_axis_label=y_ax_list[i], legend=legend_list[i])
+
+    fig.tight_layout()
+
+    # save plot
+    if os.path.isdir(images_folder):
+        roc_fname = os.path.join(os.getcwd(), images_filename+'.png')
+        fig.savefig(roc_fname, dpi=150)
+        print(f'ROC curves saved: {roc_fname}')
+    else:
+        print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
+
 
 
 # MIT license:

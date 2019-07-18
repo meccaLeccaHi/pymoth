@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 class MothNet:
     '''
     Python module to train a moth brain model on a crude (downsampled) MNIST set.
@@ -294,6 +296,17 @@ class MothNet:
         model_params.init_connection_matrix()
 
         return model_params
+
+    def load_exp():
+        '''
+        Load experiment parameters, including book-keeping for time-stepped
+    	   evolutions, eg when octopamine occurs, time regions to poll for digit
+           responses, windowing of firing rates, etc.
+        '''
+
+        from support_functions.params import ExpParams
+
+    	return ExpParams( self.tr_classes, self.class_labels, self.val_per_class )
 
     # # instance method
     # def description(self):
