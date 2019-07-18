@@ -51,7 +51,7 @@ import sys
 ##TEST for Python version > 2
 python_version = "{}.{}".format(sys.version_info.major,sys.version_info.minor)
 if sys.version_info.major > 2:
-	print("Python version {} detected.".format(python_version))
+	print("Python version {} detected".format(python_version))
 else:
 	version_error = "Python version {} detected.\n".format(python_version) + \
 					"Python version 3 or higher is required to run this module.\n" + \
@@ -63,7 +63,7 @@ from support_functions.generate import generate_ds_MNIST
 from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves
 from support_functions.params import ExpParams
 from support_functions.sde import sde_wrap
-from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
+from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
 from support_functions.params import ModelParams
 
 ### 1. Object initialization ###
@@ -340,7 +340,8 @@ for run in range(num_runs):
 
 	# Compute macro-average ROC curve
 	show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
-		output_trained_log_loss['roc_auc'], class_labels, images_filename='./results/ROC_moth')
+		output_trained_log_loss['roc_auc'], class_labels,
+		title_str='MothNet', images_filename='./results/ROC_moth')
 
 	### 4. Run simulation with alternative models ###
 	#-------------------------------------------------------------------------------
@@ -352,6 +353,16 @@ for run in range(num_runs):
 		neigh = KNeighborsClassifier(n_neighbors=num_neighbors)
 		neigh.fit(train_X, train_y.ravel())
 		y_hat = neigh.predict(val_X)
+
+		# get probabilities
+		probabilities = neigh.predict_proba(val_X)
+
+		# measure ROC AUC for each class
+		_, roc_auc, fpr, tpr = roc_multi(val_y.flatten(), probabilities)
+
+		# compute macro-average ROC curve
+		show_roc_curves(fpr, tpr, roc_auc, class_labels,
+		 	title_str='KNN', images_filename='./results/ROC_knn')
 
 		# measure overall accuracy
 		nn_acc = neigh.score(val_X, val_y)
@@ -376,9 +387,19 @@ for run in range(num_runs):
 	if runSVM:
 
 		from sklearn import svm
-		svm_clf = svm.SVC(gamma='scale', C=box_constraint)
+		svm_clf = svm.SVC(gamma='scale', C=box_constraint, probability=True)
 		svm_clf.fit(train_X, train_y.ravel())
 		y_hat = svm_clf.predict(val_X)
+
+		# get probabilities
+		probabilities = svm_clf.predict_proba(val_X)
+
+		# measure ROC AUC for each class
+		_, roc_auc, fpr, tpr = roc_multi(val_y.flatten(), probabilities)
+
+		# compute macro-average ROC curve
+		show_roc_curves(fpr, tpr, roc_auc, class_labels,
+			title_str='SVM', images_filename='./results/ROC_svm')
 
 		# measure overall accuracy
 		svm_acc = svm_clf.score(val_X, val_y)
@@ -393,9 +414,6 @@ for run in range(num_runs):
 		print('Support vector machine (BoxConstraint[i.e. C]={}):\n'.format(box_constraint),
 	    	'Trained Accuracy = {}%,'.format(np.round(100*svm_acc)),
 	        'by class: {}% '.format(class_acc))
-
-		# # Compute macro-average ROC curve
-		# show_roc_curves(fpr, tpr, roc_auc, class_labels, images_filename='./results/ROC_knn')
 
 print('         -------------All done-------------         ')
 

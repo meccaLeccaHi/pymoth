@@ -479,7 +479,7 @@ def show_EN_resp( simRes, modelParams, expP, show_acc_plots, show_time_plots,
 
     return results
 
-def show_roc_curves(fpr, tpr, roc_auc, class_labels, images_filename=''):
+def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''):
     '''
     Plot all ROC curves
     Input: fpr, tpr, roc_auc, images_filename=''
@@ -518,7 +518,7 @@ def show_roc_curves(fpr, tpr, roc_auc, class_labels, images_filename=''):
     ax.set_ylim([0.0, 1.05])
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
-    ax.set_title('Some extension of Receiver operating characteristic to multi-class')
+    ax.set_title(title_str + ': ROC extended to multi-class')
     ax.legend(loc="lower right")
 
     # Save plot
