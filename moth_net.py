@@ -63,10 +63,10 @@ class MothNet:
 
     # Experiment details
     from support_functions.generate import generate_ds_MNIST
-    from support_functions.show_figs import show_FA_thumbs, show_EN_resp
-    from support_functions.params import ExpParams
+    from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
+    from support_functions.params import ExpParams, ModelParams
     from support_functions.sde import sde_wrap
-    from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
+    from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
 
     # Initializer / Instance Attributes
     def __init__(self):
@@ -94,8 +94,8 @@ class MothNet:
         # if goal == 0, the rate parameters defined the template will be used as-is
         # if goal > 1, the rate parameters will be updated, even in a pre-set moth
 
-        self.tr_per_class = 3 # the number of training samples per class
-        self.num_sniffs = 2 # number of exposures each training sample
+        self.tr_per_class = 1 # (try 3) the number of training samples per class
+        self.num_sniffs = 1 # (try 2) number of exposures each training sample
 
         # nearest neighbors
         self.run_nearest_neighbors = True # this option requires the sklearn library be installed
@@ -220,19 +220,6 @@ class MothNet:
         # fA = n x m x 10 array where n = #active pixels, m = #digits from each class
         # that will be used. The 3rd dimension gives the class: 0:9.
 
-#-------------------------------------------------------------------------------
-
-    def train_test_split(self):
-        '''
-        Subsample the dataset for this simulation,
-        then build train and val feature matrices and class label vectors.
-
-        Returns: train_X, val_X, train_y, val_y
-        '''
-
-        ##ADD TEST for presence of self.fA,
-        # ELSE print warning to load data first
-
         # Line up the images for the experiment (in 10 parallel queues)
         digit_queues = self.np.zeros_like(self.fA)
 
@@ -264,6 +251,18 @@ class MothNet:
                 (self.val_per_class+self.tr_per_class*self.num_sniffs+self.val_per_class),
     			i] = self.fA[:, these_inds, i]
 
+        return digit_queues
+
+#-------------------------------------------------------------------------------
+
+    def train_test_split(self, digit_queues):
+        '''
+        Subsample the dataset for this simulation,
+        then build train and val feature matrices and class label vectors.
+
+        Returns: train_X, val_X, train_y, val_y
+        '''
+
         # X = n x numberPixels;  Y = n x 1, where n = 10*tr_per_class.
         train_X = self.np.zeros((10*self.tr_per_class, self.fA.shape[0]))
         val_X = self.np.zeros((10*self.val_per_class, self.fA.shape[0]))
@@ -285,77 +284,57 @@ class MothNet:
         return train_X, val_X, train_y, val_y
 
     def load_moth(self):
-
+        '''
+        Create a new moth, ie the template that is used to populate connection
+            matrices and to control behavior.
+        Returns: Model parameters
+        '''
         from support_functions.params import ModelParams
 
-        ## Create a new moth:
     	# instantiate template params
         model_params = ModelParams( len(self.active_pixel_inds), self.goal )
 
-    	# Populate the moth's connection matrices using the model_params
+    	# populate the moth's connection matrices using the model_params
         model_params.init_connection_matrix()
 
         return model_params
 
-    def load_exp():
+    def load_exp(self):
         '''
         Load experiment parameters, including book-keeping for time-stepped
     	   evolutions, eg when octopamine occurs, time regions to poll for digit
            responses, windowing of firing rates, etc.
+        Returns: Experiment parameters
         '''
 
         from support_functions.params import ExpParams
 
-    	return ExpParams( self.tr_classes, self.class_labels, self.val_per_class )
+        return ExpParams( self.tr_classes, self.class_labels, self.val_per_class )
 
-    # # instance method
-    # def description(self):
-    #     """
-    #     Description of this particular moth.
-    #
-    #     Returns:
-    #         String: A string describing this particular moth.
-    #     """
-    #     return "{} is {} years old".format(self.name, self.age)
-    #
-    # # instance method
-    # def fit(self, X, y):
-    #     """
-    #     Fit moth using training samples.
-    #
-    #     Parameters:
-    #         X (array): Feature matrix (m x n)
-    #         y (array): Label vector
-    #     """
-    #
-    #     runStart = time.time() # time execution duration
-    #
-    #     # some code
-    #
-    #     runDuration = time.time() - runStart
-    #     print(f'{__file__} executed in {runDuration/60:.3f} minutes')
-    #
-    #     return "{} says {}".format(self.name, sound)
+    def simulate(self, model_params, experiment_params, digit_queues):
+        '''
+        Runs the SDE time-stepped evolution of neural firing rates.
+        Parameters:
+            1. model_params: object with connection matrices etc
+            2. exp_params: object with timing info about experiment, eg when stimuli are given.
+            3. feature_array: array of stimuli (numFeatures x numStimsPerClass x numClasses)
+        Returns:
+            1. sim_results: EN timecourses and final P2K and K2E connection matrices.
+              Note that other neurons' timecourses (outputted from sdeEvolutionMnist)
+              are not retained in sim_results.
 
+        #-----------------------------------------------------------------------
 
-# ##MOVE THIS TO ANOTHER SCRIPT
-#
-# # from moth_net import MothNet
-#
-# # Instantiate the MothNet object
-# mothra = MothNet()
-#
-# # call our instance methods
-# mothra.load_MNIST()
-# train_X, val_X, train_y, val_y = mothra.train_test_split()
-#
-# # Load parameters
-# moth_parameters = mothra.load_moth() # define moth model parameters
-# experiment_parameters = mothra.load_exp() # define parameters of a time-evolution experiment
-#
-# mothra.fit_on_MNIST()
-# # mothra.fit(X_train, y_train)
-#
-# mnist_accuracy = mothra.score_on_MNIST()
-# svm_accuracy = mothra.score_svm(X_test, y_test)
-# knn_accuracy = mothra.score_knn(X_test, y_test)
+        4 sections:
+            - load various params needed for pre-evolution prep
+            - specify stim and octo courses
+            - interaction equations and step through simulation
+            - unpack evolution output and export
+
+        Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+        MIT License
+        '''
+        from support_functions.sde import sde_wrap
+
+        # run this experiment as sde time-step evolution:
+        return sde_wrap( model_params, experiment_params, digit_queues )

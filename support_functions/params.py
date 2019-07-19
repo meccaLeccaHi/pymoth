@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # import packages
 import numpy as np
 
@@ -6,7 +8,7 @@ class ModelParams:
     This Python module contains the parameters for a sample moth, ie the template
     that is used to populate connection matrices and to control behavior.
 
-    Input:
+    Parameters:
         1. nF = number of features. This determines the number of neurons in each layer.
         2. goal = measure of learning rate: goal = N means we expect the moth to
             hit max accuracy when trained on N samples per class. So goal = 1 gives
@@ -363,8 +365,8 @@ class ModelParams:
         '''
         Generates the various connection matrices, given a modelParams object,
         and appends them to modelParams.
-        Input: model params object
-        Output: 'params', a struct that includes connection matrices and other model
+        Parameters: model params object
+        Returns: 'params', a struct that includes connection matrices and other model
             info necessary to FR evolution and plotting
 
         #---------------------------------------------------------------------------
@@ -595,7 +597,7 @@ class ExpParams:
 	This function defines parameters of a time-evolution experiment: overall timing, stim timing and
 	strength, octo timing and strength, lowpass window parameter, etc.
 	It does book-keeping to allow analysis of the SDE time-stepped evolution of the neural firing rates.
-	Inputs:
+	Parameters:
 		1. train_classes: vector of indices giving the classes of the training digits in order.
 		The first entry must be nonzero. Unused entries can be filled with -1s if wished.
 		2. class_labels: a list of labels, eg 1:10 for mnist

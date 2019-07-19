@@ -1,4 +1,6 @@
-def downloadAndSave():
+#!/usr/bin/env python3
+
+def download_save():
 	'''
 	saves the following dictionary, called mnist, to .npy file
     train_images: np.array[28x28x60000]
@@ -24,7 +26,7 @@ def downloadAndSave():
 	im_dir = 'MNIST_all'
 
 	(train_imgs, train_lbls), (test_imgs, test_lbls) = mnist.load_data()
-	
+
 	mnist = {
 				'train_images':train_imgs,
 				'test_images':test_imgs,

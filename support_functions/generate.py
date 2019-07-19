@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 def generate_ds_MNIST( self, max_ind, class_labels, crop, downsample_rate, downsample_method,
 inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
 show_thumbnails ):
@@ -60,7 +62,7 @@ show_thumbnails ):
 	if not os.path.isfile(mnist_fname):
 		# download and save data from the web
 		from MNIST_all import MNIST_makeAll
-		MNIST_makeAll.downloadAndSave()
+		MNIST_makeAll.download_save()
 
 	# 1. extract mnist:
 	mnist = np.load(mnist_fname, allow_pickle = True).item()

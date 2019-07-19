@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
+
 def sde_wrap( model_params, exp_params, feature_array ):
     '''
-    Prepares for and runs the SDE time-stepped evolution of neural firing rates.
-    Inputs:
-        1. model_params: struct with connection matrices etc
-        2. exp_params: struct with timing info about experiment, eg when stimuli are given.
-        3. feature_array: numFeatures x numStimsPerClass x numClasses array of stimuli
-    Output:
+    Runs the SDE time-stepped evolution of neural firing rates.
+    Parameters:
+        1. model_params: object with connection matrices etc
+        2. exp_params: object with timing info about experiment, eg when stimuli are given.
+        3. feature_array: array of stimuli (numFeatures x numStimsPerClass x numClasses)
+    Returns:
         1. sim_results: EN timecourses and final P2K and K2E connection matrices.
           Note that other neurons' timecourses (outputted from sdeEvolutionMnist)
           are not retained in sim_results.
@@ -134,7 +136,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     maruyama, milstein version (see Higham's Algorithmic introduction to
     numerical simulation of SDE).
     Called by sde_wrap(). For use with MNIST experiments.
-    Inputs:
+    Parameters:
         1. tspan: 1 x 2 vector = start and stop timepoints (sec)
         2. init_cond: n x 1 vector = starting FRs for all neurons, order-specific
         3. time: start:step:stop; vector of timepoints for stepping through the evolution
@@ -148,7 +150,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         8. exP: experiment parameters with some timing info
         9. seed_val: optional arg for random number generation.
             0 means start a new seed.
-    Output:
+    Returns:
         this_run: object with attributes Y (vectors of all neural timecourses as rows),
             T (timepoints used in evolution), and final mP.P2K and mP.K2E connection matrices.
             1. T = m x 1 vector, timepoints used in evolution
@@ -340,13 +342,12 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 #-------------------------------------------------------------------------------
 
         # set flags to say:
-        #   1. whether we are past the window where mean_spont_FR is
-        #       calculated, so noise should be weighted according to a first
-        #       estimate of mean_spont_FR (mean_spont_1)
+        #   1. whether we are past the window where mean_spont_FR is calculated,
+        #       so noise should be weighted according to a first estimate of
+        #       mean_spont_FR (mean_spont_1)
         #   2. whether we are past the window where mean_spont_FR is recalculated
         #       to mean_spont_2 and
-        #   3. whether we are past the window where final stdSpontFR can be calculated.
-
+        #   3. whether we are past the window where final stdSpontFR can be calculated
         adjustNoiseFlag1 = oldT > exP.stopPreNoiseSpontMean1
         adjustNoiseFlag2 = oldT > exP.stopSpontMean2
         adjustNoiseFlag3 = oldT > exP.stopSpontMean3

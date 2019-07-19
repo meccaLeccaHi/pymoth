@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import itertools
 
@@ -71,11 +73,11 @@ def classify_digits_log_likelihood( results ):
     '''
     function [output] = classify_digits_log_likelihood(results)
     Classify the test digits in a run using log likelihoods from the various EN responses:
-    Inputs:
+    Parameters:
     results = 1 x 10 struct produced by viewENresponses.
         i'th entry gives results for all classes, in the i'th EN
     Important fields:
-    1. postMeanResp, postStdResp (to calculate post-training, ie val, digit response distributions)
+    1. post_mean_resp, postStdResp (to calculate post-training, ie val, digit response distributions)
     2. postTrainOdorResponse (gives the actual responses for each val digit, for that EN)
         Note that non-post-train odors have response = -1 as a flag
     3. odorClass: gives the true labels of each digit, 0 to 9 (10 = '0'). this is the same in each EN
@@ -104,25 +106,25 @@ def classify_digits_log_likelihood( results ):
     '''
 
     nEn = len(results) # number of ENs, same as number of classes
-    pre_train_inds = np.nonzero(results[1]['postTrainOdorResp'] >= 0)[0] # indices of post-train (ie validation) digits
+    pre_train_inds = np.nonzero(results[1]['post_train_resp'] >= 0)[0] # indices of post-train (ie validation) digits
     # DEV NOTE: Why use 2 (1, here) as index above? Ask CBD
     n_post = len(pre_train_inds) # number of post-train digits
 
     # extract true classes:
-    true_classes = results[0]['odorClass'][pre_train_inds] # throughout, digits may be referred to as odors or 'odor puffs'
+    true_classes = results[0]['odor_class'][pre_train_inds] # throughout, digits may be referred to as odors or 'odor puffs'
     # DEV NOTE: Why use 1 (0, here) as index above? Ask CBD
 
     # extract the relevant odor puffs: Each row is an EN, each col is an odor puff
     post_train_resp = np.full((nEn,n_post), np.nan)
     for i,resp in enumerate(results):
-        post_train_resp[i,:] = resp['postTrainOdorResp'][pre_train_inds]
+        post_train_resp[i,:] = resp['post_train_resp'][pre_train_inds]
 
     # make a matrix of mean Class Resps and stds. Each row is an EN, each col is a class:
     mu = np.full((nEn,nEn), np.nan)
     sig = np.full((nEn,nEn), np.nan)
     for i,resp in enumerate(results):
-        mu[i,:] = resp['postMeanResp']
-        sig[i,:] = resp['postStdResp']
+        mu[i,:] = resp['post_mean_resp']
+        sig[i,:] = resp['post_std_resp']
 
     # for each EN:
     # get the likelihood of each puff (ie each col of post_train_resp)
@@ -180,11 +182,11 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
     One use of this function is to apply de-facto thresholding on discrete ENs,
     so that the predicted class corresponds to the EN that spiked most strongly
     (relative to its usual home-class response).
-    Inputs:
+    Parameters:
      1. results = 1 x 10 struct produced by viewENresponses. i'th entry gives
      results for all classes, in the i'th EN.
       Important fields:
-        a. postMeanResp, postStdResp (to calculate post-training, ie val, digit
+        a. post_mean_resp, postStdResp (to calculate post-training, ie val, digit
         response distributions).
         b. postTrainOdorResponse (gives the actual responses for each val digit,
         for that EN)
@@ -202,7 +204,7 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
             home-class value, reward it by dividing by above_home_thresh_reward. This
             reduces the log likelihood score for that EN.
 
-    Output:
+    Returns:
         - A dictionary with the following fields:
             1. likelihoods = n x 10 matrix, each row a postTraining digit. The entries
             are summed log likelihoods.
@@ -236,18 +238,18 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
     '''
 
     nEn = len(results) # number of ENs, same as number of classes
-    pre_train_inds = np.nonzero(results[1]['postTrainOdorResp'] >= 0)[0] # indices of post-train (ie validation) digits
+    pre_train_inds = np.nonzero(results[1]['post_train_resp'] >= 0)[0] # indices of post-train (ie validation) digits
     # DEV NOTE: Why use 2 (1, in Python) as index above? Ask CBD
     n_post = len(pre_train_inds) # number of post-train digits
 
     # extract true classes:
-    true_classes = results[0]['odorClass'][pre_train_inds] # throughout, digits may be referred to as odors or 'odor puffs'
+    true_classes = results[0]['odor_class'][pre_train_inds] # throughout, digits may be referred to as odors or 'odor puffs'
     # DEV NOTE: Why use 1 (0, in Python) as index above? Ask CBD
 
     # extract the relevant odor puffs: Each row is an EN, each col is an odor puff
     post_train_resp = np.full((nEn,n_post), np.nan)
     for i,resp in enumerate(results):
-        post_train_resp[i,:] = resp['postTrainOdorResp'][pre_train_inds]
+        post_train_resp[i,:] = resp['post_train_resp'][pre_train_inds]
 
     # make a matrix of mean Class Resps and stds. Each row is an EN, each col is a class.
     # For example, the i'th row, j'th col entry of 'mu' is the mean of the i'th
@@ -256,8 +258,8 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
     mu = np.full((nEn,nEn), np.nan)
     sig = np.full((nEn,nEn), np.nan)
     for i,resp in enumerate(results):
-        mu[i,:] = resp['postMeanResp']
-        sig[i,:] = resp['postStdResp']
+        mu[i,:] = resp['post_mean_resp']
+        sig[i,:] = resp['post_std_resp']
 
     # for each EN:
     # get the likelihood of each puff (ie each col of post_train_resp)

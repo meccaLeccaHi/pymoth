@@ -63,10 +63,9 @@ else:
 # Experiment details
 from support_functions.generate import generate_ds_MNIST
 from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
-from support_functions.params import ExpParams
+from support_functions.params import ExpParams, ModelParams
 from support_functions.sde import sde_wrap
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
-from support_functions.params import ModelParams
 
 ### 1. Object initialization ###
 
@@ -90,8 +89,8 @@ goal  = 15
 # if goal == 0, the rate parameters defined the template will be used as-is
 # if goal > 1, the rate parameters will be updated, even in a pre-set moth
 
-tr_per_class = 3 # (try 3) the number of training samples per class
-num_sniffs = 2 # (try 2) number of exposures each training sample
+tr_per_class = 1 # (try 3) the number of training samples per class
+num_sniffs = 1 # (try 2) number of exposures each training sample
 
 # nearest neighbors
 run_knn = True # this option requires the sklearn library be installed
@@ -266,14 +265,13 @@ def train_test_split(digit_queues):
 	return train_X, val_X, train_y, val_y
 
 #-------------------------------------------------------------------------------
-
 ### 3. Run MothNet simulation ###
 
+# Loop through the number of simulations specified:
 for run in range(num_runs):
 
-	# Loop through the number of simulations specified:
-	sim_loop_disp = 'starting sim for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'
-	print(sim_loop_disp.format(goal, tr_per_class, num_sniffs))
+	print('starting sim for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'.format(
+		goal, tr_per_class, num_sniffs))
 
 	digit_queues = setup_digit_queues(fA)
 
@@ -293,10 +291,10 @@ for run in range(num_runs):
 	model_params = ModelParams( len(active_pixel_inds), goal )
 	model_params.trueClassLabels = class_labels # misc parameter tagging along
 
-	# Populate the moth's connection matrices using the model_params
+	# populate the moth's connection matrices using the model_params
 	model_params.init_connection_matrix()
 
-	# Load experiment params, including book-keeping for time-stepped
+	# load experiment params, including book-keeping for time-stepped
 	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
 	# 	responses, windowing of Firing rates, etc
 	experiment_params = ExpParams( tr_classes, class_labels, val_per_class )
@@ -306,20 +304,20 @@ for run in range(num_runs):
 	# 3. run this experiment as sde time-step evolution:
 	sim_results = sde_wrap( model_params, experiment_params, digit_queues )
 
-	#-------------------------------------------------------------------------------
+	#####FIX THIS!!!
 
-	# Process the sim results to group EN responses by class and time:
+	# process the sim results to group EN responses by class and time:
 	resp_orig = show_EN_resp( sim_results, model_params, experiment_params,
 		show_acc_plots, show_time_plots, class_labels, screen_size,
 		images_filename=os.path.join(save_results_folder, results_filename) )
 
-	# Calculate the classification accuracy:
+	# calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in resp_orig:
 	resp_naive = copy.deepcopy(resp_orig)
 	for i, resp in enumerate(resp_orig):
-		resp_naive[i]['postMeanResp'] = resp['preMeanResp'].copy()
-		resp_naive[i]['postStdResp'] = resp['preStdResp'].copy()
-		resp_naive[i]['postTrainOdorResp'] = resp['preTrainOdorResp'].copy()
+		resp_naive[i]['post_mean_resp'] = resp['pre_mean_resp'].copy()
+		resp_naive[i]['post_std_resp'] = resp['pre_std_resp'].copy()
+		resp_naive[i]['post_train_resp'] = resp['pre_train_resp'].copy()
 
 	# 1. Using Log-likelihoods over all ENs:
 	# Baseline accuracy:

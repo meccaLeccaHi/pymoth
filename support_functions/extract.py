@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 def extractMNISTFeatureArray( mnist, labels, image_indices, phase_label ):
     '''
     Extract a subset of the samples from each class, convert the images to doubles on [0 1], and
@@ -58,7 +60,7 @@ def cropDownsampleVectorizeImageStack( im_stack, crop_val, ds_ratio, ds_method )
         3. ds_ratio: amount to downsample
         4. ds_method: if 0, do downsampling by summing square patches.
             If 1, use bicubic interpolation.
-    Output:
+    Returns:
         1. im_array: a x numImages array, where a = number of pixels in the cropped and downsampled images
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
@@ -112,7 +114,7 @@ def averageImageStack( im_stack, indices_to_average ):
         1. im_stack = 3-d stack (x, y, z) OR 2-d matrix (images-as-col-vecs, z)
         Caution: Do not feed in feature_array (ie 3-d with dim 1 = feature cols, 2 = samples per class, 3 = classes)
         2. indices_to_average: which images in the stack to average
-    Output:
+    Returns:
         1. average_image: (if input is 3-d) or column vector (if input is 2-d)
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
@@ -148,7 +150,7 @@ def selectActivePixels( feature_array, num_features, screen_size,
         3. save_image_folder: dir to save average class images, empty = don't save
         4. screensize: (width, height)
         5. show_thumbnails: number of thumbnails to plot
-    Output:
+    Returns:
         1. active_pixel_inds: 1 x nF vector of indices to use as features.
         Indices are relative to the vectorized thumbnails (so between 1 and 144).
 
