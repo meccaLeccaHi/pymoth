@@ -639,6 +639,37 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
     return this_run
 
+def collect_stats(sim_results, show_time_plots, images_filename=''):
+    '''
+    Collect stats on readout neurons (EN):
+        Color-code them dots by class and by concurrent octopamine.
+        Collect stats: median, mean, and std of FR for each digit, pre- and post-training.
+        Throughout, digits may be referred to as odors, or as odor puffs.
+        'Pre' = naive. 'Post' = post-training
+
+    Parameters:
+        1. sim_results: dictionary containing simulation results (output from sdeWrapper)
+        2. show_time_plots: show EN timecourses (Boolean)
+        3. images_filename (Optional): to generate image filenames when saving (includes path).
+             If this = '', images will not be saved (ie it's also a flag).
+
+    Returns results list of dictionaries:
+        1. pre_mean_resp = numENs x numOdors matrix = mean of EN pre-training
+        2. pre_std_resp = numENs x numOdors matrix = std of EN responses pre-training
+        3. ditto for post etc
+        4. percent_change_mean_resp = 1 x numOdors vector
+        5. trained = list of indices corresponding to the odor(s) that were trained
+        6. pre_spont_mean = mean(pre_spont)
+        7. pre_spont_std = std(pre_spont)
+        8. post_spont_mean = mean(post_spont)
+        9. post_spont_std = std(post_spont)
+
+    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+    MIT License
+    '''
+    pass
+    # return EN_resp
+
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 # associated documentation files (the "Software"), to deal in the Software without restriction, including

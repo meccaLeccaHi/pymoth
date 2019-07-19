@@ -82,13 +82,13 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
 
     Parameters:
         1. sim_res: dictionary containing simulation results (output from sdeWrapper)
-        2. model_params: object containing model parameters for this moth
+        2. model_params: object containing model parameters for this moth (Class)
         3. exp_params: object containing experiment parameters with timing
-            and digit class info from the experiment.
-        4. show_acc_plots: show changes in accuracy.
-        5. show_time_plots: show EN timecourses.
-        6. class_labels: 1 to 10
-        7. screen_size: tuple
+            and digit class info from the experiment (Class)
+        4. show_acc_plots: show changes in accuracy (Boolean)
+        5. show_time_plots: show EN timecourses (Boolean)
+        6. class_labels: 1 to 10 (int)
+        7. screen_size: width,height (tuple)
         8. images_filename: to generate image filenames when saving (includes path).
             Optional argin. If this = '', images will not be saved (ie it's also a flag).
 
@@ -107,17 +107,10 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
     MIT License
     '''
 
-    if images_filename:
-        images_folder = os.path.dirname(images_filename)
-        # create directory for images (if doesnt exist)
-        if not os.path.isdir(images_folder):
-            os.mkdir(images_folder)
-            print('Creating results directory: {}'.format(images_filename))
+    # colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
+    #     (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
 
-    colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
-        (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
     # concurrent octopamine marked with yellow x's
-
     if sim_res['octo_hits'].max() > 0:
         octo_times = sim_res['T'][ sim_res['octo_hits'] > 0 ]
     else:
@@ -144,13 +137,13 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
     # pre-allocate list of empty dicts
     results = [dict() for i in range(model_params.nE)]
 
-    # Make one stats plot per EN. Loop through ENs:
+    # make one stats plot per EN. Loop through ENs:
     for en_ind in range(model_params.nE):
 
         en_resp = sim_res['E'][:, en_ind]
 
-        ## Calculate pre- and post-train odor response stats
-        # Assumes that there is at least 1 sec on either side of an odor without octo
+        ## calculate pre- and post-train odor response stats
+        # assumes that there is at least 1 sec on either side of an odor without octo
 
         # pre-allocate for loop
         pre_train_resp = np.full(len(stim_starts), np.nan)
@@ -189,8 +182,6 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
 
             ## calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
             # this will contain the average responses over all sniffs for each sample
-            # DEV NOTE: Changed pretty drastically from orig version, but should be the same.
-            # Double check with CBD
             if len(pre_SA)==0:
                 pre_mean_resp[k] = -1
                 pre_median_resp[k] = -1
@@ -234,7 +225,7 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
                                 (100*(post_median_resp[pre_SA] - pre_median_resp[pre_SA] - post_heb_mean))\
                                 /pre_median_resp[pre_SA]
 
-        # plot stats if wished:
+        # plot stats (if selected)
         if show_acc_plots:
 
             fig = show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp,
@@ -242,25 +233,33 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
                 class_labels, pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std,
                 percent_change_mean_resp, screen_size)
 
-        # Save plot
-        if os.path.isdir(images_folder) and show_acc_plots:
-            fig.savefig(images_filename + '_en{}.png'.format(en_ind), dpi=100)
+        # save plot
+        if show_acc_plots:
+            images_folder = os.path.dirname(images_filename)
+            # create directory for images (if doesnt exist)
+            if images_filename and not os.path.isdir(images_folder):
+                os.mkdir(images_folder)
+                print('Creating results directory: {}'.format(images_filename))
+            # save fig
+            fig_name = images_filename + '_en{}.png'.format(en_ind)
+            fig.savefig(fig_name, dpi=100)
+            print(f'Figure saved: {fig_name}')
 
         #-----------------------------------------------------------------------
 
         # store results in a list of dicts
         results[en_ind]['pre_train_resp'] = pre_train_resp # preserves all the sniffs for each stimulus
         results[en_ind]['post_train_resp'] = post_train_resp
-        results[en_ind]['preRespSniffsAved'] = pre_SA # the averaged sniffs for each stimulus
-        results[en_ind]['postRespSniffsAved'] = post_SA
+        results[en_ind]['pre_resp_sniffs_ave'] = pre_SA # the averaged sniffs for each stimulus
+        results[en_ind]['post_resp_sniffs_ave'] = post_SA
         results[en_ind]['odor_class'] = which_class
         results[en_ind]['percent_change_mean_resp'] = percent_change_mean_resp # key stat
         results[en_ind]['percent_change_noise_sub_mean_resp'] = percent_change_noise_sub_mean_resp
-        results[en_ind]['relativeChangeInNoiseSubtractedMeanResp'] = \
+        results[en_ind]['rel_change_noise_sub_mean_resp'] = \
                 percent_change_noise_sub_mean_resp / percent_change_noise_sub_mean_resp[en_ind]
         results[en_ind]['percent_change_median_resp'] = percent_change_median_resp
         results[en_ind]['percent_change_noise_sub_median_resp'] = percent_change_noise_sub_median_resp
-        results[en_ind]['relativeChangeInNoiseSubtractedMedianResp'] = \
+        results[en_ind]['rel_change_noise_sub_median_resp'] = \
                 ( (post_median_resp - pre_median_resp - post_heb_mean )/pre_median_resp ) / \
                 ( (post_median_resp[en_ind] - pre_median_resp[en_ind] - post_heb_mean )/pre_median_resp[en_ind] )
         results[en_ind]['trained'] = en_ind
@@ -289,8 +288,8 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
 
             ax = fig.add_subplot(3, 1, (en_ind%3)+1)
 
-            show_en_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
-                exp_params, stim_starts, which_class, colors )
+            show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
+                exp_params, stim_starts, which_class )
 
             # Save EN timecourse:
             if os.path.isdir(images_folder) and \
@@ -520,8 +519,11 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
     ax.set_xticklabels(class_labels)
     return fig
 
-def show_en_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
-    exp_params, stim_starts, which_class, colors ):
+def show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
+    exp_params, stim_starts, which_class ):
+
+    colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
+         (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
 
     ax.set_xlim([-30, max(sim_res['T'])])
 

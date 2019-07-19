@@ -64,7 +64,7 @@ else:
 from support_functions.generate import generate_ds_MNIST
 from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
 from support_functions.params import ExpParams, ModelParams
-from support_functions.sde import sde_wrap
+from support_functions.sde import sde_wrap, collect_stats
 from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
 
 ### 1. Object initialization ###
@@ -304,26 +304,36 @@ for run in range(num_runs):
 	# 3. run this experiment as sde time-step evolution:
 	sim_results = sde_wrap( model_params, experiment_params, digit_queues )
 
-	#####FIX THIS!!!
+	#####IMPLEMENT THIS!!!
+	# EN_resp_trained =
+	collect_stats( sim_results, show_time_plots,
+		images_filename=os.path.join(save_results_folder, results_filename))
+	#
+	# if show_acc_plots:
+	# 	# create plot
+	# 	fig = show_acc( EN_resp_trained, class_labels, screen_size )
+	#	# save plot
+	#	if os.path.isdir(images_folder) and show_acc_plots:
+	#		fig.savefig(images_filename + '_en{}.png'.format(en_ind), dpi=100)
 
 	# process the sim results to group EN responses by class and time:
-	resp_orig = show_EN_resp( sim_results, model_params, experiment_params,
+	EN_resp_trained = show_EN_resp( sim_results, model_params, experiment_params,
 		show_acc_plots, show_time_plots, class_labels, screen_size,
 		images_filename=os.path.join(save_results_folder, results_filename) )
 
 	# calculate the classification accuracy:
-	# for baseline accuracy function argin, substitute pre- for post-values in resp_orig:
-	resp_naive = copy.deepcopy(resp_orig)
-	for i, resp in enumerate(resp_orig):
-		resp_naive[i]['post_mean_resp'] = resp['pre_mean_resp'].copy()
-		resp_naive[i]['post_std_resp'] = resp['pre_std_resp'].copy()
-		resp_naive[i]['post_train_resp'] = resp['pre_train_resp'].copy()
+	# for baseline accuracy function argin, substitute pre- for post-values in EN_resp_trained:
+	EN_resp_naive = copy.deepcopy(EN_resp_trained)
+	for i, resp in enumerate(EN_resp_trained):
+		EN_resp_naive[i]['post_mean_resp'] = resp['pre_mean_resp'].copy()
+		EN_resp_naive[i]['post_std_resp'] = resp['pre_std_resp'].copy()
+		EN_resp_naive[i]['post_train_resp'] = resp['pre_train_resp'].copy()
 
 	# 1. Using Log-likelihoods over all ENs:
 	# Baseline accuracy:
-	output_naive_log_loss = classify_digits_log_likelihood( resp_naive )
+	output_naive_log_loss = classify_digits_log_likelihood( EN_resp_naive )
 	# Post-training accuracy using log-likelihood over all ENs:
-	output_trained_log_loss = classify_digits_log_likelihood( resp_orig )
+	output_trained_log_loss = classify_digits_log_likelihood( EN_resp_trained )
 
 	print('LogLikelihood:')
 	print(' Baseline (Naive) Accuracy: {}%,'.format(round(output_naive_log_loss['total_acc'])) + \
@@ -332,8 +342,8 @@ for run in range(num_runs):
 		'by class: {}%'.format(np.round(output_trained_log_loss['acc_perc'])))
 
 	# 2. Using single EN thresholding:
-	output_naive_thresholding = classify_digits_thresholding( resp_naive, 1e9, -1, 10 )
-	output_trained_thresholding = classify_digits_thresholding( resp_orig, 1e9, -1, 10 )
+	output_naive_thresholding = classify_digits_thresholding( EN_resp_naive, 1e9, -1, 10 )
+	output_trained_thresholding = classify_digits_thresholding( EN_resp_trained, 1e9, -1, 10 )
 
 	# Compute macro-average ROC curve
 	show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
