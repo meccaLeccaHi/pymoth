@@ -233,8 +233,6 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
                 class_labels, pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std,
                 percent_change_mean_resp, screen_size)
 
-        # save plot
-        if show_acc_plots:
             images_folder = os.path.dirname(images_filename)
             # create directory for images (if doesnt exist)
             if images_filename and not os.path.isdir(images_folder):
@@ -341,7 +339,7 @@ def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filena
     '''
 
     if images_filename:
-        images_folder = os.path.dirname(images_filename)
+        images_folder = os.path.dirname(images_filename).strip('/')
         # create directory for images (if doesnt exist)
         if not os.path.isdir(images_folder):
             os.mkdir(images_folder)
@@ -352,14 +350,14 @@ def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filena
 
     # Save plot
     if os.path.isdir(images_folder):
-        roc_fname = os.path.join(os.getcwd(), images_filename+'.png')
+        roc_fname = os.getcwd() + images_filename + '.png'
         fig.savefig(roc_fname, dpi=150)
         print(f'ROC curves saved: {roc_fname}')
 
 def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filename=''):
 
     if images_filename:
-        images_folder = os.path.dirname(images_filename)
+        images_folder = os.path.dirname(images_filename).strip('/')
         # create directory for images (if doesnt exist)
         if images_folder and not os.path.isdir(images_folder):
             os.mkdir(images_folder)
@@ -384,7 +382,7 @@ def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filena
 
     # save plot
     if os.path.isdir(images_folder):
-        roc_fname = os.path.join(os.getcwd(), images_filename+'.png')
+        roc_fname = os.getcwd() + images_filename + '.png'
         fig.savefig(roc_fname, dpi=150)
         print(f'ROC curves saved: {roc_fname}')
     else:

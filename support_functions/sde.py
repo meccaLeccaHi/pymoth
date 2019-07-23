@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import numpy as np
 
 def sde_wrap( model_params, exp_params, feature_array ):
     '''
@@ -23,8 +24,6 @@ def sde_wrap( model_params, exp_params, feature_array ):
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
     '''
-
-    import numpy as np
 
     ## 1. initialize states of various components:
 
@@ -116,6 +115,7 @@ def sde_wrap( model_params, exp_params, feature_array ):
         'octo_hits' : octo_hits,
         'K2Efinal' : this_run['K2Efinal'],
         'P2Kfinal' : this_run['P2Kfinal'],
+        'nE' : nE
         }
 
     if model_params.saveAllNeuralTimecourses:
@@ -192,7 +192,6 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     MIT License
     '''
 
-    import numpy as np
     from scipy.special import erfinv
 
     def piecewise_lin_pseudo_sig(x, span, slope):
@@ -639,7 +638,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
     return this_run
 
-def collect_stats(sim_results, show_time_plots, images_filename=''):
+def collect_stats(sim_results, exp_params, class_labels, show_time_plots, show_acc_plots,
+    images_filename='', screen_size=(1920,1080)):
     '''
     Collect stats on readout neurons (EN):
         Color-code them dots by class and by concurrent octopamine.
@@ -649,9 +649,13 @@ def collect_stats(sim_results, show_time_plots, images_filename=''):
 
     Parameters:
         1. sim_results: dictionary containing simulation results (output from sdeWrapper)
-        2. show_time_plots: show EN timecourses (Boolean)
-        3. images_filename (Optional): to generate image filenames when saving (includes path).
-             If this = '', images will not be saved (ie it's also a flag).
+        2. exp_params: object with timing info about experiment, eg when stimuli are given
+        3. class_labels: a list of labels, eg 1:10 for MNIST
+        4. show_time_plots: show EN timecourses (Boolean)
+        5. show_acc_plots: show changes in accuracy (Boolean)
+        6. images_filename [optional]: to generate image filenames when saving (includes path)
+             If this = '', images will not be saved (ie it's also a flag)
+        7. screen_size [optional]: screen size (width, height) for images (tuple)
 
     Returns results list of dictionaries:
         1. pre_mean_resp = numENs x numOdors matrix = mean of EN pre-training
@@ -667,8 +671,197 @@ def collect_stats(sim_results, show_time_plots, images_filename=''):
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
     '''
-    pass
-    # return EN_resp
+    import os
+    import matplotlib.pyplot as plt
+    from support_functions.show_figs import show_acc, show_timecourse
+
+    # concurrent octopamine
+    if sim_results['octo_hits'].max() > 0:
+        octo_times = sim_results['T'][ sim_results['octo_hits'] > 0 ]
+    else:
+        octo_times = []
+
+    # calc spont stats
+    pre_spont = sim_results['E'][ np.logical_and(exp_params.preHebSpontStart < sim_results['T'],
+                                    sim_results['T'] < exp_params.preHebSpontStop) ]
+    post_spont = sim_results['E'][ np.logical_and(exp_params.postHebSpontStart < sim_results['T'],
+                                    sim_results['T'] < exp_params.postHebSpontStop) ]
+
+    pre_heb_mean = pre_spont.mean()
+    pre_heb_std = pre_spont.std()
+    post_heb_mean = post_spont.mean()
+    post_heb_std = post_spont.std()
+
+    ## Set regions to examine:
+    # 1. data from exp_params
+    # stim_starts = exp_params.stim_starts # to get timeSteps from very start of sim
+    stim_starts = exp_params.stimStarts*(exp_params.classMags > 0) # ie only use non-zero puffs
+    which_class = exp_params.whichClass*(exp_params.classMags > 0)
+    class_list = np.unique(which_class)
+
+    # pre-allocate list of empty dicts
+    results = [dict() for i in range(sim_results['nE'])]
+
+    # make one stats plot per EN. Loop through ENs:
+    for en_ind in range(sim_results['nE']):
+
+        en_resp = sim_results['E'][:, en_ind]
+
+        ## calculate pre- and post-train odor response stats
+        # assumes that there is at least 1 sec on either side of an odor without octo
+
+        # pre-allocate for loop
+        pre_train_resp = np.full(len(stim_starts), np.nan)
+        post_train_resp = np.full(len(stim_starts), np.nan)
+
+        for i, t in enumerate(stim_starts):
+            # Note: to find no-octo stim_starts, there is a certain amount of machinery
+            # in order to mesh with the timing data from the experiment.
+            # For some reason octo_times are not recorded exactly as listed in format
+            # short mode. So we need to use abs difference > small thresh, rather
+            # than ~ismember(t, octo_times):
+            small = 1e-8 # .00000001
+            # assign no-octo, PRE-train response val (or -1)
+            pre_train_resp[i] = -1 # as flag
+            if (len(octo_times)==0) or ((abs(octo_times - t).min() > small) and (t < exp_params.startTrain)):
+                resp_ind = np.logical_and(t-1 < sim_results['T'], sim_results['T'] < t+1)
+                pre_train_resp[i] = en_resp[resp_ind].max()
+
+            # assign no-octo, POST-train response val (or -1)
+            post_train_resp[i] = -1
+            if len(octo_times)!=0:
+                if (abs(octo_times - t).min() > small) and (t > exp_params.endTrain):
+                    resp_ind = np.logical_and(t-1 < sim_results['T'], sim_results['T'] < t+1)
+                    post_train_resp[i] = en_resp[resp_ind].max()
+
+        # pre-allocate for loop
+        pre_mean_resp, pre_median_resp, pre_std_resp, pre_num_puffs, post_mean_resp, \
+            post_median_resp, post_std_resp, post_num_puffs = \
+            [np.full(len(class_list), np.nan) for _ in range(8)]
+
+        # calc no-octo stats for each odor, pre and post train:
+        for k, cl in enumerate(class_list):
+            current_class = which_class==cl
+            pre_SA = pre_train_resp[np.logical_and(pre_train_resp>=0, current_class)]
+            post_SA = post_train_resp[np.logical_and(post_train_resp>=0, current_class)]
+
+            ## calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
+            # this will contain the average responses over all sniffs for each sample
+            if len(pre_SA)==0:
+                pre_mean_resp[k] = -1
+                pre_median_resp[k] = -1
+                pre_std_resp[k] = -1
+                pre_num_puffs[k] = 0
+            else:
+                pre_mean_resp[k] = pre_SA.mean()
+                pre_median_resp[k] = np.median(pre_SA)
+                pre_std_resp[k] = pre_SA.std()
+                pre_num_puffs[k] = len(pre_SA)
+
+            if len(post_SA)==0:
+                post_mean_resp[k] = -1
+                post_median_resp[k] = -1
+                post_std_resp[k] = -1
+                post_num_puffs[k] = 0
+            else:
+                post_mean_resp[k] = post_SA.mean()
+                post_median_resp[k] = np.median(post_SA)
+                post_std_resp[k] = post_SA.std()
+                post_num_puffs[k] = len(post_SA)
+
+        # # to plot +/- 1 std of % change in mean_resp, we want the std of our
+        # # estimate of the mean = std_resp/sqrt(numPuffs). Make this calc:
+        # pre_std_mean_est = pre_std_resp/np.sqrt(pre_num_puffs)
+        # post_std_mean_est = post_std_resp/np.sqrt(post_num_puffs)
+
+        pre_SA = np.nonzero(pre_num_puffs > 0)[0]
+        post_SA = np.nonzero(post_num_puffs > 0)[0]
+        post_offset = post_SA + 0.25
+
+        percent_change_mean_resp = (100*(post_mean_resp[pre_SA] - pre_mean_resp[pre_SA]))\
+                                    /pre_mean_resp[pre_SA]
+        percent_change_noise_sub_mean_resp = \
+                                (100*(post_mean_resp[pre_SA] - pre_mean_resp[pre_SA] - post_heb_mean))\
+                                /pre_mean_resp[pre_SA]
+
+        percent_change_median_resp = (100*(post_median_resp[pre_SA] - pre_median_resp[pre_SA]))\
+                                /pre_median_resp[pre_SA]
+        percent_change_noise_sub_median_resp = \
+                                (100*(post_median_resp[pre_SA] - pre_median_resp[pre_SA] - post_heb_mean))\
+                                /pre_median_resp[pre_SA]
+
+        # plot stats (if selected)
+        if show_acc_plots:
+
+            fig = show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp,
+                pre_std_resp, post_offset, post_mean_resp, post_median_resp, post_std_resp,
+                class_labels, pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std,
+                percent_change_mean_resp, screen_size)
+
+            images_folder = os.path.dirname(images_filename)
+            # create directory for images (if doesnt exist)
+            if images_filename and not os.path.isdir(images_folder):
+                os.mkdir(images_folder)
+                print('Creating results directory: {}'.format(images_filename))
+            # save fig
+            fig_name = images_filename + '_en{}.png'.format(en_ind)
+            fig.savefig(fig_name, dpi=100)
+            print(f'Figure saved: {fig_name}')
+
+        #-----------------------------------------------------------------------
+
+        # store results in a list of dicts
+        results[en_ind]['pre_train_resp'] = pre_train_resp # preserves all the sniffs for each stimulus
+        results[en_ind]['post_train_resp'] = post_train_resp
+        results[en_ind]['pre_resp_sniffs_ave'] = pre_SA # the averaged sniffs for each stimulus
+        results[en_ind]['post_resp_sniffs_ave'] = post_SA
+        results[en_ind]['odor_class'] = which_class
+        results[en_ind]['percent_change_mean_resp'] = percent_change_mean_resp # key stat
+        results[en_ind]['percent_change_noise_sub_mean_resp'] = percent_change_noise_sub_mean_resp
+        results[en_ind]['rel_change_noise_sub_mean_resp'] = \
+                percent_change_noise_sub_mean_resp / percent_change_noise_sub_mean_resp[en_ind]
+        results[en_ind]['percent_change_median_resp'] = percent_change_median_resp
+        results[en_ind]['percent_change_noise_sub_median_resp'] = percent_change_noise_sub_median_resp
+        results[en_ind]['rel_change_noise_sub_median_resp'] = \
+                ( (post_median_resp - pre_median_resp - post_heb_mean )/pre_median_resp ) / \
+                ( (post_median_resp[en_ind] - pre_median_resp[en_ind] - post_heb_mean )/pre_median_resp[en_ind] )
+        results[en_ind]['trained'] = en_ind
+        # EN odor responses, pre and post training.
+        # these should be vectors of length numStims
+        results[en_ind]['pre_mean_resp'] = pre_mean_resp
+        results[en_ind]['pre_std_resp'] = pre_std_resp
+        results[en_ind]['post_mean_resp'] = post_mean_resp
+        results[en_ind]['post_std_resp'] = post_std_resp
+        # spont responses, pre and post training
+        results[en_ind]['pre_spont_mean'] = pre_spont.mean()
+        results[en_ind]['pre_spont_std'] = pre_spont.std()
+        results[en_ind]['post_spont_mean'] = post_spont.mean()
+        results[en_ind]['post_spont_std'] = post_spont.std()
+
+    ## Plot EN timecourses normalized by mean digit response
+    if show_time_plots:
+
+        # go through each EN
+        for en_ind in range(sim_results['nE']): # recal EN1 targets digit class 1, EN2 targets digit class 2, etc
+
+            if en_ind%3 == 0:
+                # make a new figure at ENs 4, 7, 10
+                fig_sz = [np.floor(i/100) for i in screen_size]
+                fig = plt.figure(figsize=fig_sz, dpi=100)
+
+            ax = fig.add_subplot(3, 1, (en_ind%3)+1)
+
+            show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
+                exp_params, stim_starts, which_class )
+
+            # Save EN timecourse:
+            if os.path.isdir(images_folder) and \
+            (en_ind%3 == 2 or en_ind == (sim_results['nE']-1)):
+                fig_name = os.path.join(os.getcwd(), images_filename+'_en_timecourses{}.png'.format(en_ind))
+                fig.savefig(fig_name, dpi=100)
+                print(f'Figure saved: {fig_name}')
+
+    return results
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

@@ -89,8 +89,8 @@ goal  = 15
 # if goal == 0, the rate parameters defined the template will be used as-is
 # if goal > 1, the rate parameters will be updated, even in a pre-set moth
 
-tr_per_class = 1 # (try 3) the number of training samples per class
-num_sniffs = 1 # (try 2) number of exposures each training sample
+tr_per_class = 3 # (try 3) the number of training samples per class
+num_sniffs = 2 # (try 2) number of exposures each training sample
 
 # nearest neighbors
 run_knn = True # this option requires the sklearn library be installed
@@ -304,11 +304,14 @@ for run in range(num_runs):
 	# 3. run this experiment as sde time-step evolution:
 	sim_results = sde_wrap( model_params, experiment_params, digit_queues )
 
+	# # collect response statistics:
+	# process the sim results to group EN responses by class and time
+	EN_resp_trained = collect_stats( sim_results, experiment_params, class_labels,
+		show_time_plots, show_acc_plots,
+		images_filename=os.path.join(save_results_folder, results_filename),
+		screen_size=screen_size)
+
 	#####IMPLEMENT THIS!!!
-	# EN_resp_trained =
-	collect_stats( sim_results, show_time_plots,
-		images_filename=os.path.join(save_results_folder, results_filename))
-	#
 	# if show_acc_plots:
 	# 	# create plot
 	# 	fig = show_acc( EN_resp_trained, class_labels, screen_size )
@@ -316,10 +319,10 @@ for run in range(num_runs):
 	#	if os.path.isdir(images_folder) and show_acc_plots:
 	#		fig.savefig(images_filename + '_en{}.png'.format(en_ind), dpi=100)
 
-	# process the sim results to group EN responses by class and time:
-	EN_resp_trained = show_EN_resp( sim_results, model_params, experiment_params,
-		show_acc_plots, show_time_plots, class_labels, screen_size,
-		images_filename=os.path.join(save_results_folder, results_filename) )
+
+	# EN_resp_trained = show_EN_resp( sim_results, model_params, experiment_params,
+	# 	show_acc_plots, show_time_plots, class_labels, screen_size,
+	# 	images_filename=os.path.join(save_results_folder, results_filename) )
 
 	# calculate the classification accuracy:
 	# for baseline accuracy function argin, substitute pre- for post-values in EN_resp_trained:
@@ -348,7 +351,7 @@ for run in range(num_runs):
 	# Compute macro-average ROC curve
 	show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
 		output_trained_log_loss['roc_auc'], class_labels,
-		title_str='MothNet', images_filename='./results/ROC_moth')
+		title_str='MothNet', images_filename='/results/ROC_moth')
 
 	### 4. Run simulation with alternative models ###
 	#-------------------------------------------------------------------------------
@@ -369,7 +372,7 @@ for run in range(num_runs):
 
 		# compute macro-average ROC curve
 		show_roc_curves(roc_knn['fpr'], roc_knn['tpr'], roc_knn['roc_auc'], class_labels,
-		 	title_str='KNN', images_filename='./results/ROC_knn')
+		 	title_str='KNN', images_filename='/results/ROC_knn')
 
 		# measure overall accuracy
 		nn_acc = neigh.score(val_X, val_y)
@@ -403,7 +406,7 @@ for run in range(num_runs):
 
 		# compute macro-average ROC curve
 		show_roc_curves(roc_svm['fpr'], roc_svm['tpr'], roc_svm['roc_auc'], class_labels,
-			title_str='SVM', images_filename='./results/ROC_svm')
+			title_str='SVM', images_filename='/results/ROC_svm')
 
 		# measure overall accuracy
 		svm_acc = svm_clf.score(val_X, val_y)
@@ -421,7 +424,7 @@ for run in range(num_runs):
 
 	if run_knn and run_svm:
 		show_roc_subplots([output_trained_log_loss, roc_svm, roc_knn], ['MothNet', 'SVM', 'KNN'],
-			class_labels, images_filename='./results/ROC_multi')
+			class_labels, images_filename='/results/ROC_multi')
 
 print('         -------------All done-------------         ')
 
