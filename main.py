@@ -24,7 +24,7 @@ def main():
         # collect response statistics:
         # process the sim results to group EN responses by class and time
         EN_resp_trained = mothra.collect_stats(sim_results, experiment_parameters,
-            mothra.class_labels, mothra.SHOW_TIME_PLOTS, mothra.SHOW_ACC_PLOTS,
+            mothra._class_labels, mothra.SHOW_TIME_PLOTS, mothra.SHOW_ACC_PLOTS,
             images_filename=mothra.RESULTS_FILENAME, images_folder=mothra.RESULTS_FOLDER,
             screen_size=mothra.SCREEN_SIZE)
 

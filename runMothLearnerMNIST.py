@@ -198,7 +198,7 @@ downsample_method = 1 # 0 means sum square patches of pixels
 					# 1 means use bicubic interpolation
 
 # generate the data array:
-# The dataset fA is a feature array ready for running experiments.
+# fA is a feature array ready for running experiments.
 # Each experiment uses a random draw from this dataset.
 fA, active_pixel_inds, len_side = generate_ds_MNIST(
 	max_ind, class_labels, crop, downsample_rate, downsample_method, inds_to_ave,

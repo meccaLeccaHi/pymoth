@@ -177,87 +177,87 @@ class MothNet:
 
         from modules.generate import generate_ds_MNIST
 
-        self.class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
-        self.val_per_class = 15  # number of digits used in validation sets and in baseline sets
+        self._class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
+        self._val_per_class = 15  # number of digits used in validation sets and in baseline sets
 
         # make a vector of the classes of the training samples, randomly mixed:
-        self.tr_classes = np.repeat( self.class_labels, self.TR_PER_CLASS )
-        self.tr_classes = np.random.permutation( self.tr_classes )
+        self._tr_classes = np.repeat( self._class_labels, self.TR_PER_CLASS )
+        self._tr_classes = np.random.permutation( self._tr_classes )
         # repeat these inputs if taking multiple sniffs of each training sample:
-        self.tr_classes = np.tile( self.tr_classes, [1, self.NUM_SNIFFS] )[0]
+        self._tr_classes = np.tile( self._tr_classes, [1, self.NUM_SNIFFS] )[0]
 
         # Specify pools of indices from which to draw baseline, train, val sets.
-        self.ind_pool_baseline = list(range(100)) # 1:100
-        self.ind_pool_train = list(range(100,300)) # 101:300
-        self.ind_pool_post = list(range(300,400)) # 301:400
+        self._ind_pool_baseline = list(range(100)) # 1:100
+        self._ind_pool_train = list(range(100,300)) # 101:300
+        self._ind_pool_post = list(range(300,400)) # 301:400
 
         ## Create preprocessing parameters
         # Population pre-processing pools of indices:
-        self.inds_to_ave = list(range(550,1000))
-        self.inds_to_calc_RF = list(range(550,1000))
-        self.max_ind = max( [ self.inds_to_calc_RF + self.ind_pool_train ][0] ) # we'll throw out unused samples
+        self._inds_to_ave = list(range(550,1000))
+        self._inds_to_calc_RF = list(range(550,1000))
+        self._max_ind = max( [ self._inds_to_calc_RF + self._ind_pool_train ][0] ) # we'll throw out unused samples
 
         ## 2. Pre-processing parameters for the thumbnails:
-        self.downsample_rate = 2
-        self.crop = 2
-        self.num_features = 85 # number of pixels in the receptive field
-        self.pixel_sum = 6
-        self.show_thumbnails = self.N_THUMBNAILS
-        self.downsample_method = 1 # 0 means sum square patches of pixels
+        self._downsample_rate = 2
+        self._crop = 2
+        self._num_features = 85 # number of pixels in the receptive field
+        self._pixel_sum = 6
+        self._show_thumbnails = self.N_THUMBNAILS
+        self._downsample_method = 1 # 0 means sum square patches of pixels
         					# 1 means use bicubic interpolation
 
         # generate the data array:
-        # The dataset fA is a feature array ready for running experiments.
+        # _feat_array is a feature array ready for running experiments.
         # Each experiment uses a random draw from this dataset.
-        self.fA, self._active_pixel_inds, self.len_side = generate_ds_MNIST(
-        	self.max_ind, self.class_labels, self.crop, self.downsample_rate,
-            self.downsample_method, self.inds_to_ave, self.pixel_sum,
-            self.inds_to_calc_RF, self.num_features, self.SCREEN_SIZE,
-            self.RESULTS_FOLDER, self.show_thumbnails
+        self._feat_array, self._active_pixel_inds, self._len_side = generate_ds_MNIST(
+        	self._max_ind, self._class_labels, self._crop, self._downsample_rate,
+            self._downsample_method, self._inds_to_ave, self._pixel_sum,
+            self._inds_to_calc_RF, self._num_features, self.SCREEN_SIZE,
+            self.RESULTS_FOLDER, self._show_thumbnails
         	)
 
-        _, self.num_per_class, self.class_num = self.fA.shape
-        # fA = n x m x 10 array where n = #active pixels, m = #digits from each class
+        _, self._num_per_class, self._class_num = self._feat_array.shape
+        # _feat_array = n x m x 10 array where n = #active pixels, m = #digits from each class
         # that will be used. The 3rd dimension gives the class: 0:9.
 
         # Line up the images for the experiment (in 10 parallel queues)
-        digit_queues = np.zeros_like(self.fA)
+        digit_queues = np.zeros_like(self._feat_array)
 
-        for i in self.class_labels:
+        for i in self._class_labels:
 
             ## 1. Baseline (pre-train) images
             # choose some images from the baselineIndPool
-            range_top_end = max(self.ind_pool_baseline) - min(self.ind_pool_baseline) + 1
-            r_sample = np.random.choice(range_top_end, self.val_per_class) # select random digits
-            these_inds = min(self.ind_pool_baseline) + r_sample
-            digit_queues[:,:self.val_per_class,i] = self.fA[:,these_inds,i]
+            _range_top_end = max(self._ind_pool_baseline) - min(self._ind_pool_baseline) + 1
+            _r_sample = np.random.choice(_range_top_end, self._val_per_class) # select random digits
+            _these_inds = min(self._ind_pool_baseline) + _r_sample
+            digit_queues[:,:self._val_per_class,i] = self._feat_array[:,_these_inds,i]
 
             ## 2. Training images
             # choose some images from the trainingIndPool
-            range_top_end = max(self.ind_pool_train) - min(self.ind_pool_train) + 1
-            r_sample = np.random.choice(range_top_end, self.TR_PER_CLASS) # select random digits
-            these_inds = min(self.ind_pool_train) + r_sample
+            _range_top_end = max(self._ind_pool_train) - min(self._ind_pool_train) + 1
+            _r_sample = np.random.choice(_range_top_end, self.TR_PER_CLASS) # select random digits
+            _these_inds = min(self._ind_pool_train) + _r_sample
             # repeat these inputs if taking multiple sniffs of each training sample
-            these_inds = np.tile(these_inds, self.NUM_SNIFFS)
-            digit_queues[:, self.val_per_class:(self.val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS), i] = \
-                self.fA[:, these_inds, i]
+            _these_inds = np.tile(_these_inds, self.NUM_SNIFFS)
+            digit_queues[:, self._val_per_class:(self._val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS), i] = \
+                self._feat_array[:, _these_inds, i]
 
             ## 3. Post-training (val) images
             # choose some images from the postTrainIndPool
-            range_top_end = max(self.ind_pool_post) - min(self.ind_pool_post) + 1
-            r_sample = np.random.choice(range_top_end, self.val_per_class) # select random digits
-            these_inds = min(self.ind_pool_post) + r_sample
-            digit_queues[:,(self.val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS): \
-                (self.val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS+self.val_per_class),
-    			i] = self.fA[:, these_inds, i]
+            _range_top_end = max(self._ind_pool_post) - min(self._ind_pool_post) + 1
+            _r_sample = np.random.choice(_range_top_end, self._val_per_class) # select random digits
+            _these_inds = min(self._ind_pool_post) + _r_sample
+            digit_queues[:,(self._val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS): \
+                (self._val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS+self._val_per_class),
+    			i] = self._feat_array[:, _these_inds, i]
 
         # show the final versions of thumbnails to be used, if wished
         if self.N_THUMBNAILS:
             from modules.show_figs import show_FA_thumbs
-            temp_array = np.zeros((self.len_side, self.num_per_class, self.class_num))
-            temp_array[self._active_pixel_inds,:,:] = digit_queues
+            _thumb_array = np.zeros((self._len_side, self._num_per_class, self._class_num))
+            _thumb_array[self._active_pixel_inds,:,:] = digit_queues
             normalize = 1
-            show_FA_thumbs(temp_array, self.N_THUMBNAILS, normalize, 'Input thumbnails',
+            show_FA_thumbs(_thumb_array, self.N_THUMBNAILS, normalize, 'Input thumbnails',
     			self.SCREEN_SIZE, self.RESULTS_FOLDER + os.sep + 'thumbnails')
 
         return digit_queues
@@ -273,22 +273,22 @@ class MothNet:
         '''
 
         # X = n x numberPixels;  Y = n x 1, where n = 10*TR_PER_CLASS.
-        train_X = np.zeros((10*self.TR_PER_CLASS, self.fA.shape[0]))
-        val_X = np.zeros((10*self.val_per_class, self.fA.shape[0]))
+        train_X = np.zeros((10*self.TR_PER_CLASS, self._feat_array.shape[0]))
+        val_X = np.zeros((10*self._val_per_class, self._feat_array.shape[0]))
         train_y = np.zeros((10*self.TR_PER_CLASS, 1))
-        val_y = np.zeros((10*self.val_per_class, 1))
+        val_y = np.zeros((10*self._val_per_class, 1))
 
         # populate the labels one class at a time
-        for i in self.class_labels:
-            # skip the first 'val_per_class' digits,
+        for i in self._class_labels:
+            # skip the first '_val_per_class' digits,
             # as these are used as baseline digits in the moth (formality)
-            temp = digit_queues[:,self.val_per_class:self.val_per_class+self.TR_PER_CLASS,i]
+            temp = digit_queues[:,self._val_per_class:self._val_per_class+self.TR_PER_CLASS,i]
             train_X[i*self.TR_PER_CLASS:(i+1)*self.TR_PER_CLASS,:] = temp.T
-            temp = digit_queues[:,self.val_per_class+self.TR_PER_CLASS: \
-                2*self.val_per_class+self.TR_PER_CLASS,i]
-            val_X[i*self.val_per_class:(i+1)*self.val_per_class,:] = temp.T
+            temp = digit_queues[:,self._val_per_class+self.TR_PER_CLASS: \
+                2*self._val_per_class+self.TR_PER_CLASS,i]
+            val_X[i*self._val_per_class:(i+1)*self._val_per_class,:] = temp.T
             train_y[i*self.TR_PER_CLASS:(i+1)*self.TR_PER_CLASS] = i
-            val_y[i*self.val_per_class:(i+1)*self.val_per_class,:] = i
+            val_y[i*self._val_per_class:(i+1)*self._val_per_class,:] = i
 
         return train_X, val_X, train_y, val_y
 
@@ -318,7 +318,7 @@ class MothNet:
 
         from modules.params import ExpParams
 
-        return ExpParams( self.tr_classes, self.class_labels, self.val_per_class )
+        return ExpParams( self._tr_classes, self._class_labels, self._val_per_class )
 
     def simulate(self, model_params, experiment_params, digit_queues):
         '''
@@ -400,6 +400,6 @@ class MothNet:
         if self.SHOW_ROC_PLOTS:
             # compute macro-average ROC curve
             show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
-        		output_trained_log_loss['roc_auc'], self.class_labels,
+        		output_trained_log_loss['roc_auc'], self._class_labels,
         		title_str='MothNet',
                 images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)
