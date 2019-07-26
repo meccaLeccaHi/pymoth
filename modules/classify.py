@@ -7,12 +7,6 @@ def confusion_matrix( true_classes, pred_classes ):
     '''
     Calculate confusion matrix
     ex: confusion = confusion_matrix(true_classes, pred_classes)
-
-    Params:
-    - True classes (class labels i.e. 'y')
-    - Predicted classes (predicted labels i.e. 'y-hat')
-    Returns:
-    - Confusion matrix as Numpy array
     '''
 
     class_members = list(set(true_classes))

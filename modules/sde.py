@@ -665,7 +665,7 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
     '''
     import os
     import matplotlib.pyplot as plt
-    from support_functions.show_figs import show_acc, show_timecourse
+    from modules.show_figs import show_acc, show_timecourse
 
     # concurrent octopamine
     if sim_results['octo_hits'].max() > 0:

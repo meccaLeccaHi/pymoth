@@ -30,14 +30,14 @@ class MothNet:
 
     Modifying parameters:
     	1. Modify 'ModelParams' with the desired parameters for generating a moth
-    	(ie neural network), or specify a pre-existing 'model_params' file to load.
+        (ie neural network)
     	2. Edit USER ENTRIES
 
     The dataset:
     	Because the moth brain architecture, as evolved, only handles ~60 features,
     we need to create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features.
-    We do this by cropping and downsampling the mnist thumbnails, then selecting a subset
-    of the remaining pixels.
+    We do this by cropping and downsampling the mnist thumbnails, then selecting
+    a subset of the remaining pixels.
     	This results in a cruder dataset (set various view flags to see thumbnails).
     However, it is sufficient for testing the moth brain's learning ability. Other ML
     methods need to be tested on this same cruder dataset to make useful comparisons.
@@ -52,7 +52,8 @@ class MothNet:
     	1. Load and pre-process dataset
     	Within the loop over number of simulations:
     	2. Select a subset of the dataset for this simulation (only a few samples are used)
-    	3. Create a moth (neural net). Either select an existing moth file, or generate a new moth in 2 steps:
+    	3. Create a moth (neural net). Either select an existing moth file, or generate
+            a new moth in 2 steps:
     		a) run 'ModelParams' and incorporate user entry edits such as 'GOAL'
     		b) create connection matrices via 'init_connection_matrix'
     	4. Load the experiment parameters
@@ -65,10 +66,7 @@ class MothNet:
     '''
 
     # Experiment details
-    # from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
-    from support_functions.params import ExpParams, ModelParams
-    from support_functions.sde import collect_stats
-    # from support_functions.classify import roc_multi
+    from modules.sde import collect_stats
 
     # Initializer / Instance Attributes
     def __init__(self):
@@ -76,7 +74,8 @@ class MothNet:
         The constructor for MothNet class.
         """
 
-        ## USER ENTRIES (Edit parameters below):
+        ## USER ENTRIES (constants)
+        # Edit parameters below this line:
         #-------------------------------------------------------------------------------
         self.SCREEN_SIZE = (1920, 1080) # screen size (width, height)
 
@@ -176,7 +175,7 @@ class MothNet:
         	That is TR_PER_CLASS, defined above.
         '''
 
-        from support_functions.generate import generate_ds_MNIST
+        from modules.generate import generate_ds_MNIST
 
         self.class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
         self.val_per_class = 15  # number of digits used in validation sets and in baseline sets
@@ -210,7 +209,7 @@ class MothNet:
         # generate the data array:
         # The dataset fA is a feature array ready for running experiments.
         # Each experiment uses a random draw from this dataset.
-        self.fA, self.active_pixel_inds, self.len_side = generate_ds_MNIST(
+        self.fA, self._active_pixel_inds, self.len_side = generate_ds_MNIST(
         	self.max_ind, self.class_labels, self.crop, self.downsample_rate,
             self.downsample_method, self.inds_to_ave, self.pixel_sum,
             self.inds_to_calc_RF, self.num_features, self.SCREEN_SIZE,
@@ -254,9 +253,9 @@ class MothNet:
 
         # show the final versions of thumbnails to be used, if wished
         if self.N_THUMBNAILS:
-            from support_functions.show_figs import show_FA_thumbs
+            from modules.show_figs import show_FA_thumbs
             temp_array = np.zeros((self.len_side, self.num_per_class, self.class_num))
-            temp_array[self.active_pixel_inds,:,:] = digit_queues
+            temp_array[self._active_pixel_inds,:,:] = digit_queues
             normalize = 1
             show_FA_thumbs(temp_array, self.N_THUMBNAILS, normalize, 'Input thumbnails',
     			self.SCREEN_SIZE, self.RESULTS_FOLDER + os.sep + 'thumbnails')
@@ -299,10 +298,10 @@ class MothNet:
             matrices and to control behavior.
         Returns: Model parameters
         '''
-        from support_functions.params import ModelParams
+        from modules.params import ModelParams as ModelParams
 
     	# instantiate template params
-        model_params = ModelParams( len(self.active_pixel_inds), self.GOAL )
+        model_params = ModelParams( len(self._active_pixel_inds), self.GOAL )
 
     	# populate the moth's connection matrices using the model_params
         model_params.init_connection_matrix()
@@ -317,7 +316,7 @@ class MothNet:
         Returns: Experiment parameters
         '''
 
-        from support_functions.params import ExpParams
+        from modules.params import ExpParams
 
         return ExpParams( self.tr_classes, self.class_labels, self.val_per_class )
 
@@ -344,7 +343,7 @@ class MothNet:
         Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
         MIT License
         '''
-        from support_functions.sde import sde_wrap
+        from modules.sde import sde_wrap
 
         print('\nStarting sim for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'.format(
     		self.GOAL, self.TR_PER_CLASS, self.NUM_SNIFFS))
@@ -366,8 +365,8 @@ class MothNet:
         Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
         MIT License
         '''
-        from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
-        from support_functions.show_figs import show_roc_curves
+        from modules.classify import classify_digits_log_likelihood, classify_digits_thresholding
+        from modules.show_figs import show_roc_curves
 
         # for baseline accuracy function argin, substitute pre- for post-values in EN_resp_trained:
         EN_resp_naive = copy.deepcopy(EN_resp_trained)

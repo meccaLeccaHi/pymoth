@@ -61,15 +61,16 @@ else:
 	raise Exception(version_error)
 
 # Experiment details
-from support_functions.generate import generate_ds_MNIST
-from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
-from support_functions.params import ExpParams, ModelParams
-from support_functions.sde import sde_wrap, collect_stats
-from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
+from modules.generate import generate_ds_MNIST
+from modules.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
+from modules.params import ExpParams, ModelParams
+from modules.sde import sde_wrap, collect_stats
+from modules.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
 
 ### 1. Object initialization ###
 
-## USER ENTRIES (Edit parameters below):
+## USER ENTRIES (constants)
+# Edit parameters below this line:
 #-------------------------------------------------------------------------------
 SCREEN_SIZE = (1920, 1080) # screen size (width, height)
 

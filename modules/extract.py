@@ -162,7 +162,7 @@ def selectActivePixels( feature_array, num_features, screen_size,
     #  and add a col for the overallAve
     import numpy as np
     import os
-    from support_functions.show_figs import show_FA_thumbs
+    from modules.show_figs import show_FA_thumbs
 
     num_pix, num_per_class, num_classes  = feature_array.shape
     cA = np.zeros((num_pix, num_classes+1))
