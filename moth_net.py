@@ -277,17 +277,15 @@ class MothNet:
         '''
         Create a new moth, ie the template that is used to populate connection
             matrices and to control behavior.
-        Returns: Model parameters
+        Returns: self.model_params (Model parameters)
         '''
         from modules.params import ModelParams as ModelParams
 
     	# instantiate template params
-        model_params = ModelParams( len(self._active_pixel_inds), self.GOAL )
+        self.model_params = ModelParams( len(self._active_pixel_inds), self.GOAL )
 
     	# populate the moth's connection matrices using the model_params
-        model_params.init_connection_matrix()
-
-        return model_params
+        self.model_params.init_connection_matrix()
 
     def load_exp(self):
         '''
@@ -299,9 +297,9 @@ class MothNet:
 
         from modules.params import ExpParams
 
-        return ExpParams( self._tr_classes, self._class_labels, self._val_per_class )
+        self.experiment_params =  ExpParams( self._tr_classes, self._class_labels, self._val_per_class )
 
-    def simulate(self, model_params, experiment_params, digit_queues):
+    def simulate(self, digit_queues):
         '''
         Runs the SDE time-stepped evolution of neural firing rates.
         Parameters:
@@ -330,7 +328,7 @@ class MothNet:
     		self.GOAL, self.TR_PER_CLASS, self.NUM_SNIFFS))
 
         # run this experiment as sde time-step evolution:
-        return sde_wrap( model_params, experiment_params, digit_queues )
+        return sde_wrap(self.model_params, self.experiment_params, digit_queues )
 
     def score_moth_on_MNIST(self, EN_resp_trained):
         '''

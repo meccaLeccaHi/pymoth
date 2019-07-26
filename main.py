@@ -18,16 +18,16 @@ def main():
         train_X, test_X, train_y, test_y = mothra.train_test_split(digit_queues)
 
         # load parameters
-        moth_parameters = mothra.load_moth() # define moth model parameters
-        experiment_parameters = mothra.load_exp() # define parameters of a time-evolution experiment
+        mothra.load_moth() # define moth model parameters
+        mothra.load_exp() # define parameters of a time-evolution experiment
 
         # run simulation (SDE time-step evolution)
-        sim_results = mothra.simulate(moth_parameters, experiment_parameters, digit_queues)
+        sim_results = mothra.simulate(digit_queues)
         # future: mothra.fit(X_train, y_train)
 
         # collect response statistics:
         # process the sim results to group EN responses by class and time
-        EN_resp_trained = mothra.collect_stats(sim_results, experiment_parameters,
+        EN_resp_trained = mothra.collect_stats(sim_results, mothra.experiment_params,
             mothra._class_labels, mothra.SHOW_TIME_PLOTS, mothra.SHOW_ACC_PLOTS,
             images_filename=mothra.RESULTS_FILENAME, images_folder=mothra.RESULTS_FOLDER,
             screen_size=mothra.SCREEN_SIZE)
