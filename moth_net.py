@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 
+print("\nWARNING: This package is still under development.")
+print("Use procedural version by running `$ python runMothLearnerMNIST.py` from the parent directory.\n")
+
+# import packages
+import time
+runStart = time.time() # time execution duration
+import numpy as np
+import os
+import copy # for deep copy of nested lists
+import sys
+
+##TEST for Python version > 2
+python_version = "{}.{}".format(sys.version_info.major,sys.version_info.minor)
+if sys.version_info.major > 2:
+    print("Python version {} detected.\n".format(python_version))
+else:
+    version_error = "Python version {} detected.\n".format(python_version) + \
+                    "Python version 3 or higher is required to run this module.\n" + \
+                    "Please install Python 3+."
+    raise Exception(version_error)
+
 class MothNet:
     '''
     Python module to train a moth brain model on a crude (downsampled) MNIST set.
@@ -32,7 +53,7 @@ class MothNet:
     	Within the loop over number of simulations:
     	2. Select a subset of the dataset for this simulation (only a few samples are used)
     	3. Create a moth (neural net). Either select an existing moth file, or generate a new moth in 2 steps:
-    		a) run 'ModelParams' and incorporate user entry edits such as 'goal'
+    		a) run 'ModelParams' and incorporate user entry edits such as 'GOAL'
     		b) create connection matrices via 'init_connection_matrix'
     	4. Load the experiment parameters
     	5. Run the simulation with 'sde_wrap', print results to console
@@ -43,30 +64,11 @@ class MothNet:
     MIT License
     '''
 
-    # import packages
-    import time
-    runStart = time.time() # time execution duration
-    import numpy as np
-    import os
-    import copy # for deep copy of nested lists
-    import sys
-
-    ##TEST for Python version > 2
-    python_version = "{}.{}".format(sys.version_info.major,sys.version_info.minor)
-    if sys.version_info.major > 2:
-    	print("Python version {} detected.".format(python_version))
-    else:
-    	version_error = "Python version {} detected.\n".format(python_version) + \
-    					"Python version 3 or higher is required to run this module.\n" + \
-    					"Please install Python 3+."
-    	raise Exception(version_error)
-
     # Experiment details
-    from support_functions.generate import generate_ds_MNIST
-    from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
+    # from support_functions.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
     from support_functions.params import ExpParams, ModelParams
-    from support_functions.sde import sde_wrap
-    from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
+    from support_functions.sde import collect_stats
+    # from support_functions.classify import roc_multi
 
     # Initializer / Instance Attributes
     def __init__(self):
@@ -76,7 +78,7 @@ class MothNet:
 
         ## USER ENTRIES (Edit parameters below):
         #-------------------------------------------------------------------------------
-        self.screen_size = (1920, 1080) # screen size (width, height)
+        self.SCREEN_SIZE = (1920, 1080) # screen size (width, height)
 
         # use_existing_conn_matrices = False
         ## if True, load 'matrixParamsFilename', which includes filled-in connection matrices
@@ -85,71 +87,68 @@ class MothNet:
         # matrix_params_filename = 'sampleMothModelParams'
         ## dict with all info, including connection matrices, of a particular moth
 
-        self.num_runs = 1 # how many runs you wish to do with this moth or moth template,
+        self.NUM_RUNS = 1 # how many runs you wish to do with this moth or moth template,
         # each run using random draws from the mnist set
 
-        self.goal  = 15
+        self.GOAL  = 15
         # defines the moth's learning rates, in terms of how many training samples per
-        # class give max accuracy. So "goal = 1" gives a very fast learner.
-        # if goal == 0, the rate parameters defined the template will be used as-is
-        # if goal > 1, the rate parameters will be updated, even in a pre-set moth
+        # class give max accuracy. So "GOAL = 1" gives a very fast learner.
+        # if GOAL == 0, the rate parameters defined the template will be used as-is
+        # if GOAL > 1, the rate parameters will be updated, even in a pre-set moth
 
-        self.tr_per_class = 1 # (try 3) the number of training samples per class
-        self.num_sniffs = 1 # (try 2) number of exposures each training sample
+        self.TR_PER_CLASS = 1 # (try 3) the number of training samples per class
+        self.NUM_SNIFFS = 1 # (try 2) number of exposures each training sample
 
         # nearest neighbors
-        self.run_nearest_neighbors = True # this option requires the sklearn library be installed
-        self.num_neighbors = 1 # optimization param for nearest neighbors
-        # Suggested values: tr_per_class ->
-        #	num_neighbors:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
+        self.RUN_NEAREST_NEIGHBORS = True # this option requires the sklearn library be installed
+        self.NUM_NEIGHBORS = 1 # optimization param for nearest neighbors
+        # Suggested values: TR_PER_CLASS ->
+        #	NUM_NEIGHBORS:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
 
         # SVM
-        self.runSVM = True # this option requires the sklearn library be installed
-        self.box_constraint = 1e1 # optimization parameter for svm
-        # Suggested values: tr_per_class ->
-        #	box_constraint:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
+        self.RUN_SVM = True # this option requires the sklearn library be installed
+        self.BOX_CONSTRAINT = 1e1 # optimization parameter for svm
+        # Suggested values: TR_PER_CLASS ->
+        #	BOX_CONSTRAINT:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
         #					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
 
         ## Flags to show various images:
-        self.n_thumbnails = 1 # N means show N experiment inputs from each class
+        self.N_THUMBNAILS = 1 # N means show N experiment inputs from each class
         	# 0 means don't show any
 
-        # To save results if wished:
-        self.save_all_neural_timecourses = False # 0 -> save only EN (ie readout) timecourses
-        # Caution: 1 -> very high memory demands, hinders longer runs
-
         # flag for statistical plots of EN response changes: One image (with 8 subplots) per EN
-        self.show_acc_plots = True # True to plot, False to ignore
+        self.SHOW_ACC_PLOTS = True # True to plot, False to ignore
         # flag for EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image)
-        self.show_time_plots = True # True to plot, False to ignore
-        self.save_results_folder = 'results' # String (relative path)
-        # If non-empty, results will be saved here
+        self.SHOW_TIME_PLOTS = True # True to plot, False to ignore
+        # flag for ROC multi-class ROC curves (one for each model)
+        self.SHOW_ROC_PLOTS = True # True to plot, False to ignore
 
-        self.results_filename = 'results' # will get the run number appended to it
+        self.RESULTS_FOLDER = os.getcwd() + os.sep + 'results' # string (absolute path)
+        # If non-empty, results will be saved here
+        self.RESULTS_FILENAME = 'results' # will get the run number appended to it
 
         #-------------------------------------------------------------------------------
 
         # Test parameters for compatibility
-        if self.run_nearest_neighbors or self.runSVM:
+        if self.RUN_NEAREST_NEIGHBORS or self.RUN_SVM:
         	##TEST to see if sklearn is installed,
         	try:
         	    import sklearn
         	except ImportError:
         	    print('sklearn is not installed, and it is required to run ML models.\n' + \
-        			"Install it or set run_nearest_neighbors and runSVM to 'False'.")
+        			"Install it or set RUN_NEAREST_NEIGHBORS and RUN_SVM to 'False'.")
 
-        if self.show_acc_plots or self.show_time_plots:
+        if self.SHOW_ACC_PLOTS or self.SHOW_TIME_PLOTS:
         	##TEST that directory string is not empty
-        	if not self.save_results_folder:
-        		folder_error = "save_results_folder parameter is empty.\n" + \
-        			"Please add directory or set show_acc_plots and show_time_plots to 'False'."
+        	if not self.RESULTS_FOLDER:
+        		folder_error = "RESULTS_FOLDER parameter is empty.\n" + \
+        			"Please add directory or set SHOW_ACC_PLOTS and SHOW_TIME_PLOTS to 'False'."
         		raise Exception(folder_error)
 
         	##TEST for existence of image results folder, else create it
-        	if not self.os.path.isdir(self.save_results_folder):
-        		self.os.mkdir('./'+self.save_results_folder)
-        		print('Creating results directory: {}'.format(
-                    self.os.path.join(self.os.getcwd(),self.save_results_folder)))
+        	if not os.path.isdir(self.RESULTS_FOLDER):
+        		os.mkdir(self.RESULTS_FOLDER)
+        		print('Creating results directory: {}'.format(self.RESULTS_FOLDER))
 
     ### 2. Load and preprocess MNIST dataset ###
 
@@ -168,23 +167,25 @@ class MothNet:
         Define train and control pools for the experiment, and determine the receptive field.
         This is done first because the receptive field determines the number of AL units, which
              must be updated in model_params before 'initializeMatrixParams_fn' runs.
-        This dataset will be used for each simulation in num_runs. Each
+        This dataset will be used for each simulation in NUM_RUNS. Each
              simulation draws a new set of samples from this set.
 
         Parameters required for the dataset generation function:
         1. The images used. This includes pools for mean-subtraction, baseline, train, and val.
           This is NOT the number of training samples per class.
-        	That is tr_per_class, defined above.
+        	That is TR_PER_CLASS, defined above.
         '''
 
-        self.class_labels = self.np.array(range(10))  # For MNIST. '0' is labeled as 10
+        from support_functions.generate import generate_ds_MNIST
+
+        self.class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
         self.val_per_class = 15  # number of digits used in validation sets and in baseline sets
 
         # make a vector of the classes of the training samples, randomly mixed:
-        self.tr_classes = self.np.repeat( self.class_labels, self.tr_per_class )
-        self.tr_classes = self.np.random.permutation( self.tr_classes )
+        self.tr_classes = np.repeat( self.class_labels, self.TR_PER_CLASS )
+        self.tr_classes = np.random.permutation( self.tr_classes )
         # repeat these inputs if taking multiple sniffs of each training sample:
-        self.tr_classes = self.np.tile( self.tr_classes, [1, self.num_sniffs] )[0]
+        self.tr_classes = np.tile( self.tr_classes, [1, self.NUM_SNIFFS] )[0]
 
         # Specify pools of indices from which to draw baseline, train, val sets.
         self.ind_pool_baseline = list(range(100)) # 1:100
@@ -202,18 +203,18 @@ class MothNet:
         self.crop = 2
         self.num_features = 85 # number of pixels in the receptive field
         self.pixel_sum = 6
-        self.show_thumbnails = self.n_thumbnails
+        self.show_thumbnails = self.N_THUMBNAILS
         self.downsample_method = 1 # 0 means sum square patches of pixels
         					# 1 means use bicubic interpolation
 
         # generate the data array:
         # The dataset fA is a feature array ready for running experiments.
         # Each experiment uses a random draw from this dataset.
-        self.fA, self.active_pixel_inds, self.len_side = self.generate_ds_MNIST(
+        self.fA, self.active_pixel_inds, self.len_side = generate_ds_MNIST(
         	self.max_ind, self.class_labels, self.crop, self.downsample_rate,
             self.downsample_method, self.inds_to_ave, self.pixel_sum,
-            self.inds_to_calc_RF, self.num_features, self.screen_size,
-            self.save_results_folder, self.show_thumbnails
+            self.inds_to_calc_RF, self.num_features, self.SCREEN_SIZE,
+            self.RESULTS_FOLDER, self.show_thumbnails
         	)
 
         _, self.num_per_class, self.class_num = self.fA.shape
@@ -221,35 +222,44 @@ class MothNet:
         # that will be used. The 3rd dimension gives the class: 0:9.
 
         # Line up the images for the experiment (in 10 parallel queues)
-        digit_queues = self.np.zeros_like(self.fA)
+        digit_queues = np.zeros_like(self.fA)
 
         for i in self.class_labels:
 
             ## 1. Baseline (pre-train) images
             # choose some images from the baselineIndPool
             range_top_end = max(self.ind_pool_baseline) - min(self.ind_pool_baseline) + 1
-            r_sample = self.np.random.choice(range_top_end, self.val_per_class) # select random digits
+            r_sample = np.random.choice(range_top_end, self.val_per_class) # select random digits
             these_inds = min(self.ind_pool_baseline) + r_sample
             digit_queues[:,:self.val_per_class,i] = self.fA[:,these_inds,i]
 
             ## 2. Training images
             # choose some images from the trainingIndPool
             range_top_end = max(self.ind_pool_train) - min(self.ind_pool_train) + 1
-            r_sample = self.np.random.choice(range_top_end, self.tr_per_class) # select random digits
+            r_sample = np.random.choice(range_top_end, self.TR_PER_CLASS) # select random digits
             these_inds = min(self.ind_pool_train) + r_sample
             # repeat these inputs if taking multiple sniffs of each training sample
-            these_inds = self.np.tile(these_inds, self.num_sniffs)
-            digit_queues[:, self.val_per_class:(self.val_per_class+self.tr_per_class*self.num_sniffs), i] = \
+            these_inds = np.tile(these_inds, self.NUM_SNIFFS)
+            digit_queues[:, self.val_per_class:(self.val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS), i] = \
                 self.fA[:, these_inds, i]
 
             ## 3. Post-training (val) images
             # choose some images from the postTrainIndPool
             range_top_end = max(self.ind_pool_post) - min(self.ind_pool_post) + 1
-            r_sample = self.np.random.choice(range_top_end, self.val_per_class) # select random digits
+            r_sample = np.random.choice(range_top_end, self.val_per_class) # select random digits
             these_inds = min(self.ind_pool_post) + r_sample
-            digit_queues[:,(self.val_per_class+self.tr_per_class*self.num_sniffs): \
-                (self.val_per_class+self.tr_per_class*self.num_sniffs+self.val_per_class),
+            digit_queues[:,(self.val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS): \
+                (self.val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS+self.val_per_class),
     			i] = self.fA[:, these_inds, i]
+
+        # show the final versions of thumbnails to be used, if wished
+        if self.N_THUMBNAILS:
+            from support_functions.show_figs import show_FA_thumbs
+            temp_array = np.zeros((self.len_side, self.num_per_class, self.class_num))
+            temp_array[self.active_pixel_inds,:,:] = digit_queues
+            normalize = 1
+            show_FA_thumbs(temp_array, self.N_THUMBNAILS, normalize, 'Input thumbnails',
+    			self.SCREEN_SIZE, self.RESULTS_FOLDER + os.sep + 'thumbnails')
 
         return digit_queues
 
@@ -263,22 +273,22 @@ class MothNet:
         Returns: train_X, val_X, train_y, val_y
         '''
 
-        # X = n x numberPixels;  Y = n x 1, where n = 10*tr_per_class.
-        train_X = self.np.zeros((10*self.tr_per_class, self.fA.shape[0]))
-        val_X = self.np.zeros((10*self.val_per_class, self.fA.shape[0]))
-        train_y = self.np.zeros((10*self.tr_per_class, 1))
-        val_y = self.np.zeros((10*self.val_per_class, 1))
+        # X = n x numberPixels;  Y = n x 1, where n = 10*TR_PER_CLASS.
+        train_X = np.zeros((10*self.TR_PER_CLASS, self.fA.shape[0]))
+        val_X = np.zeros((10*self.val_per_class, self.fA.shape[0]))
+        train_y = np.zeros((10*self.TR_PER_CLASS, 1))
+        val_y = np.zeros((10*self.val_per_class, 1))
 
         # populate the labels one class at a time
         for i in self.class_labels:
             # skip the first 'val_per_class' digits,
             # as these are used as baseline digits in the moth (formality)
-            temp = digit_queues[:,self.val_per_class:self.val_per_class+self.tr_per_class,i]
-            train_X[i*self.tr_per_class:(i+1)*self.tr_per_class,:] = temp.T
-            temp = digit_queues[:,self.val_per_class+self.tr_per_class: \
-                2*self.val_per_class+self.tr_per_class,i]
+            temp = digit_queues[:,self.val_per_class:self.val_per_class+self.TR_PER_CLASS,i]
+            train_X[i*self.TR_PER_CLASS:(i+1)*self.TR_PER_CLASS,:] = temp.T
+            temp = digit_queues[:,self.val_per_class+self.TR_PER_CLASS: \
+                2*self.val_per_class+self.TR_PER_CLASS,i]
             val_X[i*self.val_per_class:(i+1)*self.val_per_class,:] = temp.T
-            train_y[i*self.tr_per_class:(i+1)*self.tr_per_class] = i
+            train_y[i*self.TR_PER_CLASS:(i+1)*self.TR_PER_CLASS] = i
             val_y[i*self.val_per_class:(i+1)*self.val_per_class,:] = i
 
         return train_X, val_X, train_y, val_y
@@ -292,7 +302,7 @@ class MothNet:
         from support_functions.params import ModelParams
 
     	# instantiate template params
-        model_params = ModelParams( len(self.active_pixel_inds), self.goal )
+        model_params = ModelParams( len(self.active_pixel_inds), self.GOAL )
 
     	# populate the moth's connection matrices using the model_params
         model_params.init_connection_matrix()
@@ -336,5 +346,61 @@ class MothNet:
         '''
         from support_functions.sde import sde_wrap
 
+        print('\nStarting sim for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'.format(
+    		self.GOAL, self.TR_PER_CLASS, self.NUM_SNIFFS))
+
         # run this experiment as sde time-step evolution:
         return sde_wrap( model_params, experiment_params, digit_queues )
+
+    def score_moth_on_MNIST(self, EN_resp_trained):
+        '''
+        Calculate the classification accuracy of MothNet on MNIST dataset.
+        Prints:
+            1. output_naive_log_loss: Baseline accuracy using log-likelihoods over all ENs
+            1. output_trained_log_loss: Post-training accuracy using log-likelihoods over all ENs
+            1. output_naive_thresholding: Baseline accuracy using single EN thresholding
+            1. output_trained_thresholding: Baseline accuracy using single EN thresholding
+        Returns:
+            None
+
+        Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+        MIT License
+        '''
+        from support_functions.classify import classify_digits_log_likelihood, classify_digits_thresholding
+        from support_functions.show_figs import show_roc_curves
+
+        # for baseline accuracy function argin, substitute pre- for post-values in EN_resp_trained:
+        EN_resp_naive = copy.deepcopy(EN_resp_trained)
+        for i, resp in enumerate(EN_resp_trained):
+            EN_resp_naive[i]['post_mean_resp'] = resp['pre_mean_resp'].copy()
+            EN_resp_naive[i]['post_std_resp'] = resp['pre_std_resp'].copy()
+            EN_resp_naive[i]['post_train_resp'] = resp['pre_train_resp'].copy()
+
+        # 1. using log-likelihoods over all ENs:
+        # baseline accuracy:
+        output_naive_log_loss = classify_digits_log_likelihood( EN_resp_naive )
+        # post-training accuracy using log-likelihood over all ENs:
+        output_trained_log_loss = classify_digits_log_likelihood( EN_resp_trained )
+
+        print('LogLikelihood:')
+        print(' Baseline (Naive) Accuracy: {}%,'.format(round(output_naive_log_loss['total_acc'])) + \
+    		'by class: {}%'.format(np.round(output_naive_log_loss['acc_perc'])))
+        print(' Trained Accuracy: {}%,'.format(round(output_trained_log_loss['total_acc'])) + \
+    		'by class: {}%'.format(np.round(output_trained_log_loss['acc_perc'])))
+
+        # 2. using single EN thresholding:
+        output_naive_thresholding = classify_digits_thresholding( EN_resp_naive, 1e9, -1, 10 )
+        output_trained_thresholding = classify_digits_thresholding( EN_resp_trained, 1e9, -1, 10 )
+
+        print('Thresholding:')
+        print(' Baseline (Naive) Accuracy: {}%,'.format(round(output_naive_thresholding['total_acc'])) + \
+    		'by class: {}%'.format(np.round(output_naive_thresholding['acc_perc'])))
+        print(' Trained Accuracy: {}%,'.format(round(output_trained_thresholding['total_acc'])) + \
+    		'by class: {}%'.format(np.round(output_trained_thresholding['acc_perc'])))
+
+        if self.SHOW_ROC_PLOTS:
+            # compute macro-average ROC curve
+            show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
+        		output_trained_log_loss['roc_auc'], self.class_labels,
+        		title_str='MothNet',
+                images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)

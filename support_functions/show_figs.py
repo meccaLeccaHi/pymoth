@@ -16,7 +16,7 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
         3. normalize = 1 if you want to rescale thumbs to [0 1], 0 if you don't
         4. title_string = string
         5. screen_size = tuple
-        6. images_filename = string (including path)
+        6. images_filename = string (including absolute path)
 
     Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
     MIT License
@@ -65,11 +65,12 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
 
     # Save plot
     if os.path.isdir(images_folder):
-        thumb_name = os.path.join(os.getcwd(), images_filename+'.png')
+        thumb_name = images_filename + '.png'
         thumbs_fig.savefig(thumb_name, dpi=100)
         print(f'Image thumbnails saved: {thumb_name}')
     else:
-        print('Image thumbnails NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
+        print('Image thumbnails NOT SAVED!',
+            'Make sure a valid (relative) directory path has been prepended to `images_filename`')
 
 def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_plots,
                 class_labels, screen_size, images_filename='' ):
@@ -292,7 +293,7 @@ def show_EN_resp( sim_res, model_params, exp_params, show_acc_plots, show_time_p
             # Save EN timecourse:
             if os.path.isdir(images_folder) and \
             (en_ind%3 == 2 or en_ind == (model_params.nE-1)):
-                fig_name = os.path.join(os.getcwd(), images_filename+'_en_timecourses{}.png'.format(en_ind))
+                fig_name = images_filename + '_en_timecourses{}.png'.format(en_ind)
                 fig.savefig(fig_name, dpi=100)
                 print(f'Figure saved: {fig_name}')
 
@@ -335,33 +336,34 @@ def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
 def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''):
     '''
     Plot all ROC curves
-    Parameters: fpr, tpr, roc_auc, images_filename=''
+    Parameters: fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''
     '''
 
     if images_filename:
-        images_folder = os.path.dirname(images_filename).strip('/')
+        images_folder = os.path.dirname(images_filename)
         # create directory for images (if doesnt exist)
         if not os.path.isdir(images_folder):
             os.mkdir(images_folder)
-            print('Creating results directory: {}'.format(images_filename))
+            print('Creating results directory: {}'.format(images_folder))
 
     fig, ax = plt.subplots()
     ax = plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str)
 
     # Save plot
     if os.path.isdir(images_folder):
-        roc_fname = os.getcwd() + images_filename + '.png'
-        fig.savefig(roc_fname, dpi=150)
-        print(f'ROC curves saved: {roc_fname}')
+        roc_filename = images_filename + '_ROC_' + title_str + '.png'
+        fig.savefig(roc_filename, dpi=150)
+        print(f'Figure saved: {roc_filename}')
 
 def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filename=''):
 
     if images_filename:
-        images_folder = os.path.dirname(images_filename).strip('/')
+        images_folder = os.path.dirname(images_filename)
+
         # create directory for images (if doesnt exist)
         if images_folder and not os.path.isdir(images_folder):
             os.mkdir(images_folder)
-            print('Creating results directory: {}'.format(images_filename))
+            print('Creating results directory: {}'.format(images_folder))
 
     fig, axes = plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
 
@@ -382,9 +384,9 @@ def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filena
 
     # save plot
     if os.path.isdir(images_folder):
-        roc_fname = os.getcwd() + images_filename + '.png'
-        fig.savefig(roc_fname, dpi=150)
-        print(f'ROC curves saved: {roc_fname}')
+        roc_filename = images_filename + '.png'
+        fig.savefig(roc_filename, dpi=150)
+        print(f'Figure saved: {roc_filename}')
     else:
         print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
 

@@ -203,7 +203,8 @@ def selectActivePixels( feature_array, num_features, screen_size,
         normalize = 0
         title_str = 'class aves, all pixels'
         show_FA_thumbs(cA_norm, num_classes+1, normalize, title_str,
-            screen_size, os.path.join(save_image_folder,'thumbnails_all'))
+            screen_size,
+            save_image_folder + os.sep + 'thumbnails_all')
 
         # look at active pixels of the classAves, ie post-ablation
         normalize = 0
@@ -211,7 +212,7 @@ def selectActivePixels( feature_array, num_features, screen_size,
         cA_active_only[active_pixel_inds, : ] = cA_norm[active_pixel_inds, :]
         title_str = 'class aves, active pixels only'
         show_FA_thumbs(cA_active_only, num_classes+1, normalize, title_str,
-            screen_size, os.path.join(save_image_folder,'thumbnails_active'))
+            screen_size, save_image_folder + os.sep + 'thumbnails_active')
 
     return active_pixel_inds
 

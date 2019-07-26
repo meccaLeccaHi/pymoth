@@ -98,13 +98,13 @@ def sde_wrap( model_params, exp_params, feature_array ):
     seed_val = 0 # to free up or fix randn
     # If = 0, a random seed value will be chosen. If > 0, the seed will be defined.
 
-    # Run the SDE evolution:
+    # run the SDE evolution:
     this_run = sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         octo_hits, model_params, exp_params, seed_val )
-    # Time stepping is now done.
+    # time stepping done
 
     ## Unpack Y and save results:
-    # Y is a matrix numTimePoints x nG.
+    # Y is a matrix numTimePoints x nG
     # Each col is a PN, each row holds values for a single timestep
     # Y = this_run['Y']
 
@@ -117,15 +117,6 @@ def sde_wrap( model_params, exp_params, feature_array ):
         'P2Kfinal' : this_run['P2Kfinal'],
         'nE' : nE
         }
-
-    if model_params.saveAllNeuralTimecourses:
-        sim_results['P'] = this_run['Y'][:,:nP]
-        sim_results['K'] = this_run['Y'][:, nP + nPI + nG + nR + 1: nP + nPI + nG + nR + nK]
-
-        # other neural timecourses
-        # sim_results['PI'] = this_run['Y'][:,nP + 1:nP + nPI]
-        # sim_results['L'] = this_run['Y'][:, nP + nPI + 1:nP + nPI + nG]
-        # sim_results['R'] = this_run['Y'][:, nP + nPI + nG + 1: nP + nPI + nG + nR]
 
     return sim_results
 
@@ -638,8 +629,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
     return this_run
 
-def collect_stats(sim_results, exp_params, class_labels, show_time_plots, show_acc_plots,
-    images_filename='', screen_size=(1920,1080)):
+def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
+    show_acc_plots, images_folder='', images_filename='', screen_size=(1920,1080)):
     '''
     Collect stats on readout neurons (EN):
         Color-code them dots by class and by concurrent octopamine.
@@ -653,8 +644,9 @@ def collect_stats(sim_results, exp_params, class_labels, show_time_plots, show_a
         3. class_labels: a list of labels, eg 1:10 for MNIST
         4. show_time_plots: show EN timecourses (Boolean)
         5. show_acc_plots: show changes in accuracy (Boolean)
-        6. images_filename [optional]: to generate image filenames when saving (includes path)
+        6. images_filename [optional]: to generate image filenames when saving
              If this = '', images will not be saved (ie it's also a flag)
+        7. images_folder [optional]: directory to save results
         7. screen_size [optional]: screen size (width, height) for images (tuple)
 
     Returns results list of dictionaries:
@@ -798,13 +790,12 @@ def collect_stats(sim_results, exp_params, class_labels, show_time_plots, show_a
                 class_labels, pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std,
                 percent_change_mean_resp, screen_size)
 
-            images_folder = os.path.dirname(images_filename)
             # create directory for images (if doesnt exist)
             if images_filename and not os.path.isdir(images_folder):
                 os.mkdir(images_folder)
-                print('Creating results directory: {}'.format(images_filename))
+                print('Creating results directory: {}'.format(images_folder))
             # save fig
-            fig_name = images_filename + '_en{}.png'.format(en_ind)
+            fig_name = images_folder + os.sep + images_filename + '_en{}.png'.format(en_ind)
             fig.savefig(fig_name, dpi=100)
             print(f'Figure saved: {fig_name}')
 
@@ -857,7 +848,7 @@ def collect_stats(sim_results, exp_params, class_labels, show_time_plots, show_a
             # Save EN timecourse:
             if os.path.isdir(images_folder) and \
             (en_ind%3 == 2 or en_ind == (sim_results['nE']-1)):
-                fig_name = os.path.join(os.getcwd(), images_filename+'_en_timecourses{}.png'.format(en_ind))
+                fig_name = images_folder + os.sep + images_filename + '_en_timecourses{}.png'.format(en_ind)
                 fig.savefig(fig_name, dpi=100)
                 print(f'Figure saved: {fig_name}')
 

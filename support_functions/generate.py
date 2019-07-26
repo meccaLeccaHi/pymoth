@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-def generate_ds_MNIST( self, max_ind, class_labels, crop, downsample_rate, downsample_method,
+def generate_ds_MNIST( max_ind, class_labels, crop, downsample_rate, downsample_method,
 inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
 show_thumbnails ):
 
@@ -56,7 +56,7 @@ show_thumbnails ):
 
 	im_dir = 'MNIST_all'
 
-	mnist_fname = os.path.join(im_dir,'MNIST_all.npy')
+	mnist_fname = os.getcwd() + os.sep + im_dir + os.sep + 'MNIST_all.npy'
 
 	# test for npy file before loading. run creation script, if absent.
 	if not os.path.isfile(mnist_fname):
