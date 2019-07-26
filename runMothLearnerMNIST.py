@@ -362,12 +362,12 @@ for run in range(NUM_RUNS):
 		# get probabilities
 		probabilities = neigh.predict_proba(val_X)
 
-		# measure ROC AUC for each class
-		roc_knn = roc_multi(val_y.flatten(), probabilities)
-
 		if SHOW_ROC_PLOTS:
+			# measure ROC AUC for each class
+			knn_roc = roc_multi(val_y.flatten(), probabilities)
+
 			# compute macro-average ROC curve
-			show_roc_curves(roc_knn['fpr'], roc_knn['tpr'], roc_knn['roc_auc'], class_labels,
+			show_roc_curves(knn_roc['fpr'], knn_roc['tpr'], knn_roc['roc_auc'], class_labels,
 			 	title_str='KNN',
 				images_filename=RESULTS_FOLDER + os.sep + RESULTS_FILENAME)
 
@@ -398,12 +398,12 @@ for run in range(NUM_RUNS):
 		# get probabilities
 		probabilities = svm_clf.predict_proba(val_X)
 
-		# measure ROC AUC for each class
-		roc_svm = roc_multi(val_y.flatten(), probabilities)
-
 		if SHOW_ROC_PLOTS:
+			# measure ROC AUC for each class
+			svm_roc = roc_multi(val_y.flatten(), probabilities)
+
 			# compute macro-average ROC curve
-			show_roc_curves(roc_svm['fpr'], roc_svm['tpr'], roc_svm['roc_auc'], class_labels,
+			show_roc_curves(svm_roc['fpr'], svm_roc['tpr'], svm_roc['roc_auc'], class_labels,
 				title_str='SVM',
 				images_filename=RESULTS_FOLDER + os.sep + RESULTS_FILENAME)
 
@@ -422,7 +422,7 @@ for run in range(NUM_RUNS):
 	        'by class: {}% '.format(class_acc))
 
 	if RUN_NEAREST_NEIGHBORS and RUN_SVM:
-		show_roc_subplots([output_trained_log_loss, roc_svm, roc_knn], ['MothNet', 'SVM', 'KNN'],
+		show_roc_subplots([output_trained_log_loss, svm_roc, knn_roc], ['MothNet', 'SVM', 'KNN'],
 			class_labels,
 			images_filename=RESULTS_FOLDER + os.sep + RESULTS_FILENAME + '_ROC_multi')
 

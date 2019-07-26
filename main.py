@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 from moth_net import MothNet
+import time
+import os
 
 def main():
+
+    runStart = time.time() # time execution duration
 
     # instantiate the MothNet object
     mothra = MothNet()
@@ -11,7 +15,7 @@ def main():
 
         # generate dataset
         digit_queues = mothra.load_MNIST()
-        train_X, val_X, train_y, val_y = mothra.train_test_split(digit_queues)
+        train_X, test_X, train_y, test_y = mothra.train_test_split(digit_queues)
 
         # load parameters
         moth_parameters = mothra.load_moth() # define moth model parameters
@@ -29,12 +33,21 @@ def main():
             screen_size=mothra.SCREEN_SIZE)
 
         # reveal scores
-        # print scores for MothNet
+        # score MothNet
         mothra.score_moth_on_MNIST(EN_resp_trained)
-        # # print scores for KNN
-        # mothra.score_knn(X_test, y_test)
-        # # print scores for SVM
-        # mothra.score_svm(X_test, y_test)
+        # score KNN
+        mothra.score_knn(train_X, train_y, test_X, test_y)
+        # score SVM
+        mothra.score_svm(train_X, train_y, test_X, test_y)
+
+        if mothra.SHOW_ROC_PLOTS:
+            mothra.show_multi_roc(['MothNet', 'SVM', 'KNN'], mothra._class_labels,
+            images_filename=mothra.RESULTS_FOLDER + os.sep + mothra.RESULTS_FILENAME + '_ROC_multi')
+
+    runDuration = time.time() - runStart
+    print('{} executed in {:.3f} minutes'.format(__file__, runDuration/60))
+    print()
+    print('         -------------All done-------------         ')
 
 if __name__ == "__main__":
     main()

@@ -4,8 +4,6 @@ print("\nWARNING: This package is still under development.")
 print("Use procedural version by running `$ python runMothLearnerMNIST.py` from the parent directory.\n")
 
 # import packages
-import time
-runStart = time.time() # time execution duration
 import numpy as np
 import os
 import copy # for deep copy of nested lists
@@ -79,17 +77,10 @@ class MothNet:
         #-------------------------------------------------------------------------------
         self.SCREEN_SIZE = (1920, 1080) # screen size (width, height)
 
-        # use_existing_conn_matrices = False
-        ## if True, load 'matrixParamsFilename', which includes filled-in connection matrices
-        ## if False, generate new moth from template in params.py
-
-        # matrix_params_filename = 'sampleMothModelParams'
-        ## dict with all info, including connection matrices, of a particular moth
-
         self.NUM_RUNS = 1 # how many runs you wish to do with this moth or moth template,
         # each run using random draws from the mnist set
 
-        self.GOAL  = 15
+        self.GOAL = 15
         # defines the moth's learning rates, in terms of how many training samples per
         # class give max accuracy. So "GOAL = 1" gives a very fast learner.
         # if GOAL == 0, the rate parameters defined the template will be used as-is
@@ -99,15 +90,13 @@ class MothNet:
         self.NUM_SNIFFS = 1 # (try 2) number of exposures each training sample
 
         # nearest neighbors
-        self.RUN_NEAREST_NEIGHBORS = True # this option requires the sklearn library be installed
         self.NUM_NEIGHBORS = 1 # optimization param for nearest neighbors
-        # Suggested values: TR_PER_CLASS ->
+        # Suggested values:
         #	NUM_NEIGHBORS:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
 
         # SVM
-        self.RUN_SVM = True # this option requires the sklearn library be installed
         self.BOX_CONSTRAINT = 1e1 # optimization parameter for svm
-        # Suggested values: TR_PER_CLASS ->
+        # Suggested values:
         #	BOX_CONSTRAINT:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
         #					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
 
@@ -129,14 +118,6 @@ class MothNet:
         #-------------------------------------------------------------------------------
 
         # Test parameters for compatibility
-        if self.RUN_NEAREST_NEIGHBORS or self.RUN_SVM:
-        	##TEST to see if sklearn is installed,
-        	try:
-        	    import sklearn
-        	except ImportError:
-        	    print('sklearn is not installed, and it is required to run ML models.\n' + \
-        			"Install it or set RUN_NEAREST_NEIGHBORS and RUN_SVM to 'False'.")
-
         if self.SHOW_ACC_PLOTS or self.SHOW_TIME_PLOTS:
         	##TEST that directory string is not empty
         	if not self.RESULTS_FOLDER:
@@ -269,14 +250,14 @@ class MothNet:
         Subsample the dataset for this simulation,
         then build train and val feature matrices and class label vectors.
 
-        Returns: train_X, val_X, train_y, val_y
+        Returns: train_X, test_X, train_y, test_y
         '''
 
         # X = n x numberPixels;  Y = n x 1, where n = 10*TR_PER_CLASS.
         train_X = np.zeros((10*self.TR_PER_CLASS, self._feat_array.shape[0]))
-        val_X = np.zeros((10*self._val_per_class, self._feat_array.shape[0]))
+        test_X = np.zeros((10*self._val_per_class, self._feat_array.shape[0]))
         train_y = np.zeros((10*self.TR_PER_CLASS, 1))
-        val_y = np.zeros((10*self._val_per_class, 1))
+        test_y = np.zeros((10*self._val_per_class, 1))
 
         # populate the labels one class at a time
         for i in self._class_labels:
@@ -286,11 +267,11 @@ class MothNet:
             train_X[i*self.TR_PER_CLASS:(i+1)*self.TR_PER_CLASS,:] = temp.T
             temp = digit_queues[:,self._val_per_class+self.TR_PER_CLASS: \
                 2*self._val_per_class+self.TR_PER_CLASS,i]
-            val_X[i*self._val_per_class:(i+1)*self._val_per_class,:] = temp.T
+            test_X[i*self._val_per_class:(i+1)*self._val_per_class,:] = temp.T
             train_y[i*self.TR_PER_CLASS:(i+1)*self.TR_PER_CLASS] = i
-            val_y[i*self._val_per_class:(i+1)*self._val_per_class,:] = i
+            test_y[i*self._val_per_class:(i+1)*self._val_per_class,:] = i
 
-        return train_X, val_X, train_y, val_y
+        return train_X, test_X, train_y, test_y
 
     def load_moth(self):
         '''
@@ -356,17 +337,17 @@ class MothNet:
         Calculate the classification accuracy of MothNet on MNIST dataset.
         Prints:
             1. output_naive_log_loss: Baseline accuracy using log-likelihoods over all ENs
-            1. output_trained_log_loss: Post-training accuracy using log-likelihoods over all ENs
-            1. output_naive_thresholding: Baseline accuracy using single EN thresholding
-            1. output_trained_thresholding: Baseline accuracy using single EN thresholding
+            2. output_trained_log_loss: Post-training accuracy using log-likelihoods over all ENs
+            3. output_naive_thresholding: Baseline accuracy using single EN thresholding
+            4. output_trained_thresholding: Post-training accuracy using single EN thresholding
         Returns:
-            None
+            1. output_trained_thresholding: Post-training accuracy using single EN thresholding
+            2. output_trained_log_loss: Post-training accuracy using log-likelihoods over all ENs
 
         Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
         MIT License
         '''
         from modules.classify import classify_digits_log_likelihood, classify_digits_thresholding
-        from modules.show_figs import show_roc_curves
 
         # for baseline accuracy function argin, substitute pre- for post-values in EN_resp_trained:
         EN_resp_naive = copy.deepcopy(EN_resp_trained)
@@ -398,8 +379,172 @@ class MothNet:
     		'by class: {}%'.format(np.round(output_trained_thresholding['acc_perc'])))
 
         if self.SHOW_ROC_PLOTS:
+            from modules.show_figs import show_roc_curves
             # compute macro-average ROC curve
             show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
         		output_trained_log_loss['roc_auc'], self._class_labels,
         		title_str='MothNet',
                 images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)
+
+        self.output_trained_thresholding = output_trained_thresholding
+        self.output_trained_log_loss = output_trained_log_loss
+
+    def score_knn(self, train_X, train_y, test_X, test_y):
+        '''
+        Calculate the classification accuracy of KNN on MNIST dataset.
+        Parameters:
+            1. train_X: Feature matrix training samples
+            2. train_y: Labels for training samples
+            3. test_X: Feature matrix testing samples
+            4. test_y: Labels for testing samples
+        Prints:
+            1. output_naive_log_loss: Baseline accuracy using log-likelihoods over all ENs
+            2. output_trained_log_loss: Post-training accuracy using log-likelihoods over all ENs
+            3. output_naive_thresholding: Baseline accuracy using single EN thresholding
+            4. output_trained_thresholding: Baseline accuracy using single EN thresholding
+        Returns:
+            self.output_trained_log_loss
+
+        Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+        MIT License
+        '''
+
+        ##TEST to see if sklearn is installed,
+        try:
+            from sklearn.neighbors import KNeighborsClassifier as _KNeighborsClassifier
+        except ImportError:
+            print('sklearn is not installed, and it is required to run KNN models.\n')
+
+        neigh = _KNeighborsClassifier(n_neighbors=self.NUM_NEIGHBORS)
+        neigh.fit(train_X, train_y.ravel())
+        y_hat = neigh.predict(test_X)
+
+        # get probabilities
+        probabilities = neigh.predict_proba(test_X)
+
+        if self.SHOW_ROC_PLOTS:
+            from modules.classify import roc_multi
+            from modules.show_figs import show_roc_curves
+
+            # measure ROC AUC for each class
+            self.roc_knn = roc_multi(test_y.flatten(), probabilities)
+
+            # compute macro-average ROC curve
+            show_roc_curves(self.roc_knn['fpr'], self.roc_knn['tpr'],
+                self.roc_knn['roc_auc'], self._class_labels, title_str='KNN',
+				images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)
+
+        # measure overall accuracy
+        nn_acc = neigh.score(test_X, test_y)
+
+        # measure accuracy for each class
+        class_acc = np.zeros_like(self._class_labels) # preallocate
+        for i in self._class_labels:
+            inds = np.where(test_y==i)[0]
+            class_acc[i] = np.round(100*np.sum( y_hat[inds]==test_y[inds].squeeze()) /
+                len(test_y[inds]) )
+
+        print('Nearest neighbor (k[# of neighbors]={}):\n'.format(self.NUM_NEIGHBORS),
+            'Trained Accuracy = {}%,'.format(np.round(100*nn_acc)),
+            'by class: {}% '.format(class_acc) )
+
+    def score_svm(self, train_X, train_y, test_X, test_y):
+        '''
+        Calculate the classification accuracy of SVM on MNIST dataset.
+        Parameters:
+            1. train_X: Feature matrix training samples
+            2. train_y: Labels for training samples
+            3. test_X: Feature matrix testing samples
+            4. test_y: Labels for testing samples
+        Prints:
+            1. output_naive_log_loss: Baseline accuracy using log-likelihoods over all ENs
+            2. output_trained_log_loss: Post-training accuracy using log-likelihoods over all ENs
+            3. output_naive_thresholding: Baseline accuracy using single EN thresholding
+            4. output_trained_thresholding: Baseline accuracy using single EN thresholding
+        Returns:
+            self.output_trained_log_loss
+
+        Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
+        MIT License
+        '''
+
+        ##TEST to see if sklearn is installed
+        try:
+            from sklearn import svm as _svm
+        except ImportError:
+            print('sklearn is not installed, and it is required to run KNN models.\n')
+
+        svm_clf = _svm.SVC(gamma='scale', C=self.BOX_CONSTRAINT, probability=True)
+        svm_clf.fit(train_X, train_y.ravel())
+        y_hat = svm_clf.predict(test_X)
+
+		# get probabilities
+        probabilities = svm_clf.predict_proba(test_X)
+
+        if self.SHOW_ROC_PLOTS:
+            from modules.classify import roc_multi
+            from modules.show_figs import show_roc_curves
+
+            # measure ROC AUC for each class
+            self.roc_svm = roc_multi(test_y.flatten(), probabilities)
+
+            # compute macro-average ROC curve
+            show_roc_curves(self.roc_svm['fpr'], self.roc_svm['tpr'],
+                self.roc_svm['roc_auc'], self._class_labels, title_str='KNN',
+				images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)
+
+        # measure overall accuracy
+        svm_acc = svm_clf.score(test_X, test_y)
+
+        # measure accuracy for each class
+        class_acc = np.zeros_like(self._class_labels) # preallocate
+        for i in self._class_labels:
+            inds = np.where(test_y==i)[0]
+            class_acc[i] = np.round(100*np.sum(y_hat[inds]==test_y[inds].squeeze()) /
+                len(test_y[inds]))
+
+        print('Nearest neighbor (k[# of neighbors]={}):\n'.format(self.NUM_NEIGHBORS),
+            'Trained Accuracy = {}%,'.format(np.round(100*svm_acc)),
+            'by class: {}% '.format(class_acc))
+
+    def show_multi_roc(self, model_names, class_labels, images_filename=''):
+        '''
+            show_multi_roc(model_names, class_labels, images_filename)
+        '''
+        import matplotlib.pyplot as plt
+        from modules.show_figs import plot_roc_multi
+
+        if images_filename:
+            images_folder = os.path.dirname(images_filename)
+
+            # create directory for images (if doesnt exist)
+            if images_folder and not os.path.isdir(images_folder):
+                os.mkdir(images_folder)
+                print('Creating results directory: {}'.format(images_folder))
+
+        roc_dict_list = [self.output_trained_log_loss, self.roc_svm, self.roc_knn]
+
+        fig, axes = plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
+
+        y_ax_list = [True, False, False]
+        legend_list = [True, False, False]
+
+        for i in range(len(roc_dict_list)):
+            ax = axes[i]
+            fpr = roc_dict_list[i]['fpr']
+            tpr = roc_dict_list[i]['tpr']
+            roc_auc = roc_dict_list[i]['roc_auc']
+            title_str = model_names[i]
+
+            plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
+                y_axis_label=y_ax_list[i], legend=legend_list[i])
+
+        fig.tight_layout()
+
+        # save plot
+        if os.path.isdir(images_folder):
+            roc_filename = images_filename + '.png'
+            fig.savefig(roc_filename, dpi=150)
+            print(f'Figure saved: {roc_filename}')
+        else:
+            print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
