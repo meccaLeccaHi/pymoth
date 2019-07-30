@@ -784,7 +784,6 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
 
         # plot stats (if selected)
         if show_acc_plots:
-
             fig = show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp,
                 pre_std_resp, post_offset, post_mean_resp, post_median_resp, post_std_resp,
                 class_labels, pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std,

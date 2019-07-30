@@ -117,8 +117,8 @@ SHOW_TIME_PLOTS = True # True to plot, False to ignore
 # flag for ROC multi-class ROC curves (one for each model)
 SHOW_ROC_PLOTS = True # True to plot, False to ignore
 
-RESULTS_FOLDER = os.path.dirname(__file__) + os.sep + 'results' # string
-# (relative path, starting inside the directory housing this package)
+RESULTS_FOLDER = os.getcwd() + os.sep + 'results' # string (absolute path)
+# If non-empty, results will be saved here
 
 RESULTS_FILENAME = 'results' # will get the run number appended to it
 

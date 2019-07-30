@@ -20,12 +20,12 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 > `$ conda create -n <env_name> python=3.6 scipy matplotlib scikit-learn pillow keras`  
 
 #### Or, install from .txt file:  
-> **First**, 
+> **First**,
 > - clone this repository and `cd` into it  
 >
-> **Second**, 
+> **Second**,
 > - if you use pip, `$ pip install -r requirements.txt` *else,*   
-> - if you prefer conda, `$ conda install --yes --file requirements.txt` *else,* 
+> - if you prefer conda, `$ conda install --yes --file requirements.txt` *else,*
 > - to install a conda virtualenv, `$ conda create --name <env_name> --file requirements.txt`  
 
 #### Run via:
@@ -35,3 +35,6 @@ Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3
 
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
+
+#### Sample results:
+<img src='./results/results_ROC_multi_sample.png'>
