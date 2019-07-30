@@ -34,7 +34,7 @@ def download_save():
 				'test_labels':test_lbls,
 			}
 
-	np.save(os.getcwd() + os.sep + im_dir + os.sep + 'MNIST_all.npy', mnist)
+	np.save(os.path.dirname(__file__) + os.sep + im_dir + os.sep + 'MNIST_all.npy', mnist)
 
 if __name__ == "__main__":
     main()

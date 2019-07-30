@@ -4,17 +4,17 @@ print("\nWARNING: This package is still under development.")
 print("Use procedural version by running `$ python runMothLearnerMNIST.py` from the parent directory.\n")
 
 # import packages
-import numpy as np
-import os
-import copy # for deep copy of nested lists
-import sys
+import numpy as _np
+import os as _os
+import copy as _copy # for deep copy of nested lists
+import sys as _sys
 
 ##TEST for Python version > 2
-python_version = "{}.{}".format(sys.version_info.major,sys.version_info.minor)
-if sys.version_info.major > 2:
-    print("Python version {} detected.\n".format(python_version))
+_python_version = "{}.{}".format(_sys.version_info.major,_sys.version_info.minor)
+if _sys.version_info.major > 2:
+    print("Python version {} detected.\n".format(_python_version))
 else:
-    version_error = "Python version {} detected.\n".format(python_version) + \
+    version_error = "Python version {} detected.\n".format(_python_version) + \
                     "Python version 3 or higher is required to run this module.\n" + \
                     "Please install Python 3+."
     raise Exception(version_error)
@@ -111,7 +111,8 @@ class MothNet:
         # flag for ROC multi-class ROC curves (one for each model)
         self.SHOW_ROC_PLOTS = True # True to plot, False to ignore
 
-        self.RESULTS_FOLDER = os.getcwd() + os.sep + 'results' # string (absolute path)
+        self.RESULTS_FOLDER = _os.path.dirname(__file__) + _os.sep + 'results' # string
+        # (relative path, starting inside the directory housing this package)
         # If non-empty, results will be saved here
         self.RESULTS_FILENAME = 'results' # will get the run number appended to it
 
@@ -126,8 +127,8 @@ class MothNet:
         		raise Exception(folder_error)
 
         	##TEST for existence of image results folder, else create it
-        	if not os.path.isdir(self.RESULTS_FOLDER):
-        		os.mkdir(self.RESULTS_FOLDER)
+        	if not _os.path.isdir(self.RESULTS_FOLDER):
+        		_os.mkdir(self.RESULTS_FOLDER)
         		print('Creating results directory: {}'.format(self.RESULTS_FOLDER))
 
     ### 2. Load and preprocess MNIST dataset ###
@@ -158,14 +159,14 @@ class MothNet:
 
         from modules.generate import generate_ds_MNIST
 
-        self._class_labels = np.array(range(10))  # For MNIST. '0' is labeled as 10
+        self._class_labels = _np.array(range(10))  # For MNIST. '0' is labeled as 10
         self._val_per_class = 15  # number of digits used in validation sets and in baseline sets
 
         # make a vector of the classes of the training samples, randomly mixed:
-        self._tr_classes = np.repeat( self._class_labels, self.TR_PER_CLASS )
-        self._tr_classes = np.random.permutation( self._tr_classes )
+        self._tr_classes = _np.repeat( self._class_labels, self.TR_PER_CLASS )
+        self._tr_classes = _np.random.permutation( self._tr_classes )
         # repeat these inputs if taking multiple sniffs of each training sample:
-        self._tr_classes = np.tile( self._tr_classes, [1, self.NUM_SNIFFS] )[0]
+        self._tr_classes = _np.tile( self._tr_classes, [1, self.NUM_SNIFFS] )[0]
 
         # Specify pools of indices from which to draw baseline, train, val sets.
         self._ind_pool_baseline = list(range(100)) # 1:100
@@ -202,31 +203,31 @@ class MothNet:
         # that will be used. The 3rd dimension gives the class: 0:9.
 
         # Line up the images for the experiment (in 10 parallel queues)
-        digit_queues = np.zeros_like(self._feat_array)
+        digit_queues = _np.zeros_like(self._feat_array)
 
         for i in self._class_labels:
 
             ## 1. Baseline (pre-train) images
             # choose some images from the baselineIndPool
             _range_top_end = max(self._ind_pool_baseline) - min(self._ind_pool_baseline) + 1
-            _r_sample = np.random.choice(_range_top_end, self._val_per_class) # select random digits
+            _r_sample = _np.random.choice(_range_top_end, self._val_per_class) # select random digits
             _these_inds = min(self._ind_pool_baseline) + _r_sample
             digit_queues[:,:self._val_per_class,i] = self._feat_array[:,_these_inds,i]
 
             ## 2. Training images
             # choose some images from the trainingIndPool
             _range_top_end = max(self._ind_pool_train) - min(self._ind_pool_train) + 1
-            _r_sample = np.random.choice(_range_top_end, self.TR_PER_CLASS) # select random digits
+            _r_sample = _np.random.choice(_range_top_end, self.TR_PER_CLASS) # select random digits
             _these_inds = min(self._ind_pool_train) + _r_sample
             # repeat these inputs if taking multiple sniffs of each training sample
-            _these_inds = np.tile(_these_inds, self.NUM_SNIFFS)
+            _these_inds = _np.tile(_these_inds, self.NUM_SNIFFS)
             digit_queues[:, self._val_per_class:(self._val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS), i] = \
                 self._feat_array[:, _these_inds, i]
 
             ## 3. Post-training (val) images
             # choose some images from the postTrainIndPool
             _range_top_end = max(self._ind_pool_post) - min(self._ind_pool_post) + 1
-            _r_sample = np.random.choice(_range_top_end, self._val_per_class) # select random digits
+            _r_sample = _np.random.choice(_range_top_end, self._val_per_class) # select random digits
             _these_inds = min(self._ind_pool_post) + _r_sample
             digit_queues[:,(self._val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS): \
                 (self._val_per_class+self.TR_PER_CLASS*self.NUM_SNIFFS+self._val_per_class),
@@ -235,11 +236,11 @@ class MothNet:
         # show the final versions of thumbnails to be used, if wished
         if self.N_THUMBNAILS:
             from modules.show_figs import show_FA_thumbs
-            _thumb_array = np.zeros((self._len_side, self._num_per_class, self._class_num))
+            _thumb_array = _np.zeros((self._len_side, self._num_per_class, self._class_num))
             _thumb_array[self._active_pixel_inds,:,:] = digit_queues
             normalize = 1
             show_FA_thumbs(_thumb_array, self.N_THUMBNAILS, normalize, 'Input thumbnails',
-    			self.SCREEN_SIZE, self.RESULTS_FOLDER + os.sep + 'thumbnails')
+    			self.SCREEN_SIZE, self.RESULTS_FOLDER + _os.sep + 'thumbnails')
 
         return digit_queues
 
@@ -254,10 +255,10 @@ class MothNet:
         '''
 
         # X = n x numberPixels;  Y = n x 1, where n = 10*TR_PER_CLASS.
-        train_X = np.zeros((10*self.TR_PER_CLASS, self._feat_array.shape[0]))
-        test_X = np.zeros((10*self._val_per_class, self._feat_array.shape[0]))
-        train_y = np.zeros((10*self.TR_PER_CLASS, 1))
-        test_y = np.zeros((10*self._val_per_class, 1))
+        train_X = _np.zeros((10*self.TR_PER_CLASS, self._feat_array.shape[0]))
+        test_X = _np.zeros((10*self._val_per_class, self._feat_array.shape[0]))
+        train_y = _np.zeros((10*self.TR_PER_CLASS, 1))
+        test_y = _np.zeros((10*self._val_per_class, 1))
 
         # populate the labels one class at a time
         for i in self._class_labels:
@@ -348,7 +349,7 @@ class MothNet:
         from modules.classify import classify_digits_log_likelihood, classify_digits_thresholding
 
         # for baseline accuracy function argin, substitute pre- for post-values in EN_resp_trained:
-        EN_resp_naive = copy.deepcopy(EN_resp_trained)
+        EN_resp_naive = _copy.deepcopy(EN_resp_trained)
         for i, resp in enumerate(EN_resp_trained):
             EN_resp_naive[i]['post_mean_resp'] = resp['pre_mean_resp'].copy()
             EN_resp_naive[i]['post_std_resp'] = resp['pre_std_resp'].copy()
@@ -362,9 +363,9 @@ class MothNet:
 
         print('LogLikelihood:')
         print(' Baseline (Naive) Accuracy: {}%,'.format(round(output_naive_log_loss['total_acc'])) + \
-    		'by class: {}%'.format(np.round(output_naive_log_loss['acc_perc'])))
+    		'by class: {}%'.format(_np.round(output_naive_log_loss['acc_perc'])))
         print(' Trained Accuracy: {}%,'.format(round(output_trained_log_loss['total_acc'])) + \
-    		'by class: {}%'.format(np.round(output_trained_log_loss['acc_perc'])))
+    		'by class: {}%'.format(_np.round(output_trained_log_loss['acc_perc'])))
 
         # 2. using single EN thresholding:
         output_naive_thresholding = classify_digits_thresholding( EN_resp_naive, 1e9, -1, 10 )
@@ -372,9 +373,9 @@ class MothNet:
 
         print('Thresholding:')
         print(' Baseline (Naive) Accuracy: {}%,'.format(round(output_naive_thresholding['total_acc'])) + \
-    		'by class: {}%'.format(np.round(output_naive_thresholding['acc_perc'])))
+    		'by class: {}%'.format(_np.round(output_naive_thresholding['acc_perc'])))
         print(' Trained Accuracy: {}%,'.format(round(output_trained_thresholding['total_acc'])) + \
-    		'by class: {}%'.format(np.round(output_trained_thresholding['acc_perc'])))
+    		'by class: {}%'.format(_np.round(output_trained_thresholding['acc_perc'])))
 
         if self.SHOW_ROC_PLOTS:
             from modules.show_figs import show_roc_curves
@@ -382,7 +383,7 @@ class MothNet:
             show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
         		output_trained_log_loss['roc_auc'], self._class_labels,
         		title_str='MothNet',
-                images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)
+                images_filename=self.RESULTS_FOLDER + _os.sep + self.RESULTS_FILENAME)
 
         self.output_trained_thresholding = output_trained_thresholding
         self.output_trained_log_loss = output_trained_log_loss
@@ -430,20 +431,20 @@ class MothNet:
             # compute macro-average ROC curve
             show_roc_curves(self.roc_knn['fpr'], self.roc_knn['tpr'],
                 self.roc_knn['roc_auc'], self._class_labels, title_str='KNN',
-				images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)
+				images_filename=self.RESULTS_FOLDER + _os.sep + self.RESULTS_FILENAME)
 
         # measure overall accuracy
         nn_acc = neigh.score(test_X, test_y)
 
         # measure accuracy for each class
-        class_acc = np.zeros_like(self._class_labels) # preallocate
+        class_acc = _np.zeros_like(self._class_labels) # preallocate
         for i in self._class_labels:
-            inds = np.where(test_y==i)[0]
-            class_acc[i] = np.round(100*np.sum( y_hat[inds]==test_y[inds].squeeze()) /
+            inds = _np.where(test_y==i)[0]
+            class_acc[i] = _np.round(100*_np.sum( y_hat[inds]==test_y[inds].squeeze()) /
                 len(test_y[inds]) )
 
         print('Nearest neighbor (k[# of neighbors]={}):\n'.format(self.NUM_NEIGHBORS),
-            'Trained Accuracy = {}%,'.format(np.round(100*nn_acc)),
+            'Trained Accuracy = {}%,'.format(_np.round(100*nn_acc)),
             'by class: {}% '.format(class_acc) )
 
     def score_svm(self, train_X, train_y, test_X, test_y):
@@ -489,20 +490,20 @@ class MothNet:
             # compute macro-average ROC curve
             show_roc_curves(self.roc_svm['fpr'], self.roc_svm['tpr'],
                 self.roc_svm['roc_auc'], self._class_labels, title_str='KNN',
-				images_filename=self.RESULTS_FOLDER + os.sep + self.RESULTS_FILENAME)
+				images_filename=self.RESULTS_FOLDER + _os.sep + self.RESULTS_FILENAME)
 
         # measure overall accuracy
         svm_acc = svm_clf.score(test_X, test_y)
 
         # measure accuracy for each class
-        class_acc = np.zeros_like(self._class_labels) # preallocate
+        class_acc = _np.zeros_like(self._class_labels) # preallocate
         for i in self._class_labels:
-            inds = np.where(test_y==i)[0]
-            class_acc[i] = np.round(100*np.sum(y_hat[inds]==test_y[inds].squeeze()) /
+            inds = _np.where(test_y==i)[0]
+            class_acc[i] = _np.round(100*_np.sum(y_hat[inds]==test_y[inds].squeeze()) /
                 len(test_y[inds]))
 
         print('Nearest neighbor (k[# of neighbors]={}):\n'.format(self.NUM_NEIGHBORS),
-            'Trained Accuracy = {}%,'.format(np.round(100*svm_acc)),
+            'Trained Accuracy = {}%,'.format(_np.round(100*svm_acc)),
             'by class: {}% '.format(class_acc))
 
     def show_multi_roc(self, model_names, class_labels, images_filename=''):
@@ -513,11 +514,11 @@ class MothNet:
         from modules.show_figs import plot_roc_multi
 
         if images_filename:
-            images_folder = os.path.dirname(images_filename)
+            images_folder = _os.path.dirname(images_filename)
 
             # create directory for images (if doesnt exist)
-            if images_folder and not os.path.isdir(images_folder):
-                os.mkdir(images_folder)
+            if images_folder and not _os.path.isdir(images_folder):
+                _os.mkdir(images_folder)
                 print('Creating results directory: {}'.format(images_folder))
 
         roc_dict_list = [self.output_trained_log_loss, self.roc_svm, self.roc_knn]
@@ -540,7 +541,7 @@ class MothNet:
         fig.tight_layout()
 
         # save plot
-        if os.path.isdir(images_folder):
+        if _os.path.isdir(images_folder):
             roc_filename = images_filename + '.png'
             fig.savefig(roc_filename, dpi=150)
             print(f'Figure saved: {roc_filename}')

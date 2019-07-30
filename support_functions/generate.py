@@ -19,7 +19,7 @@ show_thumbnails ):
 
 	Inputs (preprocessing parameters):
 		max_ind, class_labels, crop,
-		
+
 		downsample_rate: downsample ratio
 		downsample_method: method for downsampling image
 
@@ -50,7 +50,7 @@ show_thumbnails ):
 
 	im_dir = 'MNIST_all'
 
-	mnist_fname = os.getcwd() + os.sep + im_dir + os.sep + 'MNIST_all.npy'
+	mnist_fname = os.path.dirname(__file__) + os.sep + im_dir + os.sep + 'MNIST_all.npy'
 
 	# test for npy file before loading. run creation script, if absent.
 	if not os.path.isfile(mnist_fname):

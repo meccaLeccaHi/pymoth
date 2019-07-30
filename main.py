@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from moth_net import MothNet
+import pymoth
+# from moth_net import MothNet
 import time
 import os
 
@@ -8,7 +9,7 @@ def main():
     runStart = time.time() # time execution duration
 
     # instantiate the MothNet object
-    mothra = MothNet()
+    mothra = pymoth.MothNet()
 
     # loop through the number of simulations specified:
     for run in range(mothra.NUM_RUNS):
