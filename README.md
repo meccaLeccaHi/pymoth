@@ -5,7 +5,7 @@ This package contains a Python version of [MothNet](https://github.com/charlesDe
 
 Neural network modeled after the olfactory system of the hawkmoth, _Manduca sexta_ (shown above).
 > This repository contains a Python version of the code used in:
-> - ["Putting a bug in ML: The moth olfactory network learns to read MNIST"](https://doi.org/10.1016/j.neunet.2019.05.012) (CB Delahunt and JN Kutz), _Neural Networks_ 2019
+> - ["Putting a bug in ML: The moth olfactory network learns to read MNIST"](https://doi.org/10.1016/j.neunet.2019.05.012), _Neural Networks_ 2019
 
 #### Dependencies:
 - [scipy](https://www.scipy.org/)
