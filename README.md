@@ -1,5 +1,5 @@
 # pyMoth
-Python wrapper for [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
+This package contains a Python version of [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 
 <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Manduca_brasiliensis_MHNT_CUT_2010_0_12_Boca_de_Mato%2C_Cochoeiras_de_Macacu%2C_rio_de_Janeiro_blanc.jpg/320px-Manduca_brasiliensis_MHNT_CUT_2010_0_12_Boca_de_Mato%2C_Cochoeiras_de_Macacu%2C_rio_de_Janeiro_blanc.jpg'>
 
@@ -35,6 +35,14 @@ Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3
 
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
+
+#### Support modules:
+- *classify.py* Classify model output for MNIST experiment.
+- *extract.py* Prepare down-sampled digits from MNIST.
+- *generate.py* Generate MNIST dataset (in the case that it's absent).
+- *params.py* Experiment and model parameters.
+- *sde.py* Run stochastic diff. equation simulation.
+- *show_figs.py* Figure generation methods.
 
 #### Sample results:
 <img src='./results/results_ROC_multi_sample.png'>
