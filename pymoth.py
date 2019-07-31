@@ -72,51 +72,22 @@ class MothNet:
         The constructor for MothNet class.
         """
 
-        ## USER ENTRIES (constants)
-        # Edit parameters below this line:
-        #-------------------------------------------------------------------------------
-        self.SCREEN_SIZE = (1920, 1080) # screen size (width, height)
+        import user_entries # see user_entries module for edit-able values
 
-        self.NUM_RUNS = 1 # how many runs you wish to do with this moth or moth template,
-        # each run using random draws from the mnist set
-
-        self.GOAL = 15
-        # defines the moth's learning rates, in terms of how many training samples per
-        # class give max accuracy. So "GOAL = 1" gives a very fast learner.
-        # if GOAL == 0, the rate parameters defined the template will be used as-is
-        # if GOAL > 1, the rate parameters will be updated, even in a pre-set moth
-
-        self.TR_PER_CLASS = 1 # (try 3) the number of training samples per class
-        self.NUM_SNIFFS = 1 # (try 2) number of exposures each training sample
-
-        # nearest neighbors
-        self.NUM_NEIGHBORS = 1 # optimization param for nearest neighbors
-        # Suggested values:
-        #	NUM_NEIGHBORS:  1,3,5 -> 1;  (10, 20, 50) -> 1 or 3;  100 -> 3; 500 + -> 5
-
-        # SVM
-        self.BOX_CONSTRAINT = 1e1 # optimization parameter for svm
-        # Suggested values:
-        #	BOX_CONSTRAINT:  1 -> NA; 3 -> 1e4; 5 -> 1e0 or 1e1; 10 -> 1e-1,
-        #					20 -> 1e-4 or 1e-5, 50 -> 1e-5 ; 100+ -> 1e-7
-
-        ## Flags to show various images:
-        self.N_THUMBNAILS = 1 # N means show N experiment inputs from each class
-        	# 0 means don't show any
-
-        # flag for statistical plots of EN response changes: One image (with 8 subplots) per EN
-        self.SHOW_ACC_PLOTS = True # True to plot, False to ignore
-        # flag for EN timecourses: Three scaled ENs timecourses on each of 4 images (only one EN on the 4th image)
-        self.SHOW_TIME_PLOTS = True # True to plot, False to ignore
-        # flag for ROC multi-class ROC curves (one for each model)
-        self.SHOW_ROC_PLOTS = True # True to plot, False to ignore
-
-        self.RESULTS_FOLDER = _os.path.dirname(__file__) + _os.sep + 'results' # string
-        # (relative path, starting inside the directory housing this package)
-        # If non-empty, results will be saved here
-        self.RESULTS_FILENAME = 'results' # will get the run number appended to it
-
-        #-------------------------------------------------------------------------------
+        # USER ENTRIES (constants)
+        self.SCREEN_SIZE = user_entries.SCREEN_SIZE # screen size (width, height)
+        self.NUM_RUNS = user_entries.NUM_RUNS # how many runs you wish to do with this moth
+        self.GOAL = user_entries.GOAL # define the moth's learning rates
+        self.TR_PER_CLASS = user_entries.TR_PER_CLASS # number of training samples per class
+        self.NUM_SNIFFS = user_entries.NUM_SNIFFS # number of exposures each training sample
+        self.NUM_NEIGHBORS = user_entries.NUM_NEIGHBORS # optimization param for nearest neighbors
+        self.BOX_CONSTRAINT = user_entries.BOX_CONSTRAINT # optimization parameter for svm
+        self.N_THUMBNAILS = user_entries.N_THUMBNAILS # show N experiment inputs from each class
+        self.SHOW_ACC_PLOTS = user_entries.SHOW_ACC_PLOTS # True to plot, False to ignore
+        self.SHOW_TIME_PLOTS = user_entries.SHOW_TIME_PLOTS # True to plot, False to ignore
+        self.SHOW_ROC_PLOTS = user_entries.SHOW_ROC_PLOTS # True to plot, False to ignore
+        self.RESULTS_FOLDER = _os.path.dirname(__file__) + _os.sep + user_entries.RESULTS_FOLDER # string
+        self.RESULTS_FILENAME = user_entries.RESULTS_FILENAME # will get the run number appended to it
 
         # Test parameters for compatibility
         if self.SHOW_ACC_PLOTS or self.SHOW_TIME_PLOTS:

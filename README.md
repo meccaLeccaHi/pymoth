@@ -7,7 +7,7 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 > This repository contains a Python version of the code used in:
 > - ["Putting a bug in ML: The moth olfactory network learns to read MNIST"](https://doi.org/10.1016/j.neunet.2019.05.012), _Neural Networks_ 2019
 
-#### Dependencies:
+### Dependencies:
 - [scipy](https://www.scipy.org/)
 - [matplotlib](https://matplotlib.org/)
 - [scikit-learn](https://scikit-learn.org/)(for kNN and SVM models)
@@ -28,12 +28,16 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 > - if you prefer conda, `$ conda install --yes --file requirements.txt` *else,*
 > - to install a conda virtualenv, `$ conda create --name <env_name> --file requirements.txt`  
 
-#### Run via:
+### Run via:
 `$ python runMothLearnerMNIST.py`
 
 Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3
 
+#### User parameters:
+To customize parameters, edit values in (`user_entries.py`)[./user_entries.py].
+
+#### Data source:
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
 
 #### Support modules:

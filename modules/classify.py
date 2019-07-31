@@ -29,7 +29,12 @@ def confusion_matrix( true_classes, pred_classes ):
     return np.reshape(np.array(conf_mat), (-1, len(set(true_classes))))
 
 def roc_multi(true_classes, likelihoods):
-    '''Measure ROC AUC for multi-class classifiers'''
+    '''
+    Measure ROC AUC for multi-class classifiers.
+    Params:
+    - true_classes [np array - shape: (observations,)]
+    - likelihoods [np array - shape: (observations, classes)]
+    '''
 
     from scipy import interp
     from sklearn.metrics import roc_curve, auc
