@@ -7,7 +7,7 @@ import os
 
 def main():
 
-    runStart = time.time() # time execution duration
+    run_start = time.time() # time execution duration
 
     # instantiate the MothNet object
     mothra = pymoth.MothNet()
@@ -46,8 +46,8 @@ def main():
             mothra.show_multi_roc(['MothNet', 'SVM', 'KNN'], mothra._class_labels,
             images_filename=mothra.RESULTS_FOLDER + os.sep + mothra.RESULTS_FILENAME + '_ROC_multi')
 
-    runDuration = time.time() - runStart
-    print('{} executed in {:.3f} minutes'.format(__file__, runDuration/60))
+    run_duration = time.time() - run_start
+    print('{} executed in {:.3f} minutes'.format(__file__, run_duration/60))
     print()
     print('         -------------All done-------------         ')
 

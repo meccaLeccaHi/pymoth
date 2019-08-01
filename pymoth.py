@@ -251,7 +251,7 @@ class MothNet:
             matrices and to control behavior.
         Returns: self.model_params (Model parameters)
         '''
-        from modules.params import ModelParams as ModelParams
+        from modules.params import ModelParams
 
     	# instantiate template params
         self.model_params = ModelParams( len(self._active_pixel_inds), self.GOAL )
@@ -268,7 +268,6 @@ class MothNet:
         '''
 
         from modules.params import ExpParams
-
         self.experiment_params =  ExpParams( self._tr_classes, self._class_labels, self._val_per_class )
 
     def simulate(self, digit_queues):

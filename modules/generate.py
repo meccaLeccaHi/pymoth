@@ -26,7 +26,7 @@ show_thumbnails ):
 		inds_to_ave: pixel indices (array)
 		pixel_sum: normalization factor (int)
 		inds_to_calc_RF: pixel indices for receptive field (array)
-		num_features: number of pixels in the receptive field
+		num_features: number of pixels in the receptive field (int)
 		screen_size: screen size (width, height) for images
 		save_results_folder: absolute path to where results will be saved
 		show_thumbnails: number of thumbnails to show for each class (0 means none)

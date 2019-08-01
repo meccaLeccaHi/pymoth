@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# import packages and modules
 import os
 import numpy as np
 from generate import generate_ds_mnist, extract_mnist_feature_array, \

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# import packages and modules
 import numpy as np
 from classify import roc_multi, classify_digits_log_likelihood, classify_digits_thresholding
 
