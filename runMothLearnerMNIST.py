@@ -320,9 +320,9 @@ for run in range(NUM_RUNS):
 		EN_resp_naive[i]['post_train_resp'] = resp['pre_train_resp'].copy()
 
 	# 1. using log-likelihoods over all ENs:
-	# Baseline accuracy:
+	# baseline accuracy
 	output_naive_log_loss = classify_digits_log_likelihood( EN_resp_naive )
-	# Post-training accuracy using log-likelihood over all ENs:
+	# post-training accuracy using log-likelihood over all ENs
 	output_trained_log_loss = classify_digits_log_likelihood( EN_resp_trained )
 
 	print('LogLikelihood:')
