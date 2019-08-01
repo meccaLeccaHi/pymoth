@@ -37,16 +37,15 @@ Built for use with Mac/Linux systems - not tested in Windows.
 #### User parameters:
 To customize parameters, edit values in (`user_entries.py`)[./user_entries.py].
 
-#### Data source:
+### Data source:
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
 
-#### Support modules:
+### Modules:
 - *classify.py* Classify model output for MNIST experiment.
-- *extract.py* Prepare down-sampled digits from MNIST.
-- *generate.py* Generate MNIST dataset (in the case that it's absent).
+- *generate.py* Download (if absent) and prepare down-sampled MNIST dataset.
 - *params.py* Experiment and model parameters.
-- *sde.py* Run stochastic diff. equation simulation.
+- *sde.py* Run stochastic differential equation simulation.
 - *show_figs.py* Figure generation methods.
 
-#### Sample results:
+### Sample results:
 <img src='./results/results_ROC_multi_sample.png'>

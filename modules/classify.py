@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_curve, auc
 import numpy as np
+from scipy import interp
 
 def roc_multi(true_classes, likelihoods):
     '''
@@ -10,9 +11,6 @@ def roc_multi(true_classes, likelihoods):
     - true_classes [np array - shape: (observations,)]
     - likelihoods [np array - shape: (observations, classes)]
     '''
-
-    from scipy import interp
-    from sklearn.metrics import roc_curve, auc
 
     n_classes = len(set(true_classes))
 

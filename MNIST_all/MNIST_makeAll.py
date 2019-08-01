@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import os
+import numpy as np
+
 def download_save():
 	'''
 	saves the following dictionary, called mnist, to .npy file
@@ -12,8 +15,6 @@ def download_save():
 	MIT License
 	'''
 
-	import os
-	import numpy as np
 	# from MNIST_all import MNIST_read
 
 	# # download and save data from Yann Lecun's website
@@ -34,7 +35,7 @@ def download_save():
 				'test_labels':test_lbls,
 			}
 
-	np.save(os.path.dirname(__file__) + os.sep + im_dir + os.sep + 'MNIST_all.npy', mnist)
+	np.save(os.path.dirname(__file__) + os.sep + 'MNIST_all.npy', mnist)
 
 if __name__ == "__main__":
     main()

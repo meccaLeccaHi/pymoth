@@ -70,7 +70,7 @@ show_thumbnails ):
 
 	# extract the required images and classes
 	imageIndices = range(max_ind+1)
-	imageArray = extractMNISTFeatureArray(mnist, class_labels, imageIndices, 'train')
+	imageArray = extract_mnist_feature_array(mnist, class_labels, imageIndices, 'train')
 	# imageArray = numberImages x h x w x numberClasses 4-D array. class order: 1 to 10 (10 = '0')
 
 	# calc new dimensions
@@ -136,7 +136,7 @@ show_thumbnails ):
 
 	return featureArray, activePixelInds, lengthOfSide
 
-def extractMNISTFeatureArray( mnist, labels, image_indices, phase_label ):
+def extract_mnist_feature_array( mnist, labels, image_indices, phase_label ):
     '''
     Extract a subset of the samples from each class, convert the images to doubles on [0 1], and
         return a 4-D array: 1, 2 = im. 3 indexes images within a class, 4 is the class.
