@@ -23,6 +23,7 @@ max_ind = 999
 crop = 2
 downsample_ratio = 2
 downsample_method = 1
+screen_size = (1920, 1080)
 
 ## test generate_ds_mnist
 # generate_ds_mnist( max_ind, class_labels, crop, downsample_ratio, downsample_method,
@@ -37,20 +38,36 @@ generate_ds_mnist(
                   [i for i in range(550,1000)],
                   6,
                   [i for i in range(550,1000)],
-                  85, (1920, 1080), '', 0
+                  85,
+                  screen_size, '', 0
                  )
 
 ## test extract_mnist_feature_array
 # extract_mnist_feature_array( mnist, labels, image_indices, phase_label )
-test_image_array = extract_mnist_feature_array(mnist, class_labels, range(max_ind+1), 'train')
+dummy_image_array = extract_mnist_feature_array(
+                mnist,
+                class_labels,
+                range(max_ind+1),
+                'train'
+                )
 
 # test crop_downsample_vectorize_images
 # crop_downsample_vectorize_images( im_stack, crop_val, downsample_ratio, downsample_method )
-crop_downsample_vectorize_images(test_image_array[...,0], crop, downsample_ratio, downsample_method)
+crop_downsample_vectorize_images(
+                dummy_image_array[...,0],
+                crop,
+                downsample_ratio,
+                downsample_method
+                )
+
+im_z, im_height, im_width, label_len = dummy_image_array.shape
+dummy_feature_array = np.ones((144, im_z, label_len))
 
 # test average_image_stack
-# average_image_stack( im_stack, indices_to_average )
+# average_image_stack(im_stack, indices_to_average)
+average_image_stack(dummy_feature_array[...,0], list(range(5)))
 
 # test select_active_pixels
 # select_active_pixels( feature_array, num_features, screen_size,
 #    save_image_folder=[], show_thumbnails=0 )
+select_active_pixels(dummy_feature_array, 85, screen_size)

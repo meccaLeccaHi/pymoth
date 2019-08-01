@@ -35,9 +35,9 @@ show_thumbnails ):
 		1. feature_array = n x m x 10 array. n = #active pixels, m = #digits from
 			each class that will be used.
 			The 3rd dimension gives the class, 1:10 where 10 = '0'.
-		2. activePixelInds: list of pixel indices to allow re-embedding into empty
+		2. active_pixel_inds: list of pixel indices to allow re-embedding into empty
 			thumbnail for viewing.
-	  	3. lengthOfSide: allows reconstruction of thumbnails given from the
+	  	3. len_side: allows reconstruction of thumbnails given from the
 			feature vectors.
 	#---------------------------------------------------------------------------
 	Preprocessing includes:
@@ -112,30 +112,30 @@ show_thumbnails ):
 	feature_array = np.maximum(feature_array, 0) # remove any negative pixel values
 
 	# c. Normalize each image so the pixels sum to the same amount
-	fSums = np.sum(feature_array, axis=0)
-	normArray = np.repeat(fSums[np.newaxis,:,:],new_length,0)
+	f_sums = np.sum(feature_array, axis=0)
+	norm_array = np.repeat(f_sums[np.newaxis,:,:],new_length,0)
 	feature_array *= pixel_sum
-	feature_array /= normArray
+	feature_array /= norm_array
 	# feature_array now consists of mean-subtracted, non-negative,
 	# normalized (by sum of pixels) columns, each column a vectorized thumbnail.
 	# size = 144 x numDigitsPerClass x 10
 
-	lengthOfSide = new_length # save to allow sde_EM_evolution to print thumbnails.
+	len_side = new_length # save to allow sde_EM_evolution to print thumbnails.
 
 	# d. Define a Receptive Field, ie the active pixels
 	# Reduce the number of features by getting rid of less-active pixels.
-	# If we are using an existing moth then activePixelInds is already defined, so
+	# If we are using an existing moth then active_pixel_inds is already defined, so
 	# we need to load the modelParams to get the number of features
 	# (since this is defined by the AL architecture):
 
 	# reduce pixel number (downsample) to reflect # of features in moth brain
 	fA_sub = feature_array[:, inds_to_calc_RF, :]
-	activePixelInds = select_active_pixels(fA_sub, num_features,
+	active_pixel_inds = select_active_pixels(fA_sub, num_features,
 		screen_size, save_image_folder=save_results_folder,
 		show_thumbnails=show_thumbnails)
-	feature_array = feature_array[activePixelInds,:,:].squeeze() # Project onto the active pixels
+	feature_array = feature_array[active_pixel_inds,:,:].squeeze() # Project onto the active pixels
 
-	return feature_array, activePixelInds, lengthOfSide
+	return feature_array, active_pixel_inds, len_side
 
 def extract_mnist_feature_array(mnist, labels, image_indices, phase_label):
     '''
