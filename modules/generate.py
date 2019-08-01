@@ -3,7 +3,7 @@
 import numpy as np
 import os
 
-def generate_ds_MNIST( max_ind, class_labels, crop, downsample_rate, downsample_method,
+def generate_ds_mnist( max_ind, class_labels, crop, downsample_ratio, downsample_method,
 inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
 show_thumbnails ):
 
@@ -18,20 +18,21 @@ show_thumbnails ):
 	Modify the path for the MNIST data file as needed.
 
 	Inputs (preprocessing parameters):
-		max_ind, class_labels, crop,
-
-		downsample_rate: downsample ratio
-		downsample_method: method for downsampling image
-
-		inds_to_ave, pixel_sum, inds_to_calc_RF,
-
+		max_ind: maximum number of samples to use (int)
+		class_labels: numeric classes (for MNIST, digits 0:9) (array)
+		crop: image cropping parameter (int)
+		downsample_ratio: image downsample ratio (n:1)
+		downsample_method: method for downsampling image (int)
+		inds_to_ave: pixel indices (array)
+		pixel_sum: normalization factor (int)
+		inds_to_calc_RF: pixel indices for receptive field (array)
 		num_features: number of pixels in the receptive field
 		screen_size: screen size (width, height) for images
 		save_results_folder: absolute path to where results will be saved
 		show_thumbnails: number of thumbnails to show for each class (0 means none)
 
 	Outputs:
-		1. featureArray = n x m x 10 array. n = #active pixels, m = #digits from
+		1. feature_array = n x m x 10 array. n = #active pixels, m = #digits from
 			each class that will be used.
 			The 3rd dimension gives the class, 1:10 where 10 = '0'.
 		2. activePixelInds: list of pixel indices to allow re-embedding into empty
@@ -62,60 +63,60 @@ show_thumbnails ):
 	mnist = np.load(mnist_fname, allow_pickle = True).item()
 	# loads dictionary 'mnist' with keys:value pairs =
 	#              .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
-	#              AND parsed by class. These fields are used to assemble the imageArray:
+	#              AND parsed by class. These fields are used to assemble the image_array:
 	#              .trI_* = train_images of class *
 	#              .teI_* = test_images of class *
 	#              .trL_* = train_labels of class *
 	#              .teL_* = test_labels of class *
 
 	# extract the required images and classes
-	imageIndices = range(max_ind+1)
-	imageArray = extract_mnist_feature_array(mnist, class_labels, imageIndices, 'train')
-	# imageArray = numberImages x h x w x numberClasses 4-D array. class order: 1 to 10 (10 = '0')
+	image_indices = range(max_ind+1)
+	image_array = extract_mnist_feature_array(mnist, class_labels, image_indices, 'train')
+	# image_array = numberImages x h x w x numberClasses 4-D array. class order: 1 to 10 (10 = '0')
 
 	# calc new dimensions
-	im_z, im_height, im_width, label_len = imageArray.shape
-	cropVal = crop*np.ones(4,dtype = int)
-	new_width = (im_width-np.sum(cropVal[2:]))/downsample_rate
-	new_height = (im_height-np.sum(cropVal[0:2]))/downsample_rate
+	im_z, im_height, im_width, label_len = image_array.shape
+	crop_val = crop*np.ones(4,dtype = int)
+	new_width = (im_width-np.sum(crop_val[2:]))/downsample_ratio
+	new_height = (im_height-np.sum(crop_val[0:2]))/downsample_ratio
 	new_length = int(new_width*new_height)
 
-	featureArray = np.zeros((new_length, im_z, label_len)) # pre-allocate
+	feature_array = np.zeros((new_length, im_z, label_len)) # pre-allocate
 
 	# crop, downsample, and vectorize the average images and the image stacks
 	for c in range(label_len):
-		# featureArray[...,n] : [a x numImages] array,
+		# feature_array[...,n] : [a x numImages] array,
 		# 	where a = number of pixels in the cropped and downsampled images
-		featureArray[...,c] = cropDownsampleVectorizeImageStack(imageArray[...,c],
-		 	crop, downsample_rate, downsample_method)
+		feature_array[...,c] = crop_downsample_vectorize_images(image_array[...,c],
+		 	crop, downsample_ratio, downsample_method)
 
-	del imageArray # to save memory
+	del image_array # to save memory
 
 	# subtract a mean image from all feature vectors, then make values non-negative
 
 	# a. Make an overall average feature vector, using the samples specified in 'indsToAverage'
-	overallAve = np.zeros((new_length, )) # pre-allocate col vector
-	classAvesRaw = np.zeros((new_length, label_len))
+	overall_ave = np.zeros((new_length, )) # pre-allocate col vector
+	class_ave_raw = np.zeros((new_length, label_len))
 	for c in range(label_len):
-		classAvesRaw[:,c] = averageImageStack(featureArray[:, inds_to_ave, c],
+		class_ave_raw[:,c] = average_image_stack(feature_array[:, inds_to_ave, c],
 			list(range(len(inds_to_ave))) )
-		overallAve += classAvesRaw[:,c]
-	overallAve /= label_len
+		overall_ave += class_ave_raw[:,c]
+	overall_ave /= label_len
 
-	# b. Subtract this overallAve image from all images
-	ave_2D = np.tile(overallAve,(im_z,1)).T
+	# b. Subtract this overall_ave image from all images
+	ave_2D = np.tile(overall_ave,(im_z,1)).T
 	ave_3D = np.repeat(ave_2D[:,:,np.newaxis],label_len,2)
-	featureArray -= ave_3D
+	feature_array -= ave_3D
 	del ave_2D, ave_3D
 
-	featureArray = np.maximum( featureArray, 0 ) # remove any negative pixel values
+	feature_array = np.maximum(feature_array, 0) # remove any negative pixel values
 
 	# c. Normalize each image so the pixels sum to the same amount
-	fSums = np.sum(featureArray, axis=0)
+	fSums = np.sum(feature_array, axis=0)
 	normArray = np.repeat(fSums[np.newaxis,:,:],new_length,0)
-	featureArray *= pixel_sum
-	featureArray /= normArray
-	# featureArray now consists of mean-subtracted, non-negative,
+	feature_array *= pixel_sum
+	feature_array /= normArray
+	# feature_array now consists of mean-subtracted, non-negative,
 	# normalized (by sum of pixels) columns, each column a vectorized thumbnail.
 	# size = 144 x numDigitsPerClass x 10
 
@@ -128,15 +129,15 @@ show_thumbnails ):
 	# (since this is defined by the AL architecture):
 
 	# reduce pixel number (downsample) to reflect # of features in moth brain
-	fA_sub = featureArray[:, inds_to_calc_RF, :]
-	activePixelInds = selectActivePixels(fA_sub, num_features,
+	fA_sub = feature_array[:, inds_to_calc_RF, :]
+	activePixelInds = select_active_pixels(fA_sub, num_features,
 		screen_size, save_image_folder=save_results_folder,
 		show_thumbnails=show_thumbnails)
-	featureArray = featureArray[activePixelInds,:,:].squeeze() # Project onto the active pixels
+	feature_array = feature_array[activePixelInds,:,:].squeeze() # Project onto the active pixels
 
-	return featureArray, activePixelInds, lengthOfSide
+	return feature_array, activePixelInds, lengthOfSide
 
-def extract_mnist_feature_array( mnist, labels, image_indices, phase_label ):
+def extract_mnist_feature_array(mnist, labels, image_indices, phase_label):
     '''
     Extract a subset of the samples from each class, convert the images to doubles on [0 1], and
         return a 4-D array: 1, 2 = im. 3 indexes images within a class, 4 is the class.
@@ -184,15 +185,15 @@ def extract_mnist_feature_array( mnist, labels, image_indices, phase_label ):
 
     return im_array
 
-def cropDownsampleVectorizeImageStack( im_stack, crop_val, ds_ratio, ds_method ):
+def crop_downsample_vectorize_images(im_stack, crop_val, downsample_ratio, downsample_method):
     '''
     For each image in a stack of images: Crop, then downsample, then make into a col vector.
     Inputs:
         1. im_stack: numImages x width x height array
         2. crop_val: number of pixels to shave off each side. can be a scalar or a
             4 x 1 vector: top, bottom, left, right.
-        3. ds_ratio: amount to downsample
-        4. ds_method: if 0, do downsampling by summing square patches.
+        3. downsample_ratio: amount to downsample
+        4. downsample_method: if 0, do downsampling by summing square patches.
             If 1, use bicubic interpolation.
     Returns:
         1. im_array: a x numImages array, where a = number of pixels in the cropped and downsampled images
@@ -215,8 +216,8 @@ def cropDownsampleVectorizeImageStack( im_stack, crop_val, ds_ratio, ds_method )
     width = range(crop_val[2], im_width-crop_val[3])
     height = range(crop_val[0], im_height-crop_val[1])
 
-    new_width = (im_width-np.sum(crop_val[2:]))/ds_ratio
-    new_height = (im_height-np.sum(crop_val[0:2]))/ds_ratio
+    new_width = (im_width-np.sum(crop_val[2:]))/downsample_ratio
+    new_height = (im_height-np.sum(crop_val[0:2]))/downsample_ratio
 
     im_col_array = np.zeros((int(new_width*new_height),im_z))
     # crop, downsample, vectorize the thumbnails one-by-one
@@ -226,21 +227,22 @@ def cropDownsampleVectorizeImageStack( im_stack, crop_val, ds_ratio, ds_method )
         ixgrid = np.ix_(width, height)
         t = t[ixgrid]
 
-        if ds_method: # bicubic
-            t2 = imresize(t, 1/ds_ratio, interp='bicubic')
+        if downsample_method: # bicubic
+            t2 = imresize(t, 1/downsample_ratio, interp='bicubic')
 
         else: # sum 2 x 2 blocks
-            t2 = np.zeros((int(len(height)/ds_ratio),int(len(width)/ds_ratio)))
-            for i in range(int(len(height)/ds_ratio)):
-                for j in range(int(len(width)/ds_ratio)):
-                    b = t[(i-1)*ds_ratio+1:i*ds_ratio+1, (j-1)*ds_ratio+1:j*ds_ratio+1]
+            t2 = np.zeros((int(len(height)/downsample_ratio),int(len(width)/downsample_ratio)))
+            for i in range(int(len(height)/downsample_ratio)):
+                for j in range(int(len(width)/downsample_ratio)):
+                    b = t[(i-1)*downsample_ratio+1:i*downsample_ratio+1,
+						(j-1)*downsample_ratio+1:j*downsample_ratio+1]
                     t2[i,j] = b.sum()
 
         im_col_array[:,s] = t2.flatten()/t2.max()
 
     return im_col_array
 
-def averageImageStack( im_stack, indices_to_average ):
+def average_image_stack( im_stack, indices_to_average ):
     '''
     Average a stack of images
     Inputs:
@@ -270,7 +272,7 @@ def averageImageStack( im_stack, indices_to_average ):
 
     return ave_im
 
-def selectActivePixels( feature_array, num_features, screen_size,
+def select_active_pixels( feature_array, num_features, screen_size,
     save_image_folder=[], show_thumbnails=0 ):
     '''
     Select the most active pixels, considering all class average images, to use as features.
@@ -290,14 +292,12 @@ def selectActivePixels( feature_array, num_features, screen_size,
     '''
 
     # make a classAves matrix (cA), each col a class ave 1 to 10 (ie 0),
-    #  and add a col for the overallAve
-    from modules.show_figs import show_FA_thumbs
-
+    #  and add a col for the overall_ave
     num_pix, num_per_class, num_classes  = feature_array.shape
     cA = np.zeros((num_pix, num_classes+1))
 
     for i in range(num_classes):
-        cA[:,i] = averageImageStack(feature_array[:,:,i], list(range(num_per_class)))
+        cA[:,i] = average_image_stack(feature_array[:,:,i], list(range(num_per_class)))
 
     # last col = average image over all digits
     cA[:,-1] = np.sum(cA[:,:-1], axis=1) / num_classes
@@ -328,6 +328,8 @@ def selectActivePixels( feature_array, num_features, screen_size,
     active_pixel_inds = np.nonzero(active_pix > 0)[0]
 
     if show_thumbnails and save_image_folder:
+
+        from modules.show_figs import show_FA_thumbs
         # plot the normalized classAves pre-ablation
         normalize = 0
         title_str = 'class aves, all pixels'

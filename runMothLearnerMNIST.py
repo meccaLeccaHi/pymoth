@@ -61,7 +61,7 @@ else:
 	raise Exception(version_error)
 
 # Experiment details
-from modules.generate import generate_ds_MNIST
+from modules.generate import generate_ds_mnist
 from modules.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
 from modules.params import ExpParams, ModelParams
 from modules.sde import sde_wrap, collect_stats
@@ -185,14 +185,14 @@ ind_pool_post = list(range(300,400)) # 301:400
 ## Create preprocessing parameters
 # Population pre-processing pools of indices:
 inds_to_ave = list(range(550,1000))
-inds_to_calc_RF = list(range(550,1000))
+inds_to_calc_RF = list(range(550,1000)) # pixel indices for receptive field
 max_ind = max( [ inds_to_calc_RF + ind_pool_train ][0] ) # we'll throw out unused samples
 
 ## 2. Pre-processing parameters for the thumbnails:
-downsample_rate = 2
-crop = 2
+downsample_rate = 2 # image downsampling ratio (n:1)
+crop = 2 # image cropping parameter
 num_features = 85 # number of pixels in the receptive field
-pixel_sum = 6
+pixel_sum = 6 # normalization factor
 show_thumbnails = N_THUMBNAILS
 downsample_method = 1 # 0 means sum square patches of pixels
 					# 1 means use bicubic interpolation
@@ -200,7 +200,7 @@ downsample_method = 1 # 0 means sum square patches of pixels
 # generate the data array:
 # fA is a feature array ready for running experiments.
 # Each experiment uses a random draw from this dataset.
-fA, active_pixel_inds, len_side = generate_ds_MNIST(
+fA, active_pixel_inds, len_side = generate_ds_mnist(
 	max_ind, class_labels, crop, downsample_rate, downsample_method, inds_to_ave,
 	pixel_sum, inds_to_calc_RF, num_features, SCREEN_SIZE, RESULTS_FOLDER,
 	show_thumbnails

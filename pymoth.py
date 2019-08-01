@@ -128,9 +128,9 @@ class MothNet:
         	That is TR_PER_CLASS, defined above.
         '''
 
-        from modules.generate import generate_ds_MNIST
+        from modules.generate import generate_ds_mnist
 
-        self._class_labels = _np.array(range(10))  # For MNIST. '0' is labeled as 10
+        self._class_labels = _np.array(range(10)) # MNIST classes: digits 0-9
         self._val_per_class = 15  # number of digits used in validation sets and in baseline sets
 
         # make a vector of the classes of the training samples, randomly mixed:
@@ -147,14 +147,14 @@ class MothNet:
         ## Create preprocessing parameters
         # Population pre-processing pools of indices:
         self._inds_to_ave = list(range(550,1000))
-        self._inds_to_calc_RF = list(range(550,1000))
+        self._inds_to_calc_RF = list(range(550,1000)) # pixel indices for receptive field
         self._max_ind = max( [ self._inds_to_calc_RF + self._ind_pool_train ][0] ) # we'll throw out unused samples
 
         ## 2. Pre-processing parameters for the thumbnails:
-        self._downsample_rate = 2
-        self._crop = 2
+        self._downsample_rate = 2 # image downsampling ratio (n:1)
+        self._crop = 2 # image cropping parameter
         self._num_features = 85 # number of pixels in the receptive field
-        self._pixel_sum = 6
+        self._pixel_sum = 6 # normalization factor
         self._show_thumbnails = self.N_THUMBNAILS
         self._downsample_method = 1 # 0 means sum square patches of pixels
         					# 1 means use bicubic interpolation
@@ -162,7 +162,7 @@ class MothNet:
         # generate the data array:
         # _feat_array is a feature array ready for running experiments.
         # Each experiment uses a random draw from this dataset.
-        self._feat_array, self._active_pixel_inds, self._len_side = generate_ds_MNIST(
+        self._feat_array, self._active_pixel_inds, self._len_side = generate_ds_mnist(
         	self._max_ind, self._class_labels, self._crop, self._downsample_rate,
             self._downsample_method, self._inds_to_ave, self._pixel_sum,
             self._inds_to_calc_RF, self._num_features, self.SCREEN_SIZE,
