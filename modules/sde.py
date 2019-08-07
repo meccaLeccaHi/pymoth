@@ -55,11 +55,11 @@ def sde_wrap( model_params, exp_params, feature_array ):
     total_steps = (sim_stop - sim_start)/time_step
     time = np.linspace(sim_start, sim_stop-time_step, total_steps)
 
-    class_list = np.sort(np.unique(exp_params.whichClass))
+    class_labels = exp_params.class_labels
     # classMags = exp_params.classMags
     # create a class_mag_mat, each row giving the stimulus magnitudes of a different class:
-    class_mag_mat = np.zeros((len(class_list), len(time))) # ie 4 x len(time)
-    for i,cl in enumerate(class_list):
+    class_mag_mat = np.zeros((len(class_labels), len(time))) # ie 4 x len(time)
+    for i,cl in enumerate(class_labels):
         # extract the relevant odor puffs. All vectors should be same size, in same order
         puffs = (exp_params.whichClass == cl)
         theseClassStarts = exp_params.stimStarts[puffs]
@@ -77,7 +77,7 @@ def sde_wrap( model_params, exp_params, feature_array ):
     lpWindow /= lpWindow.sum()
 
     # window the stimulus time courses:
-    for i in range(len(class_list)):
+    for i in range(len(class_labels)):
         class_mag_mat[i,:] = np.convolve(class_mag_mat[i,:], lpWindow, 'same')
 
     # window the octopamine:
@@ -651,7 +651,7 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
         screen_size (tuple): [optional] screen size (width, height) for images
 
     Returns:
-        results (dict):
+        results (dict)::
             pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
             pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
             post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
@@ -683,10 +683,10 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
 
     ## Set regions to examine:
     # 1. data from exp_params
-    # stim_starts = exp_params.stim_starts # to get timeSteps from very start of sim
+    # stim_starts = exp_params.stim_starts # get time-steps from very start of sim
     stim_starts = exp_params.stimStarts*(exp_params.classMags > 0) # ie only use non-zero puffs
     which_class = exp_params.whichClass*(exp_params.classMags > 0)
-    class_list = np.unique(which_class)
+    class_labels = np.unique(which_class)
 
     # pre-allocate list of empty dicts
     results = [dict() for i in range(sim_results['nE'])]
@@ -726,10 +726,10 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
         # pre-allocate for loop
         pre_mean_resp, pre_median_resp, pre_std_resp, pre_num_puffs, post_mean_resp, \
             post_median_resp, post_std_resp, post_num_puffs = \
-            [np.full(len(class_list), np.nan) for _ in range(8)]
+            [np.full(len(class_labels), np.nan) for _ in range(8)]
 
         # calc no-octo stats for each odor, pre and post train:
-        for k, cl in enumerate(class_list):
+        for k, cl in enumerate(class_labels):
             current_class = which_class==cl
             pre_SA = pre_train_resp[np.logical_and(pre_train_resp>=0, current_class)]
             post_SA = post_train_resp[np.logical_and(post_train_resp>=0, current_class)]
@@ -837,8 +837,7 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
                 fig = plt.figure(figsize=fig_sz, dpi=100)
 
             ax = fig.add_subplot(3, 1, (en_ind%3)+1)
-
-            show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
+            show_timecourse(ax, en_ind, sim_results, octo_times, class_labels, results,
                 exp_params, stim_starts, which_class )
 
             # Save EN timecourse:

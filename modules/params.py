@@ -638,6 +638,7 @@ class ExpParams:
 		self.stimMag = 20 # stim magnitudes as passed into AL
 		# (See original version in smartAsABug codebase)
 		self.stimLength = 0.22
+		self.class_labels = class_labels # labels for classes in this experiment
 		self.nC = len(class_labels) # the number of classes in this experiment
 
 		## Define the time span and events:

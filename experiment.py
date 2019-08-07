@@ -56,6 +56,7 @@ def main():
         # score SVM
         mothra.score_svm(train_X, train_y, test_X, test_y)
 
+        # plot each model in a subplot of a single figure
         if mothra.SHOW_ROC_PLOTS:
             mothra.show_multi_roc(['MothNet', 'SVM', 'KNN'], mothra._class_labels,
             images_filename=mothra.RESULTS_FOLDER + os.sep + mothra.RESULTS_FILENAME + '_ROC_multi')

@@ -144,8 +144,8 @@ show_thumbnails ):
 def extract_mnist_feature_array(mnist, labels, image_indices, phase_label):
 	"""
 
-	Extract a subset of the samples from each class, convert the images to doubles on [0 1], and
-		return a 4-D array: 1, 2 = im. 3 indexes images within a class, 4 is the class.
+	Extracts a subset of the samples from each class, converts the images to doubles \
+	on [0 1], and returns a 4-D array.
 
 	Args:
 		mnist (dict): loaded from `MNIST_all.npy`
@@ -157,7 +157,8 @@ def extract_mnist_feature_array(mnist, labels, image_indices, phase_label):
 		im_array (numpy array): 4-D array [#images x image_height x image_width \
 		x #classes]
 
-	>>> image_array = extract_mnist_feature_array(mnist, class_labels, range(max_ind+1), 'train')
+	>>> image_array = extract_mnist_feature_array(mnist, class_labels, \
+	range(max_ind+1), 'train')
 
 	"""
 
@@ -192,7 +193,8 @@ def crop_downsample_vectorize_images(im_stack, crop_val, downsample_ratio, downs
 
 	Args:
 		im_stack (numpy array): [numImages x width x height]
-		crop_val: number of pixels to shave off each side. (int) or (list) [top, bottom, left, right]
+		crop_val: number of pixels to shave off each side. (int) or (list) [top, \
+		bottom, left, right]
 		downsample_ratio (int): image downsample ratio (n:1)
 		downsample_method (int): method for downsampling image (0: sum square patches, \
 		1: bicubic interpolation)

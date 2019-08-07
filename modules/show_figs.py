@@ -179,9 +179,34 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
     post_offset, post_mean_resp, post_median_resp, post_std_resp, class_labels,
     pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std, percent_change_mean_resp, screen_size):
     """
-    show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_resp,
-        post_offset, post_mean_resp, post_median_resp, post_std_resp, class_labels,
-        pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std, percent_change_mean_resp, screen_size)
+    Plot accuracy of MothNet for each class.
+
+    Args:
+        pre_SA (numpy array): pre-sniff average,
+        post_SA (numpy array): post-sniff average,
+        en_ind (int): index of current EN,
+        pre_mean_resp (numpy array): mean resp before training [#classes x 1],
+        pre_median_resp (numpy array): median resp before training [#classes x 1],
+        pre_std_resp (numpy array): std of resp before training [#classes x 1],
+        post_offset (numpy array): pre-sniff average plus offset value,
+        post_mean_resp (numpy array): mean resp after training [#classes x 1],
+        post_median_resp (numpy array): median resp after training [#classes x 1],
+        post_std_resp (numpy array): std of resp after training [#classes x 1],
+        class_labels (numpy array): class labels (0:9 for MNIST),
+        pre_heb_mean: mean spontaneous activity before training [#classes x 1],
+        pre_heb_std: std of spontaneous activity before training [#classes x 1],
+        post_heb_mean: mean spontaneous activity after training [#classes x 1],
+        post_heb_std: std of spontaneous activity after training [#classes x 1],
+        percent_change_mean_resp: mean response converted to percent change [#classes x 1],
+        screen_size (tuple): [optional] screen size (width, height) for images,
+
+    Returns:
+        fig (object): matplotlib figure handle,
+
+    >>> show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_resp, \
+        post_offset, post_mean_resp, post_median_resp, post_std_resp, class_labels, \
+        pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std, percent_change_mean_resp, \
+        screen_size)
     """
     fig_sz = [np.floor((i/100)*0.8) for i in screen_size]
     fig = plt.figure(figsize=fig_sz, dpi=100)
@@ -304,16 +329,33 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
     ax.set_xticklabels(class_labels)
     return fig
 
-def show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
+def show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
     exp_params, stim_starts, which_class ):
     """
-    show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results, \
+    Plot the timecourse of EN responses of MothNet.
+
+    Args:
+        ax (object): matplotlib axis,
+        en_ind (int): index of current EN,
+        sim_results (dict): simulation results (output from :func:`sde_wrap`),
+        octo_times (numpy array): timing of octopamine,
+        class_labels (numpy array): labels, eg 0:9 for MNIST,
+        results (list): list of dicts containing simulation results (output from \
+        :func:`sde_wrap`),
+        exp_params (class): timing info about experiment, eg when stimuli are given,
+        stim_starts (numpy array): time-steps for current stimuli,
+        which_class (numpy array): classes for current stimuli,
+
+    Returns:
+        ax (object): matplotlib axis,
+
+    >>> show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results, \
         exp_params, stim_starts, which_class )
     """
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
          (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
 
-    ax.set_xlim([-30, max(sim_res['T'])])
+    ax.set_xlim([-30, max(sim_results['T'])])
 
     # plot octo
     ax.plot(octo_times, np.zeros(octo_times.shape), 'yx')
@@ -331,22 +373,23 @@ def show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
     post_mean_control = post_mean[control_ind].mean()
     # post_std = results[en_ind]['post_std_resp']
     # post_std = post_std[en_ind]
-    pre_t = sim_res['T'] < exp_params.startTrain
-    pre_time = sim_res['T'][pre_t]
+    pre_t = sim_results['T'] < exp_params.startTrain
+    pre_time = sim_results['T'][pre_t]
     pre_time_inds = np.nonzero(pre_t)[0]
-    post_t = sim_res['T'] > exp_params.endTrain
-    post_time = sim_res['T'][post_t]
+    post_t = sim_results['T'] > exp_params.endTrain
+    post_time = sim_results['T'][post_t]
     post_time_inds = np.nonzero(post_t)[0]
-    mid_t = np.logical_and(sim_res['T'] > exp_params.startTrain, sim_res['T'] < exp_params.endTrain)
-    mid_time = sim_res['T'][mid_t]
+    mid_t = np.logical_and(sim_results['T'] > exp_params.startTrain,
+        sim_results['T'] < exp_params.endTrain)
+    mid_time = sim_results['T'][mid_t]
     mid_time_inds = np.nonzero(mid_t)[0]
 
     ## plot ENs
     # normalized by the home class pre_mean
-    ax.plot(pre_time, sim_res['E'][pre_time_inds,en_ind] / pre_mean_control, color='b')
+    ax.plot(pre_time, sim_results['E'][pre_time_inds,en_ind] / pre_mean_control, color='b')
     # normalized by the home class post_mean
-    ax.plot(post_time, sim_res['E'][post_time_inds,en_ind] / post_mean_control, color='b')
-    ax.plot(mid_time, sim_res['E'][mid_time_inds,en_ind] / 1, color='b')
+    ax.plot(post_time, sim_results['E'][post_time_inds,en_ind] / post_mean_control, color='b')
+    ax.plot(mid_time, sim_results['E'][mid_time_inds,en_ind] / 1, color='b')
 
     # ax.plot(pre_time, pre_mean*np.ones(pre_time.shape), color=colors[en_ind], '-')
     # ax.plot(post_time, post_mean*np.ones(post_time.shape), color=colors[en_ind], '-')
@@ -365,7 +408,7 @@ def show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
                 color=colors[i], markersize=24) # , markerfacecolor=colors[i]
 
     # format
-    ax.set_ylim( [0, 1.2* max(sim_res['E'][post_time_inds,en_ind])/post_mean_control] )
+    ax.set_ylim( [0, 1.2* max(sim_results['E'][post_time_inds,en_ind])/post_mean_control] )
     # rarrow = texlabel('/rarrow')
     ax.set_title(f'EN {en_ind} for class {en_ind}')
 
@@ -373,12 +416,18 @@ def show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
 
 def show_multi_roc(self, model_names, class_labels, images_filename=''):
     """
+    Show ROC plot for each model in a subplot of a single figure.
 
-    show_multi_roc(model_names, class_labels, images_filename='')
+    Args:
+        model_names (list): names (strings) of models being plotted,
+        class_labels (numpy array): label for each class of current stimuli,
+        images_filename (str): [optional] name to use for image filename,
 
+    Returns:
+        None
+
+    >>> show_multi_roc(model_names, class_labels, images_filename='foo')
     """
-
-    # from modules.show_figs import plot_roc_multi
 
     if images_filename:
         images_folder = os.path.dirname(images_filename)
@@ -414,41 +463,6 @@ def show_multi_roc(self, model_names, class_labels, images_filename=''):
         print(f'Figure saved: {roc_filename}')
     else:
         print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
-
-# def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filename=''):
-#
-#     if images_filename:
-#         images_folder = os.path.dirname(images_filename)
-#
-#         # create directory for images (if doesnt exist)
-#         if images_folder and not os.path.isdir(images_folder):
-#             os.mkdir(images_folder)
-#             print('Creating results directory: {}'.format(images_folder))
-#
-#     fig, axes = plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
-#
-#     y_ax_list = [True, False, False]
-#     legend_list = [True, False, False]
-#
-#     for i in range(len(roc_dict_list)):
-#         ax = axes[i]
-#         fpr = roc_dict_list[i]['fpr']
-#         tpr = roc_dict_list[i]['tpr']
-#         roc_auc = roc_dict_list[i]['roc_auc']
-#         title_str = title_str_list[i]
-#
-#         plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
-#             y_axis_label=y_ax_list[i], legend=legend_list[i])
-#
-#     fig.tight_layout()
-#
-#     # save plot
-#     if os.path.isdir(images_folder):
-#         roc_filename = images_filename + '.png'
-#         fig.savefig(roc_filename, dpi=150)
-#         print(f'Figure saved: {roc_filename}')
-#     else:
-#         print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
