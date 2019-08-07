@@ -130,7 +130,6 @@ class MothNet:
 
 	def load_mnist(self):
 		"""
-
 		Load and preprocess MNIST dataset
 
 		Because the moth brain architecture, as evolved, only handles ~60 features, \
@@ -154,6 +153,7 @@ class MothNet:
 		Returns:
 			feature_array (numpy array): stimuli (numFeatures x numStimsPerClass x numClasses)
 
+		>>> mothra.load_mnist()
 		"""
 
 		from modules.generate import generate_ds_mnist

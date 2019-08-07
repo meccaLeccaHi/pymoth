@@ -21,28 +21,28 @@ class ModelParams:
 	that is used to populate connection matrices and to control behavior.
 
 	Abbreviations:
-		n* : number of *
-		G : glomerulus (so eg nG : number of glomeruli)
-		R : response neuron (from antennae): this concept is not used. We use the stim-glomeruli, \
+		* n* : number of *
+		* G : glomerulus (so eg nG : number of glomeruli)
+		* R : response neuron (from antennae): this concept is not used. We use the stim-glomeruli, \
 		connections directly
-		P : excitatory projection neuron. note sometimes P's stand in for gloms in \
+		* P : excitatory projection neuron. note sometimes P's stand in for gloms in \
 		indexing, since they are 1 to 1
-		PI : inhibitory projection neuron
-		L : lateral neuron (inhibitory)
-		K : kenyon cell (in MB)
-		F : feature (this is a change from the original moth/odor regime, where each \
+		* PI : inhibitory projection neuron
+		* L : lateral neuron (inhibitory)
+		* K : kenyon cell (in MB)
+		* F : feature (this is a change from the original moth/odor regime, where each \
 		stim/odor was identified with its own single feature)
-		S (not used in this function) : stimulus class
-		fr : fraction%
-		mu : mean
-		std : standard deviation
-		_2_ : synapse connection to, eg P2K_mu : mean synapse strength from PN to KC
-		octo : octopamine delivery neuron
+		* S (not used in this function) : stimulus class
+		* fr : fraction%
+		* mu : mean
+		* std : standard deviation
+		* _2_ : synapse connection to, eg P2K_mu : mean synapse strength from PN to KC
+		* octo : octopamine delivery neuron
 
 	Structure of synaptic strength matrices:
-		- rows give the 'from' a synapse
-		- cols give the 'to'
-		
+		* rows give the 'from' a synapse
+		* cols give the 'to'
+
 	So, M(i,j) is the strength from obj(i) to obj(j).
 
 	Glomeruli are not explicitly part of the equations, but the matrices for LN \
