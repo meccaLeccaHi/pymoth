@@ -10,7 +10,7 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 > This repository contains a Python version of the code used in:
 > - ["Putting a bug in ML: The moth olfactory network learns to read MNIST"](https://doi.org/10.1016/j.neunet.2019.05.012), _Neural Networks_ 2019
 
-[####Readthedocs](pymoth.readthedocs.io)
+[#### Readthedocs](pymoth.readthedocs.io)
 
 ### Dependencies:
 - [scipy](https://www.scipy.org/)
