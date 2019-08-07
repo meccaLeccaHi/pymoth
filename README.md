@@ -21,27 +21,16 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 - [keras](https://keras.io/) (for loading MNIST)
 
 #### Install manually:  
-> `$ pip install scipy matplotlib scikit-learn pillow keras`  
-> *-or-*  
-> `$ conda create -n <env_name> python=3.6 scipy matplotlib scikit-learn pillow keras`  
+> `$ pip install matplotlib scikit-learn scikit-image pillow keras`  
 
-#### Or, install from .txt file:  
-> **First**,
-> - clone this repository and `cd` into it  
->
-> **Second**,
-> - if you use pip, `$ pip install -r requirements.txt` *else,*   
-> - if you prefer conda, `$ conda install --yes --file requirements.txt` *else,*
-> - to install a conda virtualenv, `$ conda create --name <env_name> --file requirements.txt`  
+#### Or, install from [`requirements.txt`](./docs/requirements.txt) file:  
+> `$ pip install -r requirements.txt`
 
-### Run via:
-`$ python runMothLearnerMNIST.py`
+### Run sample experiment:
+`$ python experiment.py`
 
 Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3
-
-#### User parameters:
-To customize parameters, edit values in (`user_entries.py`)[./user_entries.py].
 
 ### Data source:
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)

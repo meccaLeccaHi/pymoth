@@ -9,7 +9,7 @@ show_thumbnails ):
 
 	"""
 
-	Preprocessing
+	Preprocessing:
 	1. Load MNIST
 	2. cropping and downsampling
 	3. mean-subtract, make non-negative, normalize pixel sums
@@ -61,12 +61,12 @@ show_thumbnails ):
 	# 1. extract mnist:
 	mnist = np.load(mnist_fname, allow_pickle = True).item()
 	# loads dictionary 'mnist' with keys:value pairs =
-	#              .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
-	#              AND parsed by class. These fields are used to assemble the image_array:
-	#              .trI_* = train_images of class *
-	#              .teI_* = test_images of class *
-	#              .trL_* = train_labels of class *
-	#              .teL_* = test_labels of class *
+	# .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
+	# AND parsed by class. These fields are used to assemble the image_array:
+	# .trI_* = train_images of class *
+	# .teI_* = test_images of class *
+	# .trL_* = train_labels of class *
+	# .teL_* = test_labels of class *
 
 	# extract the required images and classes
 	image_indices = range(max_ind+1)
@@ -274,14 +274,16 @@ def select_active_pixels( feature_array, num_features, screen_size, save_image_f
 	Select the most active pixels, considering all class average images, to use as features.
 
 	Args:
-	feature_array (numpy array): 3-D array # of features X # samples per class X # of classes, created by :func:`generate_ds_mnist`.
+	feature_array (numpy array): 3-D array # of features X # samples per class X \
+	# of classes, created by :func:`generate_ds_mnist`.
 	num_features (int): number of pixels in the receptive field
 	save_image_folder (str): directory to save average thumbnail images (if empty, don't save)
 	screen_size (tuple): screen size (width, height) for images
 	show_thumbnails (int): number of thumbnails to plot
 
 	Returns:
-	active_pixel_inds (numpy array): 1 x nF vector of indices to use as features. Indices are relative to the vectorized thumbnails (so between 1 and 144).
+	active_pixel_inds (numpy array): 1 x nF vector of indices to use as features. \
+	Indices are relative to the vectorized thumbnails (so between 1 and 144).
 
 	>>> active_pixel_inds = select_active_pixels(feature_array, 85, (1920, 1080))
 

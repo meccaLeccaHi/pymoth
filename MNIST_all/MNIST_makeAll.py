@@ -5,14 +5,11 @@ import numpy as np
 
 def download_save():
 	'''
-	saves the following dictionary, called mnist, to .npy file
-    train_images: np.array[28x28x60000]
-    test_images: np.array[28x28x10000]
-    train_labels: np.array[60000x1]
-    test_labels: np.array[10000x1]
-
-	Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-	MIT License
+	Save the following data to .npy file:
+		train_images: np.array[28x28x60000]
+		test_images: np.array[28x28x10000]
+		train_labels: np.array[60000x1]
+		test_labels: np.array[10000x1]
 	'''
 
 	# from MNIST_all import MNIST_read

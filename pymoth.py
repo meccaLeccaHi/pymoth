@@ -10,9 +10,6 @@
 
 """
 
-print("\nWARNING: This package is still under development.")
-print("Use procedural version by running `$ python runMothLearnerMNIST.py` from the parent directory.\n")
-
 # import packages
 import numpy as _np
 import os as _os
@@ -54,19 +51,16 @@ class MothNet:
 
 	Order of events::
 
-		1. Load and pre-process dataset
-		Within the loop over number of simulations:
-		2. Select a subset of the dataset for this simulation (only a few samples are used)
-		3. Create a moth (neural net). Either select an existing moth file, or generate \
-		a new moth in 2 steps::
-
-			- First, run :class:`ModelParams` and incorporate user entry edits such as 'GOAL'
-			- Second, create connection matrices via :func:`create_connection_matrix`
-
-		4. Load the experiment parameters
-		5. Run the simulation with :func:`sde_wrap`, print results to console
-		6. Plot results (optional)
-		7. Run addition ML models for comparison, print results to console (optional)
+	#. Load and pre-process dataset
+	#. During simulation, select a subset of the dataset for this simulation (only a few samples are used)
+	#.  Create a moth (neural net). Either select an existing moth file, or generate \
+	a new moth in 2 steps::
+		* First, run :class:`ModelParams` and incorporate user entry edits such as 'GOAL'
+		* Second, create connection matrices via :func:`create_connection_matrix`
+	#. Load the experiment parameters
+	#. Run the simulation with :func:`sde_wrap`, print results to console
+	#. Plot results (optional)
+	#. Run addition ML models for comparison, print results to console (optional)
 
 	"""
 

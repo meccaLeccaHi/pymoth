@@ -9,7 +9,8 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     """
 
     Show thumbnails of inputs used in the experiment.
-    Parameters:
+
+    Args:
     feature_array (numpy array): either 3-D (1 = cols of features, 2 = within class samples, 3 = class) \
             or 2-D (1 = cols of features, 2 = within class samples, no 3)
     show_per_class (int): how many of the thumbnails from each class to show.
@@ -78,7 +79,17 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
 
 def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
     y_axis_label=True, legend=True):
+    """
+    plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str, \
+    y_axis_label=True, legend=True)
 
+    Args:
+
+    Returns:
+
+    >>> plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str, \
+    y_axis_label='foo', legend=True)
+    """
     from itertools import cycle
 
     lw = 1.5
@@ -112,8 +123,21 @@ def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
 
 def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''):
     """
-    Plot all ROC curves
-    Parameters: fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''
+    Compute macro-average ROC curves and plot.
+
+    Args:
+    fpr
+    tpr
+    roc_auc
+    class_labels (numpy array): class labels (0:9 for MNIST)
+    title_str (str):
+    images_filename (str):
+
+    Returns:
+    None
+
+    >>> show_roc_curves(roc_knn['fpr'], roc_knn['tpr'], roc_knn['roc_auc'], \
+    class_labels, title_str='KNN', images_filename='dirname/filename')
     """
 
     if images_filename:
@@ -367,7 +391,7 @@ def show_multi_roc(self, model_names, class_labels, images_filename=''):
 
     """
 
-    from modules.show_figs import plot_roc_multi
+    # from modules.show_figs import plot_roc_multi
 
     if images_filename:
         images_folder = os.path.dirname(images_filename)
