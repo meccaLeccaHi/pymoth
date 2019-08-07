@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+"""
+
+.. module:: sde
+   :platform: Unix
+   :synopsis: Run stochastic differential equation simulation.
+
+.. moduleauthor:: Adam P. Jones <ajones173@gmail.com>
+
+"""
 import os
 import numpy as np
 from scipy.special import erfinv

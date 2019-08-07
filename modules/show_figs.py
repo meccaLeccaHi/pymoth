@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+"""
+
+.. module:: show_figs
+   :platform: Unix
+   :synopsis: Figure generation module.
+
+.. moduleauthor:: Adam P. Jones <ajones173@gmail.com>
+
+"""
+
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -11,16 +21,16 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     Show thumbnails of inputs used in the experiment.
 
     Args:
-    feature_array (numpy array): either 3-D (1 = cols of features, 2 = within class samples, 3 = class) \
-            or 2-D (1 = cols of features, 2 = within class samples, no 3)
-    show_per_class (int): how many of the thumbnails from each class to show.
-    normalize (bool): 1 to rescale thumbs to [0 1], 0 to not
-    title_string (str): string for figure title
-    screen_size (tuple): width, height
-    images_filename (str): including absolute path
+        feature_array (numpy array): either 3-D (1 = cols of features, 2 = within class samples, 3 = class) \
+                or 2-D (1 = cols of features, 2 = within class samples, no 3)
+        show_per_class (int): how many of the thumbnails from each class to show.
+        normalize (bool): 1 to rescale thumbs to [0 1], 0 to not
+        title_string (str): string for figure title
+        screen_size (tuple): width, height
+        images_filename (str): including absolute path
 
     Returns:
-    None
+        None
 
     >>> show_FA_thumbs(_thumb_array, 1, 1, 'Input thumbnails', (1920,1080), 'foo/thumbnails')
 
@@ -84,8 +94,18 @@ def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
     y_axis_label=True, legend=True)
 
     Args:
+        ax (object): matplotlib axis (ie subplot)
+        tpr (dict): true-positive rate for each class
+        fpr (dict): false-positive rate for each class
+        roc_auc (dict): ROC AUC for each class
+        class_labels (numpy array): class labels (0:9 for MNIST)
+        title_str (str): string to use in the title for this particular subplot
+        y_axis_label(str): string to use in the y-axis label for this particular \
+        subplot
+        legend (bool): toggle legend for figure
 
     Returns:
+        None
 
     >>> plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str, \
     y_axis_label='foo', legend=True)
@@ -119,24 +139,23 @@ def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
     ax.set_title(title_str + ': ROC extended to multi-class')
     if legend:
         ax.legend(loc="lower right")
-    # return ax
 
-def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filename=''):
+def show_roc_curves(tpr, fpr, roc_auc, class_labels, title_str='', images_filename=''):
     """
     Compute macro-average ROC curves and plot.
 
     Args:
-    fpr
-    tpr
-    roc_auc
-    class_labels (numpy array): class labels (0:9 for MNIST)
-    title_str (str):
-    images_filename (str):
+        tpr (dict): true-positive rate for each class
+        fpr (dict): false-positive rate for each class
+        roc_auc (dict): ROC AUC for each class
+        class_labels (numpy array): class labels (0:9 for MNIST)
+        title_str (str): string to use in the title for this particular subplot
+        images_filename (str): directory to save figure output
 
     Returns:
-    None
+        None
 
-    >>> show_roc_curves(roc_knn['fpr'], roc_knn['tpr'], roc_knn['roc_auc'], \
+    >>> show_roc_curves(roc_knn['tpr'], roc_knn['fpr'], roc_knn['roc_auc'], \
     class_labels, title_str='KNN', images_filename='dirname/filename')
     """
 
@@ -148,48 +167,13 @@ def show_roc_curves(fpr, tpr, roc_auc, class_labels, title_str='', images_filena
             print('Creating results directory: {}'.format(images_folder))
 
     fig, ax = plt.subplots()
-    ax = plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str)
+    plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str)
 
     # Save plot
     if os.path.isdir(images_folder):
         roc_filename = images_filename + '_ROC_' + title_str + '.png'
         fig.savefig(roc_filename, dpi=150)
         print(f'Figure saved: {roc_filename}')
-
-def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filename=''):
-
-    if images_filename:
-        images_folder = os.path.dirname(images_filename)
-
-        # create directory for images (if doesnt exist)
-        if images_folder and not os.path.isdir(images_folder):
-            os.mkdir(images_folder)
-            print('Creating results directory: {}'.format(images_folder))
-
-    fig, axes = plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
-
-    y_ax_list = [True, False, False]
-    legend_list = [True, False, False]
-
-    for i in range(len(roc_dict_list)):
-        ax = axes[i]
-        fpr = roc_dict_list[i]['fpr']
-        tpr = roc_dict_list[i]['tpr']
-        roc_auc = roc_dict_list[i]['roc_auc']
-        title_str = title_str_list[i]
-
-        plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
-            y_axis_label=y_ax_list[i], legend=legend_list[i])
-
-    fig.tight_layout()
-
-    # save plot
-    if os.path.isdir(images_folder):
-        roc_filename = images_filename + '.png'
-        fig.savefig(roc_filename, dpi=150)
-        print(f'Figure saved: {roc_filename}')
-    else:
-        print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
 
 def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_resp,
     post_offset, post_mean_resp, post_median_resp, post_std_resp, class_labels,
@@ -322,7 +306,10 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
 
 def show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
     exp_params, stim_starts, which_class ):
-
+    """
+    show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results, \
+        exp_params, stim_starts, which_class )
+    """
     colors = [ (0, 0, 1), (0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, 1), (0, 1, 1),
          (1, 0.3, 0.8), (0.8, 0.3, 1), (0.8, 1, 0.3), (0.5, 0.5, 0.5) ] # for 10 classes
 
@@ -387,7 +374,7 @@ def show_timecourse(ax, en_ind, sim_res, octo_times, class_list, results,
 def show_multi_roc(self, model_names, class_labels, images_filename=''):
     """
 
-        show_multi_roc(model_names, class_labels, images_filename)
+    show_multi_roc(model_names, class_labels, images_filename='')
 
     """
 
@@ -427,6 +414,41 @@ def show_multi_roc(self, model_names, class_labels, images_filename=''):
         print(f'Figure saved: {roc_filename}')
     else:
         print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
+
+# def show_roc_subplots(roc_dict_list, title_str_list, class_labels, images_filename=''):
+#
+#     if images_filename:
+#         images_folder = os.path.dirname(images_filename)
+#
+#         # create directory for images (if doesnt exist)
+#         if images_folder and not os.path.isdir(images_folder):
+#             os.mkdir(images_folder)
+#             print('Creating results directory: {}'.format(images_folder))
+#
+#     fig, axes = plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
+#
+#     y_ax_list = [True, False, False]
+#     legend_list = [True, False, False]
+#
+#     for i in range(len(roc_dict_list)):
+#         ax = axes[i]
+#         fpr = roc_dict_list[i]['fpr']
+#         tpr = roc_dict_list[i]['tpr']
+#         roc_auc = roc_dict_list[i]['roc_auc']
+#         title_str = title_str_list[i]
+#
+#         plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
+#             y_axis_label=y_ax_list[i], legend=legend_list[i])
+#
+#     fig.tight_layout()
+#
+#     # save plot
+#     if os.path.isdir(images_folder):
+#         roc_filename = images_filename + '.png'
+#         fig.savefig(roc_filename, dpi=150)
+#         print(f'Figure saved: {roc_filename}')
+#     else:
+#         print('ROC curves NOT SAVED!\nMake sure a valid directory path has been prepended to `images_filename`')
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

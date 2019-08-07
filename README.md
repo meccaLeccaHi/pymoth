@@ -36,11 +36,11 @@ Built for use with Mac/Linux systems - not tested in Windows.
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
 
 ### Modules:
-- *classify.py* Classify model output for MNIST experiment.
+- *classify.py* Classify output from MothNet model.
 - *generate.py* Download (if absent) and prepare down-sampled MNIST dataset.
 - *params.py* Experiment and model parameters.
 - *sde.py* Run stochastic differential equation simulation.
-- *show_figs.py* Figure generation methods.
+- *show_figs.py* Figure generation module.
 
 ### Sample results:
 <img src='./results/results_ROC_multi_sample.png'>

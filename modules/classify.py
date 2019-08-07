@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+"""
+
+.. module:: classify
+   :platform: Unix
+   :synopsis: Classify output from MothNet model.
+
+.. moduleauthor:: Adam P. Jones <ajones173@gmail.com>
+
+"""
+
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 import numpy as np
 from scipy import interp
@@ -14,7 +24,13 @@ def roc_multi(true_classes, likelihoods):
 	likelihoods (numpy array): [observations x classes]
 
 	Returns:
-	output (dict): targets, roc_auc, fpr, tpr, etc.
+	output (dict):
+	
+		targets (numpy array): one-hot-encoded target labels
+		roc_auc (dict): ROC curve and ROC area for each class
+		fpr (dict): false-positive rate for each class
+		tpr (dict): true-positive rate for each class
+		etc.
 
 	>>> roc_dict = roc_multi(true_classes, likelihoods)
 
@@ -65,31 +81,37 @@ def classify_digits_log_likelihood(results):
 	Classify the test digits in a run using log likelihoods from the various EN responses.
 
 	Steps:
-	1. for each test digit (ignore non-postTrain digits), for each EN, calculate \
+	#. for each test digit (ignore non-postTrain digits), for each EN, calculate \
 	the number of stds the test digit is from each class distribution. This makes \
 	a 10 x 10 matrix where each row corresponds to an EN, and each column corresponds \
 	to a class.
-	2. Square this matrix by entry. Sum the columns. Select the col with the lowest \
+	#. Square this matrix by entry. Sum the columns. Select the col with the lowest \
 	value as the predicted class. Return the vector of sums in 'likelihoods'.
-	3. The rest is simple calculation.
-	Parameters:
-		results (dict): output from :func:`simulate`. _i_th entry gives results for all \
-		classes, in the _i_th EN.
+	#. The rest is simple calculation.
+
+	Args:
+	results (dict): output from :func:`simulate`. i'th entry gives results for all \
+	classes, in the _i_th EN.
 
 	Returns:
-		output (dict)
+	output (dict)
 
 		Fields:
-			likelihoods (numpy array): [n x 10] each row a post_training digit \
-			(entries are summed log likelihoods)
-			true_classes (numpy array): shortened version of whichOdor (with only postTrain, ie validation, entries)
-			pred_classes (numpy array): predicted classes
-			class_acc (numpy array): [n x 10] class accuracies as percentages
-			total_acc (float): overall accuracy as percentage
-			etc
+		true_classes (numpy array): shortened version of whichOdor (with only \
+		post-training, ie validation, entries)
+		targets (numpy array): one-hot-encoded target labels
+		roc_auc (dict): ROC curve and ROC area for each class
+		fpr (dict): false-positive rate for each class
+		tpr (dict): true-positive rate for each class
+		pred_classes (numpy array): predicted classes
+		likelihoods (numpy array): [n x 10] each row a post_training digit \
+		(entries are summed log likelihoods)
+		acc_perc (numpy array): [n x 10] class accuracies as percentages
+		total_acc (float): overall accuracy as percentage
+		conf_mat (numpy array): i,j'th entry is number of test digits with true \
+		label i that were predicted to be j
 
 	>>> classify_digits_log_likelihood( dummy_results )
-
 	"""
 
 	n_en = len(results) # number of ENs, same as number of classes
@@ -169,47 +191,60 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 	(relative to its usual home-class response).
 
 	Steps:
-	1. For each test digit (ignore non-postTrain digits), for each EN, calculate \
+	#. For each test digit (ignore non-postTrain digits), for each EN, calculate \
 	the # stds from the test digit is from each class distribution. This makes \
 	a 10 x 10 matrix where each row corresponds to an EN, and each column \
 	corresponds to a class.
-	2. Square this matrix by entry. Sum the columns. Select the col with the \
+	#. Square this matrix by entry. Sum the columns. Select the col with the \
 	lowest value as the predicted class. Return the vector of sums in 'likelihoods'.
-	3. The rest is simple calculation.
+	#. The rest is simple calculation.
 
-	Parameters:
-		results (dict): [1 x 10] dict produced by viewENresponses. i'th entry gives \
-		results for all classes, in the i'th EN.
+	Args:
+	results (dict): [1 x 10] dict produced by viewENresponses. i'th entry gives \
+	results for all classes, in the i'th EN.
 
 		Fields:
-			post_mean_resp: post-training digit response estimate
-			post_std_resp: post-training digit response distributions
-			post_train_resp: actual responses for each val digit (for that EN). \
-			Non-post-train odors have response = -1 as a flag.
-			odor_class: the true labels of each digit, 0 to 9. This is the same in each EN.
+		post_mean_resp: post-training digit response estimate
+		post_std_resp: post-training digit response distributions
+		post_train_resp: actual responses for each val digit (for that EN). \
+		Non-post-train odors have response = -1 as a flag.
+		odor_class: the true labels of each digit, 0 to 9. This is the same in each EN.
 
+	home_advantage (int): the emphasis given to the home EN. It multiplies the \
+	off-diagonal of dist. 1 -> no advantage (default). Very high means that a \
+	test digit will be classified according to the home EN it does best in, \
+	ie each EN acts on its own.
+	home_thresh_sigmas (int): the number of stds below an EN's home-class mean \
+	that we set a threshold, such that if a digit scores above this threshold \
+	in an EN, that EN will be rewarded by 'above_home_thresh_reward'.
+	above_home_thresh_reward (int): if a digit's response scores above the EN's \
+	mean home-class value, reward it by dividing by this value. This reduces \
+	the log likelihood score for that EN.
+
+	Returns:
+	output (dict)
+
+		Fields:
+		true_classes (numpy array): shortened version of whichOdor (with only \
+		post-training, ie validation, entries)
+		targets (numpy array): one-hot-encoded target labels
+		roc_auc (dict): ROC curve and ROC area for each class
+		fpr (dict): false-positive rate for each class
+		tpr (dict): true-positive rate for each class
+		pred_classes (numpy array): predicted classes
+		likelihoods (numpy array): [n x 10] each row a post_training digit \
+		(entries are summed log likelihoods)
+		acc_perc (numpy array): [n x 10] class accuracies as percentages
+		total_acc (float): overall accuracy as percentage
+		conf_mat (numpy array): i,j'th entry is number of test digits with true \
+		label i that were predicted to be j
 		home_advantage (int): the emphasis given to the home EN. It multiplies the \
 		off-diagonal of dist. 1 -> no advantage (default). Very high means that a \
 		test digit will be classified according to the home EN it does best in, \
-		ie each EN acts on it's own.
+		ie each EN acts on its own.
 		home_thresh_sigmas (int): the number of stds below an EN's home-class mean \
 		that we set a threshold, such that if a digit scores above this threshold \
 		in an EN, that EN will be rewarded by 'above_home_thresh_reward'.
-		above_home_thresh_reward (int): if a digit's response scores above the EN's \
-		mean home-class value, reward it by dividing by this value. This reduces \
-		the log likelihood score for that EN.
-
-	Returns:
-		results (dict):
-
-		Fields:
-			likelihoods (numpy array): [n x 10] each row a post_training digit \
-			(entries are summed log likelihoods)
-			true_classes (numpy array): shortened version of whichOdor (with only postTrain, ie validation, entries)
-			pred_classes (numpy array): predicted classes
-			class_acc (numpy array): [n x 10] class accuracies as percentages
-			total_acc (float): overall accuracy as percentage
-			etc
 
 	>>> classify_digits_thresholding( dummy_results )
 
@@ -280,7 +315,7 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 	total_acc = (100*(pred_classes == true_classes).sum())/len(true_classes)
 
 	# confusion matrix:
-	# i,j'th entry is number of test digits with true label i that were predicted to be j.
+	# i,j'th entry is number of test digits with true label i that were predicted to be j
 	confusion = confusion_matrix(true_classes, pred_classes)
 
 	# measure ROC AUC for each class

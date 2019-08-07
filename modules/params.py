@@ -4,7 +4,7 @@
 
 .. module:: params
    :platform: Unix
-   :synopsis: Parameter objects for the pymoth package.
+   :synopsis: Experiment and model parameters for the pymoth package.
 
 .. moduleauthor:: Adam P. Jones <ajones173@gmail.com>
 
@@ -21,27 +21,28 @@ class ModelParams:
 	that is used to populate connection matrices and to control behavior.
 
 	Abbreviations:
-	n* : number of *
-	G : glomerulus (so eg nG : number of glomeruli)
-	R : response neuron (from antennae): this concept is not used. We use the stim-glomeruli, \
-	connections directly
-	P : excitatory projection neuron. note sometimes P's stand in for gloms in \
-	indexing, since they are 1 to 1
-	PI : inhibitory projection neuron
-	L : lateral neuron (inhibitory)
-	K : kenyon cell (in MB)
-	F : feature (this is a change from the original moth/odor regime, where each \
-	stim/odor was identified with its own single feature)
-	S (not used in this function) : stimulus class
-	fr : fraction%
-	mu : mean
-	std : standard deviation
-	_2_ : synapse connection to, eg P2K_mu : mean synapse strength from PN to KC
-	octo : octopamine delivery neuron
+		n* : number of *
+		G : glomerulus (so eg nG : number of glomeruli)
+		R : response neuron (from antennae): this concept is not used. We use the stim-glomeruli, \
+		connections directly
+		P : excitatory projection neuron. note sometimes P's stand in for gloms in \
+		indexing, since they are 1 to 1
+		PI : inhibitory projection neuron
+		L : lateral neuron (inhibitory)
+		K : kenyon cell (in MB)
+		F : feature (this is a change from the original moth/odor regime, where each \
+		stim/odor was identified with its own single feature)
+		S (not used in this function) : stimulus class
+		fr : fraction%
+		mu : mean
+		std : standard deviation
+		_2_ : synapse connection to, eg P2K_mu : mean synapse strength from PN to KC
+		octo : octopamine delivery neuron
 
 	Structure of synaptic strength matrices:
-	- rows give the 'from' a synapse
-	- cols give the 'to'
+		- rows give the 'from' a synapse
+		- cols give the 'to'
+		
 	So, M(i,j) is the strength from obj(i) to obj(j).
 
 	Glomeruli are not explicitly part of the equations, but the matrices for LN \
@@ -52,13 +53,14 @@ class ModelParams:
 		"""
 
 		Args:
-		nF (int): number of features (determines the number of neurons in each layer).
-		goal (int): measure of learning rate \
-		(goal = N means we expect the moth to hit max accuracy when trained on N samples per class. \
-		ie goal = 1 gives a fast learner, goal = 20 gives a slower learner).
+			nF (int): number of features (determines the number of neurons in \
+			each layer).
+			goal (int): measure of learning rate (goal = N means we expect the moth \
+			to hit max accuracy when trained on N samples per class. ie goal = 1 \
+			gives a fast learner, goal = 20 gives a slower learner).
 
 		Returns:
-		model_params (class): instance of model parameters object
+			model_params (class): model parameters object
 
 		>>> model_params = ModelParams( 85, 10 )
 
@@ -383,11 +385,11 @@ class ModelParams:
 		and appends them to model params object.
 
 		Args:
-		None
+			None
 
 		Returns:
-		model_params (object): connection matrices and other model info necessary to FR \
-		evolution and plotting
+			model_params (object): connection matrices and other model info necessary to FR \
+			evolution and plotting
 
 		>>> model_params.create_connection_matrix()
 
@@ -600,36 +602,36 @@ class ModelParams:
 class ExpParams:
 	"""
 
-	Define the parameters of a time-evolution experiment:
-	- overall timing
-	- stim timing and strength
-	- octo timing and strength
-	- lowpass window parameter
-	- etc.
+	Experiment parameters of a time-evolution experiment:
+		* overall timing
+		* stim timing and strength
+		* octo timing and strength
+		* lowpass window parameter
+		* etc.
 
 	Analyze the SDE time-stepped evolution of the neural firing rates.
 
 	Order of time periods:
-	1. no event period: allow system to settle to a steady state spontaneous FR baseline
-	2. baseline period: deliver a group of digits for each class
-	3. no event buffer
-	4. training period:  deliver digits + octopamine + allow hebbian updates
-	5. no event buffer
-	6. post-training period: deliver a group of digits for each class
+		#. no event period: allow system to settle to a steady state spontaneous FR baseline
+		#. baseline period: deliver a group of digits for each class
+		#. no event buffer
+		#. training period:  deliver digits + octopamine + allow hebbian updates
+		#. no event buffer
+		#. post-training period: deliver a group of digits for each class
 
 	"""
 	def __init__( self, train_classes, class_labels, val_per_class ):
 		"""
 
 		Args:
-		train_classes (numpy array): vector of indices giving the classes of the \
-		training digits in order. The first entry must be nonzero.
-		class_labels (numpy array): a list of labels, eg 1:10 for mnist
-		val_per_class (int): how many digits of each class to use for baseline and post-train
+			train_classes (numpy array): vector of indices giving the classes of the \
+			training digits in order. The first entry must be nonzero.
+			class_labels (numpy array): a list of labels, eg 1:10 for mnist
+			val_per_class (int): how many digits of each class to use for baseline and post-train
 
 		Returns:
-		None
-		
+			None
+
 		>>> experiment_params =  ExpParams( np.array(range(10)), np.array(range(10)), 1 )
 
 		"""

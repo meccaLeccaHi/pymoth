@@ -27,42 +27,6 @@ else:
 	raise Exception(version_error)
 
 class MothNet:
-	"""
-
-	Python class to train a moth brain model on a crude (downsampled) MNIST set. \
-	The moth can be generated from template or loaded complete from file.
-
-	Because the moth brain architecture, as evolved, only handles ~60 features, \
-	we need to create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features. \
-	We do this by cropping and downsampling the MNIST thumbnails, then selecting \
-	a subset of the remaining pixels.
-
-	This results in a cruder dataset (set various view flags to see thumbnails). \
-	However, it is sufficient for testing the moth brain's learning ability. Other ML \
-	methods need to be tested on this same cruder dataset to make useful comparisons.
-
-	Defining train and control pools for the experiment determines the receptive \
-	field. This is done first because the receptive field determines the number \
-	of AL units, which must be updated in model_params before :func:`create_connection_matrix` \
-	runs.
-
-	This dataset will be used for each simulation in numRuns. Each simulation draws \
-	a new set of samples from this set.
-
-	Order of events::
-
-	#. Load and pre-process dataset
-	#. During simulation, select a subset of the dataset for this simulation (only a few samples are used)
-	#.  Create a moth (neural net). Either select an existing moth file, or generate \
-	a new moth in 2 steps::
-		* First, run :class:`ModelParams` and incorporate user entry edits such as 'GOAL'
-		* Second, create connection matrices via :func:`create_connection_matrix`
-	#. Load the experiment parameters
-	#. Run the simulation with :func:`sde_wrap`, print results to console
-	#. Plot results (optional)
-	#. Run addition ML models for comparison, print results to console (optional)
-
-	"""
 
 	# Experiment details
 	from modules.sde import collect_stats
@@ -72,12 +36,43 @@ class MothNet:
 	def __init__(self, settings):
 		"""
 
-		The constructor for MothNet class.
+		Python class to train a moth brain model on a crude (downsampled) MNIST set. \
+		The moth can be generated from template or loaded complete from file.
+
+		Because the moth brain architecture, as evolved, only handles ~60 features, \
+		we need to create a new, MNIST-like task but with many fewer than 28x28 pixels-as-features. \
+		We do this by cropping and downsampling the MNIST thumbnails, then selecting \
+		a subset of the remaining pixels.
+
+		This results in a cruder dataset (set various view flags to see thumbnails). \
+		However, it is sufficient for testing the moth brain's learning ability. Other ML \
+		methods need to be tested on this same cruder dataset to make useful comparisons.
+
+		Defining train and control pools for the experiment determines the receptive \
+		field. This is done first because the receptive field determines the number \
+		of AL units, which must be updated in model_params before :func:`create_connection_matrix` \
+		runs.
+
+		This dataset will be used for each simulation in numRuns. Each simulation draws \
+		a new set of samples from this set.
+
+		Order of events::
+
+		#. Load and pre-process dataset
+		#. During simulation, select a subset of the dataset for this simulation (only a few samples are used)
+		#.  Create a moth (neural net). Either select an existing moth file, or generate \
+		a new moth in 2 steps::
+
+			* First, run :class:`ModelParams` and incorporate user entry edits such as GOAL
+			* Second, create connection matrices via :func:`create_connection_matrix`
+
+		#. Load the experiment parameters
+		#. Run the simulation with :func:`sde_wrap`, print results to console
+		#. Plot results (optional)
+		#. Run addition ML models for comparison, print results to console (optional)
 
 		Args:
-
 			user_params (dict):  Package configuration values::
-
 				SCREEN_SIZE (tuple): screen size (width, height)
 				NUM_RUNS (int): how many runs you wish to do with this moth. Each run \
 				using random draws from the MNIST set.
@@ -294,14 +289,14 @@ class MothNet:
 	def load_moth(self):
 		"""
 
-		Create a new moth, ie the template that is used to populate connection
+		Create a new moth, ie the template that is used to populate connection \
 		matrices and to control behavior.
 
 		Args:
-		None
+			None
 
 		Returns:
-		model_params (class): model parameters
+			model_params (class): Model parameters.
 
 		>>> mothra.load_moth()
 
@@ -317,15 +312,17 @@ class MothNet:
 	def load_exp(self):
 		"""
 
-		Load experiment parameters, including book-keeping for time-stepped
-		evolutions, eg when octopamine occurs, time regions to poll for digit
+		Load experiment parameters, including book-keeping for time-stepped \
+		evolutions, eg when octopamine occurs, time regions to poll for digit \
 		responses, windowing of firing rates, etc.
 
+		Creates self.experiment_params.
+
 		Args:
-		None
+			None
 
 		Returns:
-		self.experiment_params (class): experiment parameters
+			None
 
 		>>> mothra.load_exp()
 
@@ -340,16 +337,17 @@ class MothNet:
 		Run the SDE time-stepped evolution of neural firing rates.
 
 		Steps:
-		- load various params needed for pre-evolution prep
-		- specify stim and octo courses
-		- interaction equations and step through simulation
-		- unpack evolution output and export
+			Load various params needed for pre-evolution prep.
+			Specify stim and octo courses.
+			Interaction equations and step through simulation.
+			Unpack evolution output and export.
 
 		Args:
-		feature_array (numpy array): array of stimuli (numFeatures x numStimsPerClass x numClasses)
+			feature_array (numpy array): array of stimuli [num_features X \
+			num_stims_per_class X num_classes]
 
 		Returns:
-		sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
+			sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
 
 		>>> sim_results = mothra.simulate(feature_array)
 
@@ -367,12 +365,17 @@ class MothNet:
 
 		Calculate the classification accuracy of MothNet on MNIST dataset.
 
+		Sets:
+			self.output_trained_thresholding (dict): Post-training accuracy using \
+			single EN thresholding.
+			self.output_trained_log_loss (dict): Post-training accuracy using \
+			log-likelihoods over all ENs.
+
 		Args:
-		EN_resp_trained (list): simulation EN responses grouped by class and time.
+			EN_resp_trained (list): simulation EN responses grouped by class and time.
 
 		Returns:
-		self.output_trained_thresholding (dict): Post-training accuracy using single EN thresholding.
-		self.output_trained_log_loss (dict): Post-training accuracy using log-likelihoods over all ENs.
+			None
 
 		>>> mothra.score_moth_on_MNIST(EN_resp_trained)
 
@@ -411,7 +414,7 @@ class MothNet:
 		if self.SHOW_ROC_PLOTS:
 			from modules.show_figs import show_roc_curves
 			# compute macro-average ROC curve
-			show_roc_curves(output_trained_log_loss['fpr'], output_trained_log_loss['tpr'],
+			show_roc_curves(output_trained_log_loss['tpr'], output_trained_log_loss['fpr'],
 				output_trained_log_loss['roc_auc'], self._class_labels,
 				title_str='MothNet',
 				images_filename=self.RESULTS_FOLDER + _os.sep + self.RESULTS_FILENAME)
@@ -422,17 +425,17 @@ class MothNet:
 	def score_knn(self, train_X, train_y, test_X, test_y):
 		"""
 
-		Calculate the classification accuracy of KNN on MNIST dataset and print
+		Calculate the classification accuracy of KNN on MNIST dataset and print \
 		the accuracy.
 
 		Args:
-		train_X (numpy array): Feature matrix training samples
-		train_y (numpy array): Labels for training samples
-		test_X (numpy array): Feature matrix testing samples
-		test_y (numpy array): Labels for testing samples
+			train_X (numpy array): Feature matrix training samples
+			train_y (numpy array): Labels for training samples
+			test_X (numpy array): Feature matrix testing samples
+			test_y (numpy array): Labels for testing samples
 
 		Returns:
-		None
+			None
 
 		>>> mothra.score_knn(train_X, train_y, test_X, test_y)
 
@@ -459,7 +462,7 @@ class MothNet:
 			self.roc_knn = roc_multi(test_y.flatten(), probabilities)
 
 			# compute macro-average ROC curve
-			show_roc_curves(self.roc_knn['fpr'], self.roc_knn['tpr'],
+			show_roc_curves(self.roc_knn['tpr'], self.roc_knn['fpr'],
 				self.roc_knn['roc_auc'], self._class_labels, title_str='KNN',
 				images_filename=self.RESULTS_FOLDER + _os.sep + self.RESULTS_FILENAME)
 
@@ -480,17 +483,17 @@ class MothNet:
 	def score_svm(self, train_X, train_y, test_X, test_y):
 		"""
 
-		Calculate the classification accuracy of SVM on MNIST dataset and print
+		Calculate the classification accuracy of SVM on MNIST dataset and print \
 		the accuracy.
 
 		Args:
-		train_X (numpy array): Feature matrix training samples
-		train_y (numpy array): Labels for training samples
-		test_X (numpy array): Feature matrix testing samples
-		test_y (numpy array): Labels for testing samples
+			train_X (numpy array): Feature matrix training samples
+			train_y (numpy array): Labels for training samples
+			test_X (numpy array): Feature matrix testing samples
+			test_y (numpy array): Labels for testing samples
 
 		Returns:
-		None
+			None
 
 		>>> mothra.score_svm(train_X, train_y, test_X, test_y)
 
@@ -517,7 +520,7 @@ class MothNet:
 			self.roc_svm = roc_multi(test_y.flatten(), probabilities)
 
 			# compute macro-average ROC curve
-			show_roc_curves(self.roc_svm['fpr'], self.roc_svm['tpr'],
+			show_roc_curves(self.roc_svm['tpr'], self.roc_svm['fpr'],
 				self.roc_svm['roc_auc'], self._class_labels, title_str='KNN',
 				images_filename=self.RESULTS_FOLDER + _os.sep + self.RESULTS_FILENAME)
 

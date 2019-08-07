@@ -1,50 +1,55 @@
 #!/usr/bin/env python3
 
+"""
+
+.. module:: generate
+   :platform: Unix
+   :synopsis: Download (if absent) and prepare down-sampled MNIST dataset.
+
+.. moduleauthor:: Adam P. Jones <ajones173@gmail.com>
+
+"""
+
 import numpy as np
 import os
 
 def generate_ds_mnist( max_ind, class_labels, crop, downsample_ratio, downsample_method,
 inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
 show_thumbnails ):
-
 	"""
-
 	Preprocessing:
-	1. Load MNIST
-	2. cropping and downsampling
-	3. mean-subtract, make non-negative, normalize pixel sums
-	4. select active pixels (receptive field)
+		#. Load MNIST
+		#. cropping and downsampling
+		#. mean-subtract, make non-negative, normalize pixel sums
+		#. select active pixels (receptive field)
 
-	Loads the MNIST dataset (from Yann LeCun's website),
-	then applies various preprocessing steps to reduce the number of pixels
-	(each pixel will be a feature).
+	Loads the MNIST dataset (from Yann LeCun's website), then applies various \
+	preprocessing steps to reduce the number of pixels (each pixel will be a feature).
 
-	The 'receptive field' step destroys spatial relationships, so to reconstruct
-	a 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices
+	The 'receptive field' step destroys spatial relationships, so to reconstruct \
+	a 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices \
 	can be embedded in a 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
-	Modify the path for the MNIST data file as needed.
 
 	Args:
-	max_ind (int): maximum number of samples to use
-	class_labels (numpy array): numeric classes (for MNIST, digits 0:9)
-	crop (int): image cropping parameter
-	downsample_ratio (int): image downsample ratio (n:1)
-	downsample_method (int): method for downsampling image
-	inds_to_ave (numpy array): pixel indices
-	pixel_sum (int): normalization factor
-	inds_to_calc_RF (numpy array): pixel indices for receptive field
-	num_features (int): number of pixels in the receptive field
-	screen_size (tuple): screen size (width, height) for images
-	save_results_folder (str): absolute path to where results will be saved
-	show_thumbnails (int): number of thumbnails to show for each class (0 means none)
+		max_ind (int): maximum number of samples to use
+		class_labels (numpy array): numeric classes (for MNIST, digits 0:9)
+		crop (int): image cropping parameter
+		downsample_ratio (int): image downsample ratio (n:1)
+		downsample_method (int): method for downsampling image
+		inds_to_ave (numpy array): pixel indices
+		pixel_sum (int): normalization factor
+		inds_to_calc_RF (numpy array): pixel indices for receptive field
+		num_features (int): number of pixels in the receptive field
+		screen_size (tuple): screen size (width, height) for images
+		save_results_folder (str): absolute path to where results will be saved
+		show_thumbnails (int): number of thumbnails to show for each class (0 means none)
 
 	Returns:
-	feature_array (numpy array): (n x m x c), n = #active pixels, m = #digits from \
-	c = class (1:10).
-	active_pixel_inds (list): pixel indices to allow thumbnail viewing.
-	len_side (int): allows reconstruction of thumbnails given from the feature vectors.
+		feature_array (numpy array): [#active pixels x #samples x #classes]
+		active_pixel_inds (list): pixel indices to allow thumbnail viewing
+		len_side (int): allows reconstruction of thumbnails given from the feature vectors
 
-	>>> image_array = extract_mnist_feature_array(mnist, class_labels, range(max_ind+1), 'train')
+	>>>
 
 	"""
 
@@ -143,13 +148,16 @@ def extract_mnist_feature_array(mnist, labels, image_indices, phase_label):
 		return a 4-D array: 1, 2 = im. 3 indexes images within a class, 4 is the class.
 
 	Args:
-	mnist (dict): loaded from `MNIST_all.npy`
-	labels (numpy array): numeric classes (for MNIST, digits 0:9)
-	image_indices (range): images you want from each class
-	phase_label (str): Image set to draw from ('train' or 'test')
+		mnist (dict): loaded from `MNIST_all.npy`
+		labels (numpy array): numeric classes (for MNIST, digits 0:9)
+		image_indices (range): images you want from each class
+		phase_label (str): Image set to draw from ('train' or 'test')
 
 	Returns:
-	im_array (numpy array): 4-D array (image_count x image_heigh x image_width x number_of_classes)
+		im_array (numpy array): 4-D array [#images x image_height x image_width \
+		x #classes]
+
+	>>> image_array = extract_mnist_feature_array(mnist, class_labels, range(max_ind+1), 'train')
 
 	"""
 
@@ -183,15 +191,15 @@ def crop_downsample_vectorize_images(im_stack, crop_val, downsample_ratio, downs
 	For each image in a stack of images; crop, downsample, then make into a vector.
 
 	Args:
-	im_stack (numpy array): numImages x width x height
-	crop_val: number of pixels to shave off each side. (int) or (list) [top, bottom, left, right]
-	downsample_ratio (int): image downsample ratio (n:1)
-	downsample_method (int): method for downsampling image (0: sum square patches, \
-	1: bicubic interpolation)
+		im_stack (numpy array): [numImages x width x height]
+		crop_val: number of pixels to shave off each side. (int) or (list) [top, bottom, left, right]
+		downsample_ratio (int): image downsample ratio (n:1)
+		downsample_method (int): method for downsampling image (0: sum square patches, \
+		1: bicubic interpolation)
 
 	Returns:
-	im_array (numpy array): a x numImages array, where a = number of pixels in the \
-	cropped and downsampled images.
+		im_array (numpy array): [#pixels x #images] array, where #pixels refers to the \
+		number of pixels in the cropped and downsampled images.
 
 	>>> crop_downsample_vectorize_images(dummy_image_array[...,0],2,2,1)
 
@@ -243,11 +251,11 @@ def average_image_stack( im_stack, indices_to_average ):
 	Average a stack of images.
 
 	Args:
-	im_stack (numpy array): 3-d stack (x, y, z) OR 2-d matrix (images-as-col-vecs, z)
-	indices_to_average (list): which images in the stack to average
+		im_stack (numpy array): 3-d stack (x, y, z) OR 2-d matrix (images-as-col-vecs, z)
+		indices_to_average (list): which images in the stack to average
 
 	Returns:
-	average_image (numpy array): (if input is 3-d) or column vector (if input is 2-d)
+		average_image (numpy array): (if input is 3-d) or column vector (if input is 2-d)
 
 	>>> average_im = average_image_stack(dummy_feature_array[...,0], list(range(5)))
 
@@ -274,16 +282,17 @@ def select_active_pixels( feature_array, num_features, screen_size, save_image_f
 	Select the most active pixels, considering all class average images, to use as features.
 
 	Args:
-	feature_array (numpy array): 3-D array # of features X # samples per class X \
-	# of classes, created by :func:`generate_ds_mnist`.
-	num_features (int): number of pixels in the receptive field
-	save_image_folder (str): directory to save average thumbnail images (if empty, don't save)
-	screen_size (tuple): screen size (width, height) for images
-	show_thumbnails (int): number of thumbnails to plot
+		feature_array (numpy array): 3-D array # of features X # samples per class X \
+		# of classes, created by :func:`generate_ds_mnist`.
+		num_features (int): number of pixels in the receptive field
+		save_image_folder (str): directory to save average thumbnail images (if \
+		empty, don't save)
+		screen_size (tuple): screen size (width, height) for images
+		show_thumbnails (int): number of thumbnails to plot
 
 	Returns:
-	active_pixel_inds (numpy array): 1 x nF vector of indices to use as features. \
-	Indices are relative to the vectorized thumbnails (so between 1 and 144).
+		active_pixel_inds (numpy array): 1 x nF vector of indices to use as features. \
+		Indices are relative to the vectorized thumbnails (so between 1 and 144).
 
 	>>> active_pixel_inds = select_active_pixels(feature_array, 85, (1920, 1080))
 
