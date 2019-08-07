@@ -16,6 +16,9 @@ Welcome to pymoth's documentation!
 .. automodule:: modules.generate
   :members:
 
+.. automodule:: modules.classify
+  :members:
+
 Indices and tables
 ==================
 

@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
+
+import os
 import numpy as np
+from scipy.special import erfinv
+import matplotlib.pyplot as plt
+from modules.show_figs import show_acc, show_timecourse
 
 def sde_wrap( model_params, exp_params, feature_array ):
-    '''
+    """
     Runs the SDE time-stepped evolution of neural firing rates.
-    Parameters:
-        1. model_params: object with connection matrices etc
-        2. exp_params: object with timing info about experiment, eg when stimuli are given.
-        3. feature_array: array of stimuli (numFeatures x numStimsPerClass x numClasses)
-    Returns:
-        1. sim_results: EN timecourses and final P2K and K2E connection matrices.
-          Note that other neurons' timecourses (outputted from sdeEvolutionMnist)
-          are not retained in sim_results.
 
-    #---------------------------------------------------------------------------
+    Args:
+        model_params (class): object with connection matrices, etc.
+        exp_params (class): object with timing info about experiment, eg when stimuli are given.
+        feature_array (numpy array): stimuli (numFeatures x numStimsPerClass x numClasses).
+        Returns:
+        sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
 
-    4 sections:
+    4 steps:
         1. load various params needed for pre-evolution prep
         2. specify stim and octo courses
         3. interaction equations and step through simulation
         4. unpack evolution output and export
 
-    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-    MIT License
-    '''
+    """
 
     ## 1. initialize states of various components:
 
@@ -94,7 +94,7 @@ def sde_wrap( model_params, exp_params, feature_array ):
     Eo = np.zeros(model_params.nE) # start at zeros
     init_cond = np.concatenate((Po, PIo, Lo, Ro, Ko, Eo) , axis=None) # initial conditions for Y
 
-    tspan = [ sim_start, sim_stop ]
+    tspan = ( sim_start, sim_stop )
     seed_val = 0 # to free up or fix randn
     # If = 0, a random seed value will be chosen. If > 0, the seed will be defined.
 
@@ -122,77 +122,70 @@ def sde_wrap( model_params, exp_params, feature_array ):
 
 def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     octo_hits, mP, exP, seed_val):
-    '''
-    To include neural noise, evolve the differential equations using euler-
-    maruyama, milstein version (see Higham's Algorithmic introduction to
-    numerical simulation of SDE).
-    Called by sde_wrap(). For use with MNIST experiments.
-    Parameters:
-        1. tspan: 1 x 2 vector = start and stop timepoints (sec)
-        2. init_cond: n x 1 vector = starting FRs for all neurons, order-specific
-        3. time: start:step:stop; vector of timepoints for stepping through the evolution
-            Note we assume that noise and FRs have the same step size (based on Milstein's method)
-        4. class_mag_mat: nC x N matrix where nC = # of different classes (for
-            digits, up to 10), N = length(time = vector of time points). Each
-            entry is the strength of a digit presentation.
-        5. feature_array: numFeatures x numStimsPerClass x numClasses array
-        6. octo_hits: 1 x length(t) vector with octopamine strengths at each timepoint
-        7. mP: model_params, including connection matrices, learning rates, etc
-        8. exP: experiment parameters with some timing info
-        9. seed_val: optional arg for random number generation.
-            0 means start a new seed.
+    """
+
+    To include neural noise, evolve the differential equations using Euler-Maruyama, \
+    Milstein version (see Higham's Algorithmic introduction to Numerical Simulation \
+    of SDE).
+    Called by :func:`sde_wrap`. For use with MNIST experiments.
+
+    Args:
+        tspan (tuple): start and stop timepoints (seconds)
+        init_cond (numpy array): [n x 1] starting FRs for all neurons, order-specific
+        time (numpy array): [start:step:stop] vector of timepoints for stepping \
+        through the evolution. Note we assume that noise and FRs have the same step \
+        size (based on Milstein's method).
+        class_mag_mat (numpy array): [# of different classes X vector of time points] \
+        each entry is the strength of a digit presentation.
+        feature_array (numpy array): [numFeatures x numStimsPerClass x numClasses]
+        octo_hits (numpy array): [1 x length(t)] octopamine strengths at each timepoint.
+        mP (class): model_params, including connection matrices, learning rates, etc.
+        exP (class): experiment parameters with some timing info.
+        seed_val (int): optional arg for random number generation.
     Returns:
-        this_run: object with attributes Y (vectors of all neural timecourses as rows),
-            T (timepoints used in evolution), and final mP.P2K and mP.K2E connection matrices.
-            1. T = m x 1 vector, timepoints used in evolution
-            2. Y = m x K matrix, where K contains all FRs for P, L, PI, KC, etc; and
-                each row is the FR at a given timepoint
+        this_run (dict):
+            T: [m x 1] timepoints used in evolution (timepoints used in evolution)
+            Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each \
+            row is the FR at a given timepoint
+            P2K: connection matrix
+            K2E: connection matrix
 
-    #---------------------------------------------------------------------------
+    The function uses the noise params to create a Wiener process, then evolves \
+    the FR equations with the added noise. Inside the difference equations we use \
+    a piecewise linear pseudo sigmoid, rather than a true sigmoid, for speed.
 
-    comment: for mnist, the book-keeping differs from the odor experiment set-up.
-        Let nC = number of classes (1 - 10 for mnist).
-        The class may change with each new digit, so there is be a counter
-        that increments when stimMag changes from nonzero to zero.
-        There are nC counters.
-
-    The function uses the noise params to create a Wiener process, then
-    evolves the FR equations with the added noise
-
-    Inside the difference equations we use a piecewise linear pseudo sigmoid,
-    rather than a true sigmoid, for speed.
-
-    Note re-calculating added noise:
-        We want noise to be proportional to the mean spontFR of each neuron. So
-        we need to get an estimate of this mean spont FR first. Noise is not
-        added while neurons settle to initial SpontFR values.
-        Then noise is added, proportional to spontFR. After this noise
-        begins, mean_spont_FRs converge to new values.
-    So there is a 'stepped' system, as follows:
+    Regarding re-calculating added noise:
+        We want noise to be proportional to the mean spontFR of each neuron. So \
+        we need to get an estimate of this mean spont FR first. Noise is not \
+        added while neurons settle to initial SpontFR values. Then noise is added, \
+        proportional to spontFR. After this noise begins, mean_spont_FRs converge \
+        to new values.
+    So, this is a 'stepped' system, that runs as follows:
         1. no noise, neurons converge to initial mean_spont_FRs = ms1
         2. noise proportional to ms1. neurons converge to new mean_spont_FRs = ms2
-        3. noise is proportional to ms2. neurons may converge to new
-            mean_spont_FRs = ms3, but noise is not changed. stdSpontFRs are
-            calculated from ms3 time period.
-    This has the following effects on sim_results:
+        3. noise is proportional to ms2. neurons may converge to new `mean_spont_FRs` \
+        = ms3, but noise is not changed. `std_spont_FRs` are calculated from ms3 \
+        time period.
+    This has the following effects on simulation results:
         1. In the heat maps and time-courses this will give a period of uniform FRs.
-        2. The mean_spont_FRs and stdSpontFRs are not 'settled' until after
-        the exP.stopSpontMean3 timepoint.
+        2. The `mean_spont_FR`s and `std_spont_FR`s are not 'settled' until after \
+        the `stopSpontMean3` timepoint.
 
-    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-    MIT License
-    '''
-
-    from scipy.special import erfinv
+    """
 
     def piecewise_lin_pseudo_sig(x, span, slope):
-        # Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns.
+        """
+        Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns.
+        """
         y = x*slope
         y = np.maximum(y, -span/2) # replace values below -span/2
         y = np.minimum(y, span/2) # replace values above span/2
         return y
 
     def wiener(w_sig, mean_spont_, old_, tau_, inputs_):
+        """
+        Calculate wiener noise.
+        """
         d_ = dt*(-old_*tau_ + inputs_)
         # Wiener noise:
         dW_ = np.sqrt(dt)*w_sig*mean_spont_*np.random.normal(0,1,(d_.shape))
@@ -224,12 +217,12 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     RspontRatios = mP.Rspont/mP.Rspont.mean() # used to scale stim inputs
 
     ## param for sigmoid that squashes inputs to neurons:
-    # the slope at x = 0 = mP.slopeParam*span/4
-    pSlope = mP.slopeParam*mP.cP/4
-    piSlope = mP.slopeParam*mP.cPI/4 # no PIs for mnist
-    lSlope = mP.slopeParam*mP.cL/4
-    rSlope = mP.slopeParam*mP.cR/4
-    kSlope = mP.slopeParam*mP.cK/4
+    # the slope at x = 0 = mP.slope_param*span/4
+    pSlope = mP.slope_param*mP.cP/4
+    piSlope = mP.slope_param*mP.cPI/4 # no PIs for mnist
+    lSlope = mP.slope_param*mP.cL/4
+    rSlope = mP.slope_param*mP.cR/4
+    kSlope = mP.slope_param*mP.cK/4
 
 #-------------------------------------------------------------------------------
 
@@ -296,8 +289,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     # ssMeanSpontP = np.zeros(nP)
     # ssStdSpontP = np.ones(nP)
 
-    maxSpontP2KtimesPval = 10 # placeholder until we have an estimate based on
-                                # spontaneous PN firing rates
+    # placeholder until we have an estimate based on spontaneous PN firing rates
+    maxSpontP2KtimesPval = 10
 
     ## Main evolution loop:
     # iterate through time steps to get the full evolution:
@@ -421,7 +414,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         Pinputs = piecewise_lin_pseudo_sig(Pinputs, mP.cP, pSlope)
 
         # Wiener noise
-        newP = wiener(wPsig, mean_spont_P, oldP, mP.tauP, Pinputs)
+        newP = wiener(wPsig, mean_spont_P, oldP, mP.tau_P, Pinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -435,7 +428,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         PIinputs = piecewise_lin_pseudo_sig(PIinputs, mP.cPI, piSlope)
 
         # Wiener noise
-        newPI = wiener(wPIsig, mean_spont_PI, oldPI, mP.tauPI, PIinputs)
+        newPI = wiener(wPIsig, mean_spont_PI, oldPI, mP.tau_PI, PIinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -447,7 +440,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         Linputs = piecewise_lin_pseudo_sig(Linputs, mP.cL, lSlope)
 
         # Wiener noise
-        newL = wiener(wLsig, mean_spont_L, oldL, mP.tauL, Linputs)
+        newL = wiener(wLsig, mean_spont_L, oldL, mP.tau_L, Linputs)
 
 #-------------------------------------------------------------------------------
 
@@ -463,7 +456,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         Rinputs = piecewise_lin_pseudo_sig(Rinputs, mP.cR, rSlope)
 
         # Wiener noise
-        newR = wiener(wRsig, mean_spont_R, oldR, mP.tauR, Rinputs)
+        newR = wiener(wRsig, mean_spont_R, oldR, mP.tau_R, Rinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -496,7 +489,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         Kinputs = piecewise_lin_pseudo_sig(Kinputs, mP.cK, kSlope)
 
         # Wiener noise
-        newK = wiener(wKsig, mean_spont_K, oldK, mP.tauK, Kinputs)
+        newK = wiener(wKsig, mean_spont_K, oldK, mP.tau_K, Kinputs)
 
 #-------------------------------------------------------------------------------
 
@@ -506,7 +499,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         # dWE == 0 since we assume no noise in ENs.
         Einputs = oldK2E.dot(oldK)
         # oldK2E.dot(oldK)*(1 + thisOctoHit*mP.octo2E) # mP.octo2E == 0
-        dE = dt*( -oldE*mP.tauE + Einputs )
+        dE = dt*( -oldE*mP.tau_E + Einputs )
 
         # Wiener noise
         dWE = 0 # noise = 0 => dWE == 0
@@ -530,12 +523,12 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             nonNegNewK = np.maximum(newK, 0) # since newK has not yet been made non-neg
 
             ## dP2K:
-            dp2k = (1/mP.hebTauPK) * nonNegNewK.reshape(-1, 1).dot(oldP.reshape(-1, 1).T)
+            dp2k = (1/mP.heb_tau_PK) * nonNegNewK.reshape(-1, 1).dot(oldP.reshape(-1, 1).T)
             dp2k *= P2Kmask #  if original synapse does not exist, it will never grow
 
             # decay some P2K connections if wished: (not used for mnist experiments)
-            if mP.dieBackTauPK > 0:
-                oldP2K *= -(1/mP.dieBackTauPK)*dt
+            if mP.die_back_tau_PK > 0:
+                oldP2K *= -(1/mP.die_back_tau_PK)*dt
 
             newP2K = np.maximum(oldP2K + dp2k, 0)
             newP2K = np.minimum(newP2K, mP.hebMaxPK)
@@ -543,7 +536,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 #-------------------------------------------------------------------------------
 
             ## dPI2K: # no PIs for mnist
-            dpi2k = (1/mP.hebTauPIK) * nonNegNewK.reshape(-1, 1).dot(oldPI.reshape(-1, 1).T)
+            dpi2k = (1/mP.heb_tau_PIK) * nonNegNewK.reshape(-1, 1).dot(oldPI.reshape(-1, 1).T)
             dpi2k *= PI2Kmask # if original synapse does not exist, it will never grow
 
             # kill small increases:
@@ -552,8 +545,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             keepMask = dpi2k/temp
             keepMask = keepMask.reshape(dpi2k.shape)
             dpi2k *= keepMask
-            if mP.dieBackTauPIK > 0:
-                oldPI2K -= oldPI2K*(1/dieBackTauPIK)*dt
+            if mP.die_back_tau_PIK > 0:
+                oldPI2K -= oldPI2K*(1/die_back_tau_PIK)*dt
             newPI2K = np.maximum(oldPI2K + dpi2k, 0)
             newPI2K = np.minimum(newPI2K, mP.hebMaxPIK)
 
@@ -562,7 +555,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             ## dK2E:
             #tempK = oldK
             # oldK is already nonNeg
-            dk2e = (1/mP.hebTauKE) * newE.reshape(-1, 1).dot(oldK.reshape(-1, 1).T)
+            dk2e = (1/mP.heb_tau_KE) * newE.reshape(-1, 1).dot(oldK.reshape(-1, 1).T)
             dk2e *= K2Emask
 
             # restrict changes to just the i'th row of mP.K2E, where i = ind of training stim
@@ -573,12 +566,12 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 #-------------------------------------------------------------------------------
 
             # inactive connections for this EN die back:
-            if mP.dieBackTauKE:
+            if mP.die_back_tau_KE:
                 # restrict dieBacks to only the trained EN
                 targetMask = np.zeros(dk2e.shape)
                 targetMask[ dk2e == 0 ] = 1
                 targetMask *= restrictK2Emask
-                dieBack = (oldK2E + 2)*(1/mP.dieBackTauKE)*dt
+                dieBack = (oldK2E + 2)*(1/mP.die_back_tau_KE)*dt
                 # the '+1' allows weights to die to absolute 0
                 oldK2E -= targetMask*dieBack
 
@@ -631,41 +624,36 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
 def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
     show_acc_plots, images_folder='', images_filename='', screen_size=(1920,1080)):
-    '''
-    Collect stats on readout neurons (EN):
-        Color-code them dots by class and by concurrent octopamine.
-        Collect stats: median, mean, and std of FR for each digit, pre- and post-training.
-        Throughout, digits may be referred to as odors, or as odor puffs.
-        'Pre' = naive. 'Post' = post-training
+    """
+    Collect stats on readout neurons (EN).
+        Collect stats: median, mean, and std of FR for each digit, pre- and post-training. \
+        Digits are referred to as odors, or as odor puffs.
+            'Pre' = pre-training
+            'Post' = post-training
 
-    Parameters:
-        1. sim_results: dictionary containing simulation results (output from sdeWrapper)
-        2. exp_params: object with timing info about experiment, eg when stimuli are given
-        3. class_labels: a list of labels, eg 1:10 for MNIST
-        4. show_time_plots: show EN timecourses (Boolean)
-        5. show_acc_plots: show changes in accuracy (Boolean)
-        6. images_filename [optional]: to generate image filenames when saving
-             If this = '', images will not be saved (ie it's also a flag)
-        7. images_folder [optional]: directory to save results
-        7. screen_size [optional]: screen size (width, height) for images (tuple)
+    Args:
+        sim_results (dict): simulation results (output from :func:`sde_wrap`)
+        exp_params (class): timing info about experiment, eg when stimuli are given
+        class_labels (numpy array): labels, eg 0:9 for MNIST
+        show_time_plots (bool): show EN timecourses
+        show_acc_plots (bool): show changes in accuracy
+        images_filename (str): [optional] to generate image filenames when saving
+        images_folder (str): [optional] directory to save results
+        screen_size (tuple): [optional] screen size (width, height) for images
 
-    Returns results list of dictionaries:
-        1. pre_mean_resp = numENs x numOdors matrix = mean of EN pre-training
-        2. pre_std_resp = numENs x numOdors matrix = std of EN responses pre-training
-        3. ditto for post etc
-        4. percent_change_mean_resp = 1 x numOdors vector
-        5. trained = list of indices corresponding to the odor(s) that were trained
-        6. pre_spont_mean = mean(pre_spont)
-        7. pre_spont_std = std(pre_spont)
-        8. post_spont_mean = mean(post_spont)
-        9. post_spont_std = std(post_spont)
-
-    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-    MIT License
-    '''
-    import os
-    import matplotlib.pyplot as plt
-    from modules.show_figs import show_acc, show_timecourse
+    Returns:
+        results (dict):
+            pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
+            pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
+            post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
+            post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training
+            percent_change_mean_resp (numpy array): [1 x numOdors]
+            trained (list): indices corresponding to the odor(s) that were trained
+            pre_spont_mean (float): mean of pre_spont
+            pre_spont_std (float): std of pre_spont
+            post_spont_mean (float): mean of post_spont
+            post_spont_std (float): std of post_spont
+    """
 
     # concurrent octopamine
     if sim_results['octo_hits'].max() > 0:

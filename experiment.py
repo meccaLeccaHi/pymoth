@@ -10,21 +10,35 @@ def main():
     run_start = time.time() # time execution duration
 
     # instantiate the MothNet object
-    mothra = pymoth.MothNet()
+    mothra = pymoth.MothNet({
+        'screen_size': (1920, 1080), # screen size (width, height)
+        'num_runs': 1, # how many runs you wish to do with this moth
+        'goal': 15, # defines the moth's learning rates
+        'tr_per_class': 1, # (try 3) the number of training samples per class
+        'num_sniffs': 1, # (try 2) number of exposures each training sample
+        'num_neighbors': 1, # optimization param for nearest neighbors
+        'box_constraint': 1e1, # optimization parameter for svm
+        'n_thumbnails': 1, # show N experiment inputs from each class
+        'show_acc_plots': True, # True to plot, False to ignore
+        'show_time_plots': True, # True to plot, False to ignore
+        'show_roc_plots': True, # True to plot, False to ignore
+        'results_folder': 'results', # string
+        'results_filename': 'results', # will get the run number appended to it
+                            })
 
     # loop through the number of simulations specified:
     for run in range(mothra.NUM_RUNS):
 
         # generate dataset
-        digit_queues = mothra.load_MNIST()
-        train_X, test_X, train_y, test_y = mothra.train_test_split(digit_queues)
+        feature_array = mothra.load_mnist()
+        train_X, test_X, train_y, test_y = mothra.train_test_split(feature_array)
 
         # load parameters
         mothra.load_moth() # define moth model parameters
         mothra.load_exp() # define parameters of a time-evolution experiment
 
         # run simulation (SDE time-step evolution)
-        sim_results = mothra.simulate(digit_queues)
+        sim_results = mothra.simulate(feature_array)
         # future: mothra.fit(X_train, y_train)
 
         # collect response statistics:

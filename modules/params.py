@@ -1,53 +1,68 @@
 #!/usr/bin/env python3
 
+"""
+
+.. module:: params
+   :platform: Unix
+   :synopsis: Parameter objects for the pymoth package.
+
+.. moduleauthor:: Adam P. Jones <ajones173@gmail.com>
+
+"""
+
 # import packages
 import numpy as np
+import numpy.random as r
 
 class ModelParams:
-    '''
-    This Python module contains the parameters for a sample moth, ie the template
+    """
+
+    This Python module contains the parameters for a sample moth, ie the template \
     that is used to populate connection matrices and to control behavior.
 
-    Parameters:
-        1. nF = number of features. This determines the number of neurons in each layer.
-        2. goal = measure of learning rate: goal = N means we expect the moth to
-            hit max accuracy when trained on N samples per class. So goal = 1 gives
-            a fast learner, goal = 20 gives a slower learner.
-
-    #-------------------------------------------------------------------------------
-
-    The following abbreviations are used:
-    n* = number of *
-    G = glomerulus (so eg nG = number of glomeruli)
-    R = response neuron (from antennae): this concept is not used.
-        We use the stim -> glomeruli connections directly
-    P = excitatory projection neuron. note sometimes P's stand in for gloms
-        in indexing, since they are 1 to 1
-    PI = inhibitory projection neuron
-    L = lateral neuron (inhibitory)
-    K = kenyon cell (in MB)
-    F = feature (this is a change from the original moth/odor regime, where each
+    Abbreviations:
+    n* : number of *
+    G : glomerulus (so eg nG : number of glomeruli)
+    R : response neuron (from antennae): this concept is not used. We use the stim-glomeruli, \
+    connections directly
+    P : excitatory projection neuron. note sometimes P's stand in for gloms in \
+    indexing, since they are 1 to 1
+    PI : inhibitory projection neuron
+    L : lateral neuron (inhibitory)
+    K : kenyon cell (in MB)
+    F : feature (this is a change from the original moth/odor regime, where each \
     stim/odor was identified with its own single feature)
-    S (not used in this function) = stimulus class
-    fr = fraction%
-    mu = mean
-    std = standard deviation
-    _2_ = synapse connection to, eg P2Kmu = mean synapse strength from PN to KC
-    octo = octopamine delivery neuron
+    S (not used in this function) : stimulus class
+    fr : fraction%
+    mu : mean
+    std : standard deviation
+    _2_ : synapse connection to, eg P2K_mu : mean synapse strength from PN to KC
+    octo : octopamine delivery neuron
 
-    General structure of synaptic strength matrices:
-    rows give the 'from' a synapse
-    cols give the 'to'
-    so M(i,j) is the strength from obj(i) to obj(j)
+    Structure of synaptic strength matrices:
+    - rows give the 'from' a synapse
+    - cols give the 'to'
+    So, M(i,j) is the strength from obj(i) to obj(j).
 
-    below, 'G' stands for glomerulus. Glomeruli are not explicitly part of the equations,
-    but the matrices for LN interconnections,
-    PNs, and RNs are indexed according to the G
+    Glomeruli are not explicitly part of the equations, but the matrices for LN \
+    interconnections, PNs, and RNs are indexed according to the G.
 
-    Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-    MIT License
-    '''
+    """
     def __init__(self, nF, goal):
+        """
+
+        Args:
+        nF (int): number of features (determines the number of neurons in each layer).
+        goal (int): measure of learning rate \
+        (goal = N means we expect the moth to hit max accuracy when trained on N samples per class. \
+        ie goal = 1 gives a fast learner, goal = 20 gives a slower learner).
+
+        Returns:
+        model_params (class): instance of model parameters object
+
+        >>> model_params = ModelParams( 85, 10 )
+
+        """
 
         self.nF = nF
         self.goal = goal
@@ -57,14 +72,14 @@ class ModelParams:
         self.nR = self.nG # RNs (one per glom)
 
         # for now assume no pheromone gloms. Can add later, along with special Ps, PIs, and Ls
-        self.nK2nGRatio = 30
-        self.nK = int(self.nK2nGRatio)*int(self.nG) # number of kenyon cells (in MB)
+        self.nK_nG_ratio = 30
+        self.nK = int(self.nK_nG_ratio)*int(self.nG) # number of kenyon cells (in MB)
         # enforcing integer multiplication above
 
         # get count of inhibitory projection neurons = PIs
         # for mnist experiments there are no inhibitory projection neurons (PIs)
-        self.PIfr = 0.05  # But make a couple placeholders
-        self.nPI = int(self.nG*self.PIfr) # these are in addition to nP
+        self.PI_fr = 0.05  # But make a couple placeholders
+        self.nPI = int(self.nG*self.PI_fr) # these are in addition to nP
         # note that outputs P and PI only affect KCs
         self.nE = 10 # extrinsic neurons in eg beta-lobe of MB,
         # ie the read-out/decision neurons
@@ -74,19 +89,19 @@ class ModelParams:
         ## Hebbian learning rates:
 
         # For K2E ie MB -> EN. Very important. Most of the de facto plasticity is in K2E:
-        self.hebTauKE = 0.02*goal # controls learning rate for K2E weights. 1/decay rate.
+        self.heb_tau_KE = 0.02*goal # controls learning rate for K2E weights. 1/decay rate.
         # Higher means slower decay.
 
-        self.dieBackTauKE = 0.5*goal # 1/decay rate. Higher means slower decay.
-        # dieBackTauKE and hebTauKE want to be in balance.
+        self.die_back_tau_KE = 0.5*goal # 1/decay rate. Higher means slower decay.
+        # die_back_tau_KE and heb_tau_KE want to be in balance.
 
         # For P2K ie AL -> MB
-        self.hebTauPK = 5e3*goal # learning rate for P2K weights. Higher means slower.
-        # Very high hebTauPK means that P2K connections are essentially fixed.
+        self.heb_tau_PK = 5e3*goal # learning rate for P2K weights. Higher means slower.
+        # Very high heb_tau_PK means that P2K connections are essentially fixed.
         # Decay: There is no decay for P2K weights
-        self.dieBackTauPK = 0 # If > 0, divide this fraction of gains evenly among all nonzero
+        self.die_back_tau_PK = 0 # If > 0, divide this fraction of gains evenly among all nonzero
         # weights, and subtract.
-        self.dieBackTauPIK = 0 # no PIs in mnist moths (no PIs for mnist)
+        self.die_back_tau_PIK = 0 # no PIs in mnist moths (no PIs for mnist)
 
         #-------------------------------------------------------------------------------
 
@@ -96,12 +111,12 @@ class ModelParams:
         # this one is changed.
         # Assume: 3*(1/time constant) = approx 1+ seconds (3 t.c -> 95% decay)
         self.tau = 7
-        self.tauR = self.tau
-        self.tauP = self.tau
-        self.tauPI = self.tau # no PIs for mnist
-        self.tauL = self.tau
-        self.tauK = self.tau
-        self.tauE = self.tau
+        self.tau_R = self.tau
+        self.tau_P = self.tau
+        self.tau_PI = self.tau # no PIs for mnist
+        self.tau_L = self.tau
+        self.tau_K = self.tau
+        self.tau_E = self.tau
 
         # stdmoid range parameter for the diff eqns
         self.C = 10.5
@@ -112,15 +127,15 @@ class ModelParams:
         self.cK = self.C
 
         # stdmoid slope param for the diff eqns
-        # slope of stdmoid at zero = C*slopeParam/4
-        self.desiredSlope = 1 # 'desiredSlope' is the one to adjust.
-        self.slopeParam = self.desiredSlope*4/self.C # a convenience variable.
-        # slope of sigmoid at 0 = slopeParam*c/4, where c = self.cR, self.cP, self.cL, etc
+        # slope of stdmoid at zero = C*slope_param/4
+        self.desired_slope = 1 # 'desired_slope' is the one to adjust.
+        self.slope_param = self.desired_slope*4/self.C # a convenience variable.
+        # slope of sigmoid at 0 = slope_param*c/4, where c = self.cR, self.cP, self.cL, etc
 
         # stdmoid param to make range 0:C or -C/2:C/2
-        self.symmetricAboutZero = 1 # '0' means: [-inf:inf] -> [0, C], 0 -> C/2.
+        self.symmetric_about_zero = 1 # '0' means: [-inf:inf] -> [0, C], 0 -> C/2.
         # '1' means: [-inf:inf] -> [-c/2,c/2], 0 -> 0.
-        self.stdFactor= 0.1 # this value multiplies the mean value of a connection matrix
+        self.std_factor = 0.1 # this value multiplies the mean value of a connection matrix
         # to give the STD. It applies to all connection matrices, ie it is a global parameter.
 
         ## Parameters to generate connection matrices between various types of neurons:
@@ -140,36 +155,36 @@ class ModelParams:
 
         # For mnist, each pixel is a feature, and goes to exactly one receptor
         # neuron RN, ie to exactly one glomerulus G
-        self.RperFFrMu = 0 # used in odor simulations, disabled for mnist.
-        self.RperFRawNum = 1 # ie one RN (equiv one Glom) for each F (feature, ie pixel).
+        self.RperFFr_mu = 0 # used in odor simulations, disabled for mnist.
+        self.RperFFr_raw = 1 # ie one RN (equiv one Glom) for each F (feature, ie pixel).
 
-        self.F2Rmu = 100/self.nG # controls how strongly a given feature will affect G's
-        self.F2Rstd = 0
+        self.F2R_mu = 100/self.nG # controls how strongly a given feature will affect G's
+        self.F2R_std = 0
 
         #-------------------------------------------------------------------------------
 
         # R characteristics
-        self.R2Gmu = 5 # controls how strongly R's affect their G's
-        self.R2Gstd = 0
+        self.R2G_mu = 5 # controls how strongly R's affect their G's
+        self.R2G_std = 0
 
         # used to create R2P, using as base R2G
-        self.R2Pmult = 4 # this multiplies R2G values, to give R2P values
-        self.R2Pstd = self.stdFactor*self.R2Pmult # variation in R2P values, beyond the conversion from R2G values
+        self.R2P_mult = 4 # this multiplies R2G values, to give R2P values
+        self.R2P_std = self.std_factor*self.R2P_mult # variation in R2P values, beyond the conversion from R2G values
 
-        self.R2PImult = 0 # no PIs for mnist
-        self.R2PIstd = 0
+        self.R2PI_mult = 0 # no PIs for mnist
+        self.R2PI_std = 0
 
-        self.R2Lmult = 0.75 # so R has much weaker effect on LNs than on PNs (0.75 vs 4)
-        self.R2Lstd = self.stdFactor*self.R2Lmult
+        self.R2L_mult = 0.75 # so R has much weaker effect on LNs than on PNs (0.75 vs 4)
+        self.R2L_std = self.std_factor*self.R2L_mult
 
         #-------------------------------------------------------------------------------
 
         # define spontaneous steady-state firing rates (FRs) of RNs
         self.spontRdistFlag = 2 # 1 = gaussian, 2 = gamma + base.
-        self.spontRmu = 0.1
-        self.spontRstd = 0.05*self.spontRmu
+        self.spontR_mu = 0.1
+        self.spontR_std = 0.05*self.spontR_mu
         self.spontRbase = 0 # for gamma only
-        # if using gamma, params are derived from spontRmu and spontRstd.
+        # if using gamma, params are derived from spontRmu and spontR_std.
 
         #-------------------------------------------------------------------------------
 
@@ -183,38 +198,38 @@ class ModelParams:
         # Define the distribution of LNs, ie inhib glom-glom synaptic strengths:
         self.L2Gfr = 0.8 # the fraction of possible LN connections (glom to glom) that are non-zero.
         # hong: fr = most or all
-        self.L2Gmu = 5
-        self.L2Gstd = self.stdFactor*self.L2Gmu
+        self.L2G_mu = 5
+        self.L2G_std = self.std_factor*self.L2G_mu
 
         # sensitivity of G to gaba, ie sens to L, varies substantially with G.
         # Hong-Wilson says PNs (also Gs) sensitivity to gaba varies as N(0.4,0.2).
         # Note this distribution is the end-result of many interactions, not a direct
-        # application of GsensMu and Gsensstd.
-        self.GsensMu = 0.6
-        self.GsensStd = 0.2*self.GsensMu
-        # Note: Gsensstd expresses variation in L effect, so if we assume that P, L,
-        # and R are all similarly gaba-resistent within a given G, set L2Pstd etc below = 0.
+        # application of GsensMu and Gsens_std.
+        self.Gsens_mu = 0.6
+        self.Gsens_std = 0.2*self.Gsens_mu
+        # Note: Gsens_std expresses variation in L effect, so if we assume that P, L,
+        # and R are all similarly gaba-resistent within a given G, set L2P_std etc below = 0.
 
         #-------------------------------------------------------------------------------
 
         ## define effect of LNs on various components
 
         # used to create L2R, using as base L2G
-        self.L2Rmult = 6/ self.nG*self.L2Gfr
-        self.L2Rstd = 0.1*self.L2Rmult
+        self.L2R_mult = 6/ self.nG*self.L2Gfr
+        self.L2R_std = 0.1*self.L2R_mult
         # used to create L2P, using as base L2G
-        self.L2Pmult = 2/ self.nG*self.L2Gfr
-        self.L2Pstd = self.stdFactor*self.L2Pmult # variation in L2P values, beyond the conversion from L2G values
+        self.L2P_mult = 2/ self.nG*self.L2Gfr
+        self.L2P_std = self.std_factor*self.L2P_mult # variation in L2P values, beyond the conversion from L2G values
         # used to create L2PI, using as base L2G
-        self.L2PImult = self.L2Pmult
-        self.L2PIstd = self.stdFactor*self.L2PImult
+        self.L2PI_mult = self.L2P_mult
+        self.L2PI_std = self.std_factor*self.L2PI_mult
         # used to create L2L, using as base L2G
-        self.L2Lmult = 2/ self.nG*self.L2Gfr
-        self.L2Lstd = self.stdFactor*self.L2Lmult
+        self.L2L_mult = 2/ self.nG*self.L2Gfr
+        self.L2L_std = self.std_factor*self.L2L_mult
 
         # weights of G's contributions to PIs, so different Gs will contribute differently to net PI FR:
-        self.G2PImu = 1 # 0.6
-        self.G2PIstd = 0 # 0.1*G2PImu
+        self.G2PI_mu = 1 # 0.6
+        self.G2PI_std = 0 # 0.1*G2PI_mu
 
         #-------------------------------------------------------------------------------
 
@@ -227,7 +242,7 @@ class ModelParams:
         self.octoSparsityTarget = 0.075 # used when octopamine is active
 
         self.kGlobalDampFactor = 1 # used to make a vector to deliver damping to KCs
-        self.kGlobalDampStd = 0 # allows variation of damping effect by KC.
+        self.kGlobalDamp_std = 0 # allows variation of damping effect by KC.
         # Effect of the above is to make global damping uniform on KCs.
 
         #-------------------------------------------------------------------------------
@@ -240,7 +255,7 @@ class ModelParams:
         # first give the # Ps that feed each K
         self.numPperK = 10
         # mean fraction of KCs a given 'PN' connects to
-        self.KperPfrMu = self.numPperK / float(self.nG) # forcing float division
+        self.KperPfr_mu = self.numPperK / float(self.nG) # forcing float division
             # Note that here 'PN' = glom. That is, multiple PNs coming
             # out of a single glom are treated as one PN.
             # assuming 5 true PNs per glom, and 2000 KCs, 0.2 means:
@@ -248,46 +263,46 @@ class ModelParams:
             # KCs, so there are 300*80 PN:KC links = 24000 links, so
             # each KC is linked to 24k/2k = 12 true PNs (see Turner 2008).
             # The actual # will vary as a binomial distribution
-            # simpler calc: KperPfrMu*nP = "true" PNs per K.
+            # simpler calc: KperPfr_mu*nP = "true" PNs per K.
             # The end result is a relatively sparse P2K connection
             # matrix with very many zeros. The zeros are permanent (not
             # modifiable by plasticity).
 
         # b) inhibitory PNs (not used in mnist experiments, but use placeholders to avoid crashes. Weights are 0).
         # We need the # of Gs feeding into each PI and # of Ks the PI goes to:
-        self.KperPIfrMu = 1 / float(self.nK) # KperPfrMu; the ave fraction of KCs a PI connects to
+        self.KperPI_fr_mu = 1 / float(self.nK) # KperPfr_mu; the ave fraction of KCs a PI connects to
         # The actual # will vary as a binomial distribution
-        self.GperPIfrMu = 5 / float(self.nG)  # ave fraction of Gs feeding into a PI (for Ps, there is always 1 G)
+        self.GperPI_fr_mu = 5 / float(self.nG)  # ave fraction of Gs feeding into a PI (for Ps, there is always 1 G)
         # The actual # will vary as a binomial distribution
-        # real moth: about 3 - 8 which corresponds to GperPIfrMu = 0.1
+        # real moth: about 3 - 8 which corresponds to GperPI_fr_mu = 0.1
 
         # Define distribution that describes the strength of PN->KC synapses:
         # these params apply to both excitatory and inhibitory PNs. These are plastic, via
         # PN stimulation during octo stim.
-        self.pMeanEstimate = (self.R2Gmu*self.R2Pmult)*(self.spontRbase + self.spontRmu) # ~2 hopefully. For use in calibrating P2K
-        self.piMeanEstimate = self.pMeanEstimate*self.KperPfrMu/self.KperPIfrMu # not used in mnist
+        self.pMeanEstimate = (self.R2G_mu*self.R2P_mult)*(self.spontRbase + self.spontR_mu) # ~2 hopefully. For use in calibrating P2K
+        self.piMeanEstimate = self.pMeanEstimate*self.KperPfr_mu/self.KperPI_fr_mu # not used in mnist
 
-        self.P2Kmultiplier = 44
+        self.P2K_mult = 44
 
-        self.P2Kmu = self.P2Kmultiplier / float(self.numPperK*self.pMeanEstimate)
-        self.P2Kstd = 0.5*self.P2Kmu # bigger variance than most connection matrices
+        self.P2K_mu = self.P2K_mult / float(self.numPperK*self.pMeanEstimate)
+        self.P2K_std = 0.5*self.P2K_mu # bigger variance than most connection matrices
 
-        self.PI2Kmu = 0
-        self.PI2Kstd = 0
+        self.PI2K_mu = 0
+        self.PI2K_std = 0
 
-        self.hebMaxPK = self.P2Kmu + (3*self.P2Kstd) # ceiling for P2K connection weights
-        self.hebTauPIK = self.hebTauPK  # irrelevant since PI2K weights == 0 (no PIs for mnist)
-        self.hebMaxPIK = self.PI2Kmu + (3*self.PI2Kstd) # no PIs for mnist
+        self.hebMaxPK = self.P2K_mu + (3*self.P2K_std) # ceiling for P2K connection weights
+        self.heb_tau_PIK = self.heb_tau_PK  # irrelevant since PI2K weights == 0 (no PIs for mnist)
+        self.hebMaxPIK = self.PI2K_mu + (3*self.PI2K_std) # no PIs for mnist
 
         #-------------------------------------------------------------------------------
 
         # KC -> EN connections:
         # Start with all weights uniform and full connectivity
         # Training rapidly individuates the connectivities of ENs
-        self.KperEfrMu = 1 # what fraction of KCs attach to a given EN
-        self.K2Emu = 3 # strength of connection
-        self.K2Estd = 0 # variation in connection strengths
-        self.hebMaxKE = 20*self.K2Emu + 3*self.K2Estd # max allowed connection weights (min = 0)
+        self.KperEfr_mu = 1 # what fraction of KCs attach to a given EN
+        self.K2E_mu = 3 # strength of connection
+        self.K2E_std = 0 # variation in connection strengths
+        self.hebMaxKE = 20*self.K2E_mu + 3*self.K2E_std # max allowed connection weights (min = 0)
 
         #-------------------------------------------------------------------------------
 
@@ -297,48 +312,48 @@ class ModelParams:
         # 2. if using the multiplicative effect, we multiply the inputs to neuron N by (1 +
         #   octo2N) for positive inputs, and (1-octo2N) for negative inputs. So we
         #   probably want octo2N to be close to 0. It is always non-neg by
-        #   construction in 'init_connection_matrix.m'
+        #   construction in 'create_connection_matrix.m'
 
         # In the context of dynamics eqns, octopamine reduces a neuron's responsivity to inhibitory inputs, but
         # it might do this less strongly than it increases the neuron's responsivity to excitatory inputs:
         self.octoNegDiscount = 0.5 # < 1 means less strong effect on neg inputs.
 
         # since octo strengths are correlated with a glom, use same method as for gaba sensitivity
-        self.octo2Gmu = 1.5
-        self.octoStdFactor= 0 # ie make octo effect on all gloms the same
-        self.octo2Gstd = self.octoStdFactor * self.octo2Gmu
+        self.octo2G_mu = 1.5
+        self.octo_stdFactor= 0 # ie make octo effect on all gloms the same
+        self.octo2G_std = self.octo_stdFactor * self.octo2G_mu
 
         # Per jeff (may 2016), octo affects R, and may also affect P, PI, and L
         # First try "octo affects R only", then add the others
         # used to create octo2R, using as base octo2G
-        self.octo2Rmult = 2
-        self.octo2Rstd = self.octoStdFactor * self.octo2Rmult
+        self.octo2R_mult = 2
+        self.octo2R_std = self.octo_stdFactor * self.octo2R_mult
         # used to create octo2P, using as base octo2G
-        self.octo2Pmult = 0 # octo2P = 0 means we only want to stimulate the response to
+        self.octo2P_mult = 0 # octo2P = 0 means we only want to stimulate the response to
         # actual odor inputs (ie at R)
-        #  octo2Pmult > 0 mean we stimulate P's responsiveness to all signals, so we
+        #  octo2P_mult > 0 mean we stimulate P's responsiveness to all signals, so we
         # amplify noise as well
-        self.octo2Pstd = self.octoStdFactor * self.octo2Pmult
+        self.octo2P_std = self.octo_stdFactor * self.octo2P_mult
         # used to create octo2PI, using as base octo2G:  unused for mnist experiments
-        self.octo2PImult = 0
-        self.octo2PIstd = self.octo2Pstd
+        self.octo2PI_mult = 0
+        self.octo2PI_std = self.octo2P_std
 
         # used to create octo2L, using as base octo2G
-        self.octo2Lmult = 1.6 # This must be > 0 if Rspont is not affected by octo in sde_dynamics
+        self.octo2L_mult = 1.6 # This must be > 0 if Rspont is not affected by octo in sde_dynamics
         # (ie if octo only affects RN's reaction to odor), since jeff's data shows
         # that some Rspont decrease with octopamine
-        self.octo2Lstd = self.octoStdFactor * self.octo2Lmult
+        self.octo2L_std = self.octo_stdFactor * self.octo2L_mult
 
         # end of AL-specific octopamine param specs
 
         # Distribution of octopamine -> KC strengths (small variation):
         # We assume no octopamine stimulation of KCs, ie higher KC activity follows
         # from higher AL activity due to octopamine, not from direct octopamine effects on KCs.
-        self.octo2Kmu = 0
-        self.octo2Kstd = self.octoStdFactor * self.octo2Kmu
+        self.octo2K_mu = 0
+        self.octo2K_std = self.octo_stdFactor * self.octo2K_mu
 
-        self.octo2Emu = 0  # for completeness, not used
-        self.octo2Estd = 0
+        self.octo2E_mu = 0  # for completeness, not used
+        self.octo2E_std = 0
 
         #-------------------------------------------------------------------------------
 
@@ -349,11 +364,11 @@ class ModelParams:
         # each time step as 'epsG' and 'epsK'
         # - This might serve to break up potential oscillations
         self.noise = 1 # set to zero for noise free moth
-        self.noiseStdFactor= 0.3
+        self.noise_stdFactor= 0.3
         self.noiseR,self.noiseP,self.noiseL,self.noisePI = [self.noise]*4
-        self.RnoiseStd,self.PnoiseStd,self.LnoiseStd,self.PInoiseStd = [self.noise*self.noiseStdFactor]*4
-        self.noiseK,self.noiseE,self.EnoiseStd = [0]*3
-        self.KnoiseStd = self.noiseK*self.noiseStdFactor
+        self.Rnoise_std,self.Pnoise_std,self.Lnoise_std,self.PInoise_std = [self.noise*self.noise_stdFactor]*4
+        self.noiseK,self.noiseE,self.Enoise_std = [0]*3
+        self.Knoise_std = self.noiseK*self.noise_stdFactor
 
         #-------------------------------------------------------------------------------
 
@@ -361,36 +376,26 @@ class ModelParams:
         self.trueClassLabels = None
         self.saveAllNeuralTimecourses = None
 
-    def init_connection_matrix(self):
-        '''
-        Generates the various connection matrices, given a modelParams object,
-        and appends them to modelParams.
-        Parameters: model params object
-        Returns: 'params', a struct that includes connection matrices and other model
-            info necessary to FR evolution and plotting
+    def create_connection_matrix(self):
+        """
 
-        #---------------------------------------------------------------------------
+        Generates the various connection matrices, given a modelParams object, \
+        and appends them to model params object.
 
-        step 1: build the matrices
-        step 2: pack the matrices into a struct 'params' for output
-            These steps are kept separate for clarity of step 2
+        Args:
+        None
 
-        #---------------------------------------------------------------------------
+        Returns:
+        model_params (object): connection matrices and other model info necessary to FR \
+        evolution and plotting
 
-        Step 1: Generate connection matrices
-        Comment: Since there are many zero connections (ie matrices are usually
-            not all-to-all) we often need to apply masks to preserve the zero connections
+        >>> model_params.create_connection_matrix()
 
-        Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-        MIT License
-        '''
-
-        # import numpy as np
-        import numpy.random as r
+        """
 
         # first make a binary mask S2Rbinary
-        if self.RperFFrMu > 0:
-            self.F2Rbinary = r.rand(self.nR, self.nF) < self.RperSFrMu # 1s and 0s
+        if self.RperFFr_mu > 0:
+            self.F2Rbinary = r.rand(self.nR, self.nF) < self.RperSFr_mu # 1s and 0s
             # DEV NOTE: The following flag doesn't exist - remove? Check w/ CBD
             if self.makeFeaturesOrthogonalFlag:
                 # remove any overlap in the active odors, by keeping only one non-zero entry in each row
@@ -408,9 +413,9 @@ class ModelParams:
             self.F2Rbinary = np.zeros((self.nR, self.nF))
             counts = np.zeros((self.nR,1)) # to track how many S are hitting each R
             # calc max n of S per any given glom
-            maxFperR = np.ceil(self.nF*self.RperFRawNum/self.nR)
+            maxFperR = np.ceil(self.nF*self.RperFFr_raw/self.nR)
             # connect one R to each S, then go through again to connect a 2nd R to each S, etc
-            for i in range(self.RperFRawNum):
+            for i in range(self.RperFFr_raw):
                 for j in range(self.nF):
                     inds = np.nonzero(counts < maxFperR)[0]
                     a = np.random.randint(len(inds))
@@ -420,34 +425,34 @@ class ModelParams:
         # now mask a matrix of gaussian weights
         rand_mat = r.normal(0,1,self.F2Rbinary.shape)
         # Note: S (stimuli) for odor case is replaced by F (features) for MNIST version
-        self.F2R = ( self.F2Rmu*self.F2Rbinary + self.F2Rstd*rand_mat )*self.F2Rbinary # the last term ensures 0s stay 0s
+        self.F2R = ( self.F2R_mu*self.F2Rbinary + self.F2R_std*rand_mat )*self.F2Rbinary # the last term ensures 0s stay 0s
         self.F2R = np.maximum(0, self.F2R) # to prevent any negative weights
 
         # spontaneous FRs for Rs
         if self.spontRdistFlag==1: # case: gaussian distribution
             #  steady-state RN FR, base + noise:
-            self.Rspont = self.spontRmu*np.ones((self.nG, 1)) + self.spontRstd*r.normal(0,1,(self.nG,1))
+            self.Rspont = self.spontR_mu*np.ones((self.nG, 1)) + self.spontR_std*r.normal(0,1,(self.nG,1))
             self.Rspont = np.maximum(0, self.Rspont)
         else: # case: 2 gamma distribution
-            a = self.spontRmu/self.spontRstd
-            b = self.spontRmu/a # spontRstd
+            a = self.spontR_mu/self.spontR_std
+            b = self.spontR_mu/a # spontR_std
             g = np.random.gamma(a, scale=b, size=(self.nG,1))
             self.Rspont = self.spontRbase + g
 
         # R2G connection vector: nG x 1 col vector
-        self.R2G = self.R2Gmu*np.ones((self.nG, 1)) + self.R2Gstd*r.normal(0,1,(self.nG,1)) # col vector,
+        self.R2G = self.R2G_mu*np.ones((self.nG, 1)) + self.R2G_std*r.normal(0,1,(self.nG,1)) # col vector,
         # each entry is strength of an R in its G. the last term prevents negative R2G effects
 
         # now make R2P, etc, all are cols nG x 1
-        self.R2P = ( self.R2Pmult + self.R2Pstd*r.normal(0,1,(self.nG,1)) )*self.R2G
-        self.R2L = ( self.R2Lmult + self.R2Lstd*r.normal(0,1,(self.nG,1)) )*self.R2G
+        self.R2P = ( self.R2P_mult + self.R2P_std*r.normal(0,1,(self.nG,1)) )*self.R2G
+        self.R2L = ( self.R2L_mult + self.R2L_std*r.normal(0,1,(self.nG,1)) )*self.R2G
 
         # this interim nG x 1 col vector gives the effect of each R on any PI in the R's glom.
-        self.R2PIcol = ( self.R2PImult + self.R2PIstd*r.normal(0,1,(self.nG,1)) )*self.R2G
+        self.R2PIcol = ( self.R2PI_mult + self.R2PI_std*r.normal(0,1,(self.nG,1)) )*self.R2G
         # It will be used below with G2PI to get full effect of Rs on PIs
 
         # Construct L2G = nG x nG matrix of lateral neurons. This is a precursor to L2P etc
-        self.L2G = self.L2Gmu + self.L2Gstd*r.normal(0,1,(self.nG, self.nG))
+        self.L2G = self.L2G_mu + self.L2G_std*r.normal(0,1,(self.nG, self.nG))
         self.L2G = np.maximum(0, self.L2G) # kill any vals < 0
         self.L2G -= np.diag(np.diag(self.L2G)) # set diagonal = 0
 
@@ -465,26 +470,26 @@ class ModelParams:
         # ie the row gives the 'destination glom', the col gives the 'source glom'
 
         # gloms vary widely in their sensitivity to gaba (Hong, Wilson 2014).
-        # multiply the L2* vectors by Gsens + GsensStd:
-        gabaSens = self.GsensMu + self.GsensStd*r.normal(0,1,(self.nG,1))
+        # multiply the L2* vectors by Gsens + Gsens_std:
+        gabaSens = self.Gsens_mu + self.Gsens_std*r.normal(0,1,(self.nG,1))
         L2GgabaSens = self.L2G * np.tile( gabaSens, (1, self.nG) ) # ie each row is multiplied by a different value,
             # since each row represents a destination glom
-        # this version of L2G does not encode variable sens to gaba, but is scaled by GsensMu:
-        self.L2G *= self.GsensMu
+        # this version of L2G does not encode variable sens to gaba, but is scaled by Gsens_mu:
+        self.L2G *= self.Gsens_mu
 
         # now generate all the L2etc matrices:
-        self.L2R = np.maximum(0,  self.L2Rmult + self.L2Rstd*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+        self.L2R = np.maximum(0,  self.L2R_mult + self.L2R_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
          # the last term will keep 0 entries = 0
-        self.L2P = np.maximum(0,  self.L2Pmult + self.L2Pstd*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
-        self.L2L = np.maximum(0,  self.L2Lmult + self.L2Lstd*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
-        self.L2PI = np.maximum(0,  self.L2Lmult + self.L2PIstd*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+        self.L2P = np.maximum(0,  self.L2P_mult + self.L2P_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+        self.L2L = np.maximum(0,  self.L2L_mult + self.L2L_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+        self.L2PI = np.maximum(0,  self.L2L_mult + self.L2PI_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
          # Masked by G2PI later (no PIs for mnist)
 
         # Ps (excitatory):
-        P2KconnMatrix = r.rand(self.nK, self.nP) < self.KperPfrMu # each col is a P, and a fraction of the entries will = 1
+        P2KconnMatrix = r.rand(self.nK, self.nP) < self.KperPfr_mu # each col is a P, and a fraction of the entries will = 1
          # different cols (PNs) will have different numbers of 1's (~binomial dist)
 
-        self.P2K = np.maximum(0,  self.P2Kmu + self.P2Kstd*r.normal(0,1,(self.nK, self.nP)) ) # all >= 0
+        self.P2K = np.maximum(0,  self.P2K_mu + self.P2K_std*r.normal(0,1,(self.nK, self.nP)) ) # all >= 0
         self.P2K *= P2KconnMatrix
         # cap P2K values at hebMaxP2K, so that hebbian training never decreases wts:
         self.P2K[self.P2K > self.hebMaxPK] = self.hebMaxPK
@@ -502,8 +507,8 @@ class ModelParams:
         # 2. b) Multiply the binary map by a random matrix to get the synapse weights.
 
         # In the moth, each PI is fed by many gloms
-        self.G2PIconn = r.rand(self.nPI, self.nG) < self.GperPIfrMu # step 1a
-        self.G2PI = np.maximum(0, self.G2PIstd*r.normal(0,1,(self.nPI,self.nG)) + self.G2PImu) # step 1b
+        self.G2PIconn = r.rand(self.nPI, self.nG) < self.GperPI_fr_mu # step 1a
+        self.G2PI = np.maximum(0, self.G2PI_std*r.normal(0,1,(self.nPI,self.nG)) + self.G2PI_mu) # step 1b
         self.G2PI *= self.G2PIconn # mask with double values, step 1b (cont)
         self.G2PI /= np.tile(self.G2PI.sum(axis=1).reshape(-1, 1),(1, self.G2PI.shape[1]))
         # no PIs for mnist
@@ -517,8 +522,8 @@ class ModelParams:
         # eg, the cols with non-zero entries in the i'th row of R2PI are those Rs feeding gloms that feed the i'th PI.
 
         if self.nPI>0:
-            self.PI2Kconn = r.rand(self.nK, self.nPI) < self.KperPIfrMu # step 2a
-            self.PI2K = np.maximum(0, self.PI2Kmu + self.PI2Kstd*r.normal(0,1,(self.nK,self.nPI))) # step 2b
+            self.PI2Kconn = r.rand(self.nK, self.nPI) < self.KperPI_fr_mu # step 2a
+            self.PI2K = np.maximum(0, self.PI2K_mu + self.PI2K_std*r.normal(0,1,(self.nK,self.nPI))) # step 2b
             self.PI2K *= self.PI2Kconn # mask
             self.PI2K[self.PI2K > self.hebMaxPIK] = self.hebMaxPIK
 
@@ -531,93 +536,101 @@ class ModelParams:
     #-------------------------------------------------------------------------------
 
         # K2E (excit):
-        self.K2EconnMatrix = r.rand(self.nE, self.nK) < self.KperEfrMu # each col is a K, and a fraction of the entries will = 1.
+        self.K2EconnMatrix = r.rand(self.nE, self.nK) < self.KperEfr_mu # each col is a K, and a fraction of the entries will = 1.
         #    different cols (KCs) will have different numbers of 1's (~binomial dist).
 
-        self.K2E = np.maximum(0,  self.K2Emu + self.K2Estd*r.normal(0,1,(self.nE,self.nK)) ) # all >= 0
+        self.K2E = np.maximum(0,  self.K2E_mu + self.K2E_std*r.normal(0,1,(self.nE,self.nK)) ) # all >= 0
         self.K2E = np.multiply(self.K2E, self.K2EconnMatrix)
         self.K2E[self.K2E > self.hebMaxKE] = self.hebMaxKE
         # K2E maps from the KCs to the ENs. Given firing rates KC, K2E gives the effect on the various ENs.
         # It is nE x nK with entries >= 0.
 
         # octopamine to Gs and to Ks
-        self.octo2G = np.maximum(0,  self.octo2Gmu + self.octo2Gstd*r.normal(0,1,(self.nG,1)) ) # intermediate step
+        self.octo2G = np.maximum(0,  self.octo2G_mu + self.octo2G_std*r.normal(0,1,(self.nG,1)) ) # intermediate step
         # uniform distribution (experiment)
-        # self.octo2G = np.maximum(0,  self.octo2Gmu + 4*self.octo2Gstd*r.rand(self.nG, 1) - 2*self.octo2Gstd ) # 2*(linspace(0,1,nG) )' )
-        self.octo2K = np.maximum(0,  self.octo2Kmu + self.octo2Kstd*r.normal(0,1,(self.nK, 1)) )
+        # self.octo2G = np.maximum(0,  self.octo2G_mu + 4*self.octo2G_std*r.rand(self.nG, 1) - 2*self.octo2G_std ) # 2*(linspace(0,1,nG) )' )
+        self.octo2K = np.maximum(0,  self.octo2K_mu + self.octo2K_std*r.normal(0,1,(self.nK, 1)) )
         # each of these is a col vector with entries >= 0
 
-        self.octo2P = np.maximum(0,  self.octo2Pmult*self.octo2G + self.octo2Pstd*r.normal(0,1,(self.nG,1)) ) # effect of octo on P, includes gaussian variation from P to P
-        self.octo2L = np.maximum(0,  self.octo2Lmult*self.octo2G + self.octo2Lstd*r.normal(0,1,(self.nG,1)) )
-        self.octo2R = np.maximum(0,  self.octo2Rmult*self.octo2G + self.octo2Rstd*r.normal(0,1,(self.nG,1)) )
+        self.octo2P = np.maximum(0,  self.octo2P_mult*self.octo2G + self.octo2P_std*r.normal(0,1,(self.nG,1)) ) # effect of octo on P, includes gaussian variation from P to P
+        self.octo2L = np.maximum(0,  self.octo2L_mult*self.octo2G + self.octo2L_std*r.normal(0,1,(self.nG,1)) )
+        self.octo2R = np.maximum(0,  self.octo2R_mult*self.octo2G + self.octo2R_std*r.normal(0,1,(self.nG,1)) )
         # #  uniform distributions (experiments)
-        # self.octo2P = np.maximum(0,  self.octo2Pmult*self.octo2G + 4*self.octo2Pstd*r.rand(self.nG,1) - 2*self.octo2Pstd )
-        # self.octo2L = np.maximum(0,  self.octo2Lmult*self.octo2G + 4*self.octo2Lstd*r.rand(self.nG,1) - 2*self.octo2Lstd )
-        # self.octo2R = np.maximum(0,  self.octo2Rmult*self.octo2G + 4*self.octo2Rstd*r.rand(self.nG,1) - 2*self.octo2Rstd )
+        # self.octo2P = np.maximum(0,  self.octo2P_mult*self.octo2G + 4*self.octo2P_std*r.rand(self.nG,1) - 2*self.octo2P_std )
+        # self.octo2L = np.maximum(0,  self.octo2L_mult*self.octo2G + 4*self.octo2L_std*r.rand(self.nG,1) - 2*self.octo2L_std )
+        # self.octo2R = np.maximum(0,  self.octo2R_mult*self.octo2G + 4*self.octo2R_std*r.rand(self.nG,1) - 2*self.octo2R_std )
         # mask and weight octo2PI
-        self.octo2PIwts = self.G2PI*( self.octo2PImult*self.octo2G.T ) # does not include a PI-varying std term
+        self.octo2PIwts = self.G2PI*( self.octo2PI_mult*self.octo2G.T ) # does not include a PI-varying std term
         # normalize this by taking average
         self.octo2PI = self.octo2PIwts.sum(axis=1)/self.G2PIconn.sum(axis=1) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
         # no PIs for mnist
 
-        self.octo2E = np.maximum(0,  self.octo2Emu + self.octo2Estd*r.normal(0,1,(self.nE,1)) )
+        self.octo2E = np.maximum(0,  self.octo2E_mu + self.octo2E_std*r.normal(0,1,(self.nE,1)) )
 
 
         # each neuron has slightly different noise levels for sde use. Define noise vectors for each type:
         # Gaussian versions:
-        # self.noiseRvec = np.maximum(0,  self.self.epsRstd + self.RnoiseSig*r.normal(0,1,(self.nR,1)) ) # remove negative noise entries
-        # self.noisePvec = np.maximum(0,  self.epsPstd + self.PnoiseSig*r.normal(0,1,(self.nP,1)) )
-        # self.noiseLvec = np.maximum(0,  self.epsLstd + self.LnoiseSig*r.normal(0,1,(self.nG,1)) )
-        self.noisePIvec = np.maximum(0,  self.noisePI + self.PInoiseStd*r.normal(0,1,(self.nPI,1)) ) # no PIs for mnist
-        self.noiseKvec = np.maximum(0,  self.noiseK + self.KnoiseStd*r.normal(0,1,(self.nK,1)) )
-        self.noiseEvec = np.maximum(0,  self.noiseE + self.EnoiseStd*r.normal(0,1,(self.nE,1)) )
+        # self.noiseRvec = np.maximum(0,  self.self.epsR_std + self.RnoiseSig*r.normal(0,1,(self.nR,1)) ) # remove negative noise entries
+        # self.noisePvec = np.maximum(0,  self.epsP_std + self.PnoiseSig*r.normal(0,1,(self.nP,1)) )
+        # self.noiseLvec = np.maximum(0,  self.epsL_std + self.LnoiseSig*r.normal(0,1,(self.nG,1)) )
+        self.noisePIvec = np.maximum(0,  self.noisePI + self.PInoise_std*r.normal(0,1,(self.nPI,1)) ) # no PIs for mnist
+        self.noiseKvec = np.maximum(0,  self.noiseK + self.Knoise_std*r.normal(0,1,(self.nK,1)) )
+        self.noiseEvec = np.maximum(0,  self.noiseE + self.Enoise_std*r.normal(0,1,(self.nE,1)) )
 
         # gamma versions:
-        a = self.noiseR/self.RnoiseStd
+        a = self.noiseR/self.Rnoise_std
         b = self.noiseR/a
         self.noiseRvec = np.random.gamma(a, scale=b, size=(self.nR,1))
         # DEV NOTE: Run below by CBD - Still necessary?
         self.noiseRvec[self.noiseRvec > 15] = 0 # experiment to see if just outlier noise vals boost KC noise
 
-        a = self.noiseP/self.PnoiseStd
+        a = self.noiseP/self.Pnoise_std
         b = self.noiseP/a
         self.noisePvec = np.random.gamma(a, scale=b, size=(self.nR,1))
         # DEV NOTE: Run below by CBD - Still necessary?
         self.noisePvec[self.noisePvec > 15] = 0 # experiment to see if outlier noise vals boost KC noise
 
-        a = self.noiseL/self.LnoiseStd
+        a = self.noiseL/self.Lnoise_std
         b = self.noiseL/a
         self.noiseLvec = np.random.gamma(a, scale=b, size=(self.nG,1))
 
-        self.kGlobalDampVec = self.kGlobalDampFactor + self.kGlobalDampStd*r.normal(0,1,(self.nK,1))
+        self.kGlobalDampVec = self.kGlobalDampFactor + self.kGlobalDamp_std*r.normal(0,1,(self.nK,1))
         # each KC may be affected a bit differently by LH inhibition
 
 class ExpParams:
-    '''
-	This function defines parameters of a time-evolution experiment: overall timing, stim timing and
-	strength, octo timing and strength, lowpass window parameter, etc.
-	It does book-keeping to allow analysis of the SDE time-stepped evolution of the neural firing rates.
-	Parameters:
-		1. train_classes: vector of indices giving the classes of the training digits in order.
-		The first entry must be nonzero. Unused entries can be filled with -1s if wished.
-		2. class_labels: a list of labels, eg 1:10 for mnist
-		3. val_per_class: how many digits of each class to use for baseline and post-train
+    """
 
-#-------------------------------------------------------------------------------
+    Define the parameters of a time-evolution experiment:
+    - overall timing
+    - stim timing and strength
+    - octo timing and strength
+    - lowpass window parameter
+    - etc.
 
-	Order of time periods:
-		1. no event period: allow system to settle to a steady state spontaneous FR baseline
-		2. baseline period: deliver a group of digits for each class
-		3. no event buffer
-		4. training period:  deliver digits + octopamine + allow hebbian updates
-		5. no event buffer
-		6. post-training period: deliver a group of digits for each class
+    Analyze the SDE time-stepped evolution of the neural firing rates.
 
-	Copyright (c) 2019 Adam P. Jones (ajones173@gmail.com) and Charles B. Delahunt (delahunt@uw.edu)
-    MIT License
-    '''
+    Order of time periods
+    1. no event period: allow system to settle to a steady state spontaneous FR baseline
+    2. baseline period: deliver a group of digits for each class
+    3. no event buffer
+    4. training period:  deliver digits + octopamine + allow hebbian updates
+    5. no event buffer
+    6. post-training period: deliver a group of digits for each class
+
+    """
     def __init__( self, train_classes, class_labels, val_per_class ):
+        """
 
+        Args:
+    	train_classes (numpy array): vector of indices giving the classes of the \
+        training digits in order. The first entry must be nonzero.
+    	class_labels (numpy array): a list of labels, eg 1:10 for mnist
+    	val_per_class (int): how many digits of each class to use for baseline and post-train
+
+        >>> experiment_params =  ExpParams( array([1, 9, 7, 8, 2, 3, 4, 5, 6, 0]), \
+        array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]), 15 )
+
+        """
         self.stimMag = 20 # stim magnitudes as passed into AL
         # (See original version in smartAsABug codebase)
         self.stimLength = 0.22

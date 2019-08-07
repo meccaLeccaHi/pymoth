@@ -98,6 +98,5 @@ ENV/
 # Compressed data files
 *.gz
 
-# Scratch code
-scratch*.py
-outline.txt
+# Back-ups
+*.bak

@@ -22,7 +22,7 @@ methods need to be tested on this same cruder dataset to make useful comparisons
 
 Define train and control pools for the experiment, and determine the receptive field.
 This is done first because the receptive field determines the number of AL units, which
-     must be updated in model_params before 'init_connection_matrix' runs.
+     must be updated in model_params before 'create_connection_matrix' runs.
 This dataset will be used for each simulation in numRuns. Each simulation draws
 	a new set of samples from this set.
 
@@ -32,7 +32,7 @@ Order of events:
 	2. Select a subset of the dataset for this simulation (only a few samples are used)
 	3. Create a moth (neural net). Either select an existing moth file, or generate a new moth in 2 steps:
 		a) run 'ModelParams' and incorporate user entry edits such as 'GOAL'
-		b) create connection matrices via 'init_connection_matrix'
+		b) create connection matrices via 'create_connection_matrix'
 	4. Load the experiment parameters
 	5. Run the simulation with 'sde_wrap', print results to console
 	6. Plot results (optional)
@@ -62,7 +62,7 @@ else:
 
 # Experiment details
 from modules.generate import generate_ds_mnist
-from modules.show_figs import show_FA_thumbs, show_EN_resp, show_roc_curves, show_roc_subplots
+from modules.show_figs import show_FA_thumbs, show_roc_curves, show_roc_subplots
 from modules.params import ExpParams, ModelParams
 from modules.sde import sde_wrap, collect_stats
 from modules.classify import classify_digits_log_likelihood, classify_digits_thresholding, roc_multi
@@ -293,7 +293,7 @@ for run in range(NUM_RUNS):
 	model_params.trueClassLabels = class_labels # misc parameter tagging along
 
 	# populate the moth's connection matrices using the model_params
-	model_params.init_connection_matrix()
+	model_params.create_connection_matrix()
 
 	# load experiment params, including book-keeping for time-stepped
 	# 	evolutions, eg when octopamine occurs, time regions to poll for digit
@@ -302,6 +302,8 @@ for run in range(NUM_RUNS):
 
 	#-------------------------------------------------------------------------------
 
+	import pdb; pdb.set_trace()
+	
 	# 3. run this experiment as sde time-step evolution:
 	sim_results = sde_wrap( model_params, experiment_params, digit_queues )
 
