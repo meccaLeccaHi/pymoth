@@ -19,6 +19,12 @@ Welcome to pymoth's documentation!
 .. automodule:: modules.classify
   :members:
 
+.. automodule:: modules.sde
+  :members:
+
+.. automodule:: modules.show_figs
+  :members:
+
 Indices and tables
 ==================
 
