@@ -637,8 +637,6 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
     Collect stats on readout neurons (EN).
         Collect stats: median, mean, and std of FR for each digit, pre- and post-training. \
         Digits are referred to as odors, or as odor puffs.
-            'Pre' = pre-training
-            'Post' = post-training
 
     Args:
         sim_results (dict): simulation results (output from :func:`sde_wrap`)
@@ -651,7 +649,7 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
         screen_size (tuple): [optional] screen size (width, height) for images
 
     Returns:
-        results (dict)::
+        results (dict):
             pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
             pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
             post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training

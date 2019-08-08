@@ -34,7 +34,7 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 `$ python experiment.py`
 
 Built for use with Mac/Linux systems - not tested in Windows.
-- Requires Python 3+
+- Requires Python 3.6+
 
 ---
 
@@ -47,6 +47,8 @@ Built for use with Mac/Linux systems - not tested in Windows.
 
 ### Sample results:
 <img src='./results/results_ROC_multi_sample.png'>
+
+---
 
 ### Dataset:
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
