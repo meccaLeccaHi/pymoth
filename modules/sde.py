@@ -152,16 +152,16 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     to new values.
 
     *So, this is a 'stepped' system, that runs as follows:*
-    1. no noise, neurons converge to initial mean_spont_FRs = ms1
-    2. noise proportional to ms1. neurons converge to new mean_spont_FRs = ms2
-    3. noise is proportional to ms2. neurons may converge to new `mean_spont_FRs` \
-    = ms3, but noise is not changed. `std_spont_FRs` are calculated from ms3 \
-    time period.
+        #. no noise, neurons converge to initial mean_spont_FRs = ms1
+        #. noise proportional to ms1. neurons converge to new mean_spont_FRs = ms2
+        #. noise is proportional to ms2. neurons may converge to new `mean_spont_FRs` \
+        = ms3, but noise is not changed. `std_spont_FRs` are calculated from ms3 \
+        time period.
 
     *This has the following effects on simulation results:*
-    1. In the heat maps and time-courses this will give a period of uniform FRs.
-    2. The `mean_spont_FR`s and `std_spont_FR`s are not 'settled' until after \
-    the `stopSpontMean3` timepoint.
+        #. In the heat maps and time-courses this will give a period of uniform FRs.
+        #. The `mean_spont_FR`s and `std_spont_FR`s are not 'settled' until after \
+        the `stopSpontMean3` timepoint.
 
     Args:
         tspan (tuple): start and stop timepoints (seconds)
