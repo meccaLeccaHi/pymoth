@@ -20,8 +20,8 @@ def roc_multi(true_classes, likelihoods):
 	Measure ROC AUC for multi-class classifiers.
 
 	Params:
-		true_classes (numpy array): [observations,]
-		likelihoods (numpy array): [observations x classes]
+		true_classes (numpy array): class labels [observations,]
+		likelihoods (numpy array): predicted likelihoods [observations x classes]
 
 	Returns:
 		output (dict):
