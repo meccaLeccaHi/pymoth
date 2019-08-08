@@ -48,7 +48,10 @@ Built for use with Mac/Linux systems - not tested in Windows.
 ### Sample results:
 <img src='./results/results_ROC_multi_sample.png'>
 
----
-
 ### Dataset:
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
+
+---
+
+Questions, comments, criticisms, bug reports, suggestions, or requests are \
+welcome! Feel free to drop us an [e-mail](ajones173@gmail.com).
