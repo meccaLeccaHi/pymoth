@@ -53,7 +53,9 @@ Built for use with Mac/Linux systems - not tested in Windows.
 
 ---
 
-Questions, comments, criticisms? Feel free to drop us an [e-mail](ajones173@gmail.com)!
+Questions, comments, criticisms? Feel free to drop us an \
+[e-mail](mailto:ajones173@gmail.com?subject=pymoth)!
+
 
 Bug reports, suggestions, or requests are also welcome! Feel free to \
 [create an issue](https://github.com/meccaLeccaHi/pymoth/issues/new).  
