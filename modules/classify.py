@@ -94,8 +94,7 @@ def classify_digits_log_likelihood(results):
 		classes, in the _i_th EN.
 
 	Returns:
-		output (dict)
-
+		output (dict):
 			true_classes (numpy array): shortened version of whichOdor (with only \
 			post-training, ie validation, entries)
 			targets (numpy array): one-hot-encoded target labels
