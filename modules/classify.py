@@ -202,11 +202,11 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 		results (dict): [1 x 10] dict produced by viewENresponses. i'th entry gives \
 		results for all classes, in the i'th EN.
 
-			post_mean_resp: post-training digit response estimate
-			post_std_resp: post-training digit response distributions
-			post_train_resp: actual responses for each val digit (for that EN). \
+			- post_mean_resp: post-training digit response estimate
+			- post_std_resp: post-training digit response distributions
+			- post_train_resp: actual responses for each val digit (for that EN). \
 			Non-post-train odors have response = -1 as a flag.
-			odor_class: the true labels of each digit, 0 to 9. This is the same in each EN.
+			- odor_class: the true labels of each digit, 0 to 9. This is the same in each EN.
 
 		home_advantage (int): the emphasis given to the home EN. It multiplies the \
 		off-diagonal of dist. 1 -> no advantage (default). Very high means that a \
@@ -222,24 +222,24 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 	Returns:
 		output (dict)
 
-			true_classes (numpy array): shortened version of whichOdor (with only \
+			- true_classes (numpy array): shortened version of whichOdor (with only \
 			post-training, ie validation, entries)
-			targets (numpy array): one-hot-encoded target labels
-			roc_auc (dict): ROC curve and ROC area for each class
-			fpr (dict): false-positive rate for each class
-			tpr (dict): true-positive rate for each class
-			pred_classes (numpy array): predicted classes
-			likelihoods (numpy array): [n x 10] each row a post_training digit \
+			- targets (numpy array): one-hot-encoded target labels
+			- roc_auc (dict): ROC curve and ROC area for each class
+			- fpr (dict): false-positive rate for each class
+			- tpr (dict): true-positive rate for each class
+			- pred_classes (numpy array): predicted classes
+			- likelihoods (numpy array): [n x 10] each row a post_training digit \
 			(entries are summed log likelihoods)
-			acc_perc (numpy array): [n x 10] class accuracies as percentages
-			total_acc (float): overall accuracy as percentage
-			conf_mat (numpy array): i,j'th entry is number of test digits with true \
+			- acc_perc (numpy array): [n x 10] class accuracies as percentages
+			- total_acc (float): overall accuracy as percentage
+			- conf_mat (numpy array): i,j'th entry is number of test digits with true \
 			label i that were predicted to be j
-			home_advantage (int): the emphasis given to the home EN. It multiplies the \
+			- home_advantage (int): the emphasis given to the home EN. It multiplies the \
 			off-diagonal of dist. 1 -> no advantage (default). Very high means that a \
 			test digit will be classified according to the home EN it does best in, \
 			ie each EN acts on its own.
-			home_thresh_sigmas (int): the number of stds below an EN's home-class mean \
+			- home_thresh_sigmas (int): the number of stds below an EN's home-class mean \
 			that we set a threshold, such that if a digit scores above this threshold \
 			in an EN, that EN will be rewarded by 'above_home_thresh_reward'.
 
