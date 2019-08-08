@@ -37,9 +37,6 @@ Built for use with Mac/Linux systems - not tested in Windows.
 
 ---
 
-### Data source:
-[MNIST Data](http://yann.lecun.com/exdb/mnist/)
-
 ### Modules:
 - *classify.py* Classify output from MothNet model.
 - *generate.py* Download (if absent) and prepare down-sampled MNIST dataset.
@@ -49,3 +46,6 @@ Built for use with Mac/Linux systems - not tested in Windows.
 
 ### Sample results:
 <img src='./results/results_ROC_multi_sample.png'>
+
+### Dataset:
+[MNIST Data](http://yann.lecun.com/exdb/mnist/)
