@@ -21,16 +21,16 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     Show thumbnails of inputs used in the experiment.
 
     Args:
-        * feature_array (numpy array): either 3-D (1 = cols of features, 2 = within \
+        feature_array (numpy array): either 3-D (1 = cols of features, 2 = within \
         class samples, 3 = class) or 2-D (1 = cols of features, 2 = within class samples, no 3)
-        * show_per_class (int): how many of the thumbnails from each class to show.
-        * normalize (bool): 1 to rescale thumbs to [0 1], 0 to not
-        * title_string (str): string for figure title
-        * screen_size (tuple): width, height
-        * images_filename (str): including absolute path
+        show_per_class (int): how many of the thumbnails from each class to show.
+        normalize (bool): 1 to rescale thumbs to [0 1], 0 to not
+        title_string (str): string for figure title
+        screen_size (tuple): width, height
+        images_filename (str): including absolute path
 
     Returns:
-        * None
+        None
 
     >>> show_FA_thumbs(_thumb_array, 1, 1, 'Input thumbnails', (1920,1080), 'foo/thumbnails')
 
