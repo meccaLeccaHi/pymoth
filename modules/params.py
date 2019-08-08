@@ -53,14 +53,14 @@ class ModelParams:
 		"""
 
 		Args:
-			- nF (int): number of features (determines the number of neurons in \
+			nF (int): number of features (determines the number of neurons in \
 			each layer).
-			- goal (int): measure of learning rate (goal = N means we expect the moth \
+			goal (int): measure of learning rate (goal = N means we expect the moth \
 			to hit max accuracy when trained on N samples per class. ie goal = 1 \
 			gives a fast learner, goal = 20 gives a slower learner).
 
 		Returns:
-			- model_params (class): model parameters object
+			model_params (class): model parameters object
 
 		>>> model_params = ModelParams( 85, 10 )
 
@@ -385,11 +385,11 @@ class ModelParams:
 		and appends them to model params object.
 
 		Args:
-			- None
+			None
 
 		Returns:
-			- model_params (object): connection matrices and other model info \
-			necessary to FR evolution and plotting
+			model_params (object): connection matrices and other model info necessary to FR \
+			evolution and plotting
 
 		>>> model_params.create_connection_matrix()
 
@@ -624,13 +624,13 @@ class ExpParams:
 		"""
 
 		Args:
-			- train_classes (numpy array): vector of indices giving the classes of the \
+			train_classes (numpy array): vector of indices giving the classes of the \
 			training digits in order. The first entry must be nonzero.
-			- class_labels (numpy array): a list of labels, eg 1:10 for mnist
-			- val_per_class (int): how many digits of each class to use for baseline and post-train
+			class_labels (numpy array): a list of labels, eg 1:10 for mnist
+			val_per_class (int): how many digits of each class to use for baseline and post-train
 
 		Returns:
-			- None
+			None
 
 		>>> experiment_params =  ExpParams( np.array(range(10)), np.array(range(10)), 1 )
 

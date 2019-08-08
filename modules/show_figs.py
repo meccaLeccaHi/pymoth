@@ -21,8 +21,8 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     Show thumbnails of inputs used in the experiment.
 
     Args:
-        feature_array (numpy array): either 3-D (1 = cols of features, 2 = within \
-        class samples, 3 = class) or 2-D (1 = cols of features, 2 = within class samples, no 3)
+        feature_array (numpy array): either 3-D (1 = cols of features, 2 = within class samples, 3 = class) \
+                or 2-D (1 = cols of features, 2 = within class samples, no 3)
         show_per_class (int): how many of the thumbnails from each class to show.
         normalize (bool): 1 to rescale thumbs to [0 1], 0 to not
         title_string (str): string for figure title
@@ -94,18 +94,18 @@ def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
     y_axis_label=True, legend=True)
 
     Args:
-        - ax (object): matplotlib axis (ie subplot)
-        - tpr (dict): true-positive rate for each class
-        - fpr (dict): false-positive rate for each class
-        - roc_auc (dict): ROC AUC for each class
-        - class_labels (numpy array): class labels (0:9 for MNIST)
-        - title_str (str): string to use in the title for this particular subplot
-        - y_axis_label(str): string to use in the y-axis label for this particular \
+        ax (object): matplotlib axis (ie subplot)
+        tpr (dict): true-positive rate for each class
+        fpr (dict): false-positive rate for each class
+        roc_auc (dict): ROC AUC for each class
+        class_labels (numpy array): class labels (0:9 for MNIST)
+        title_str (str): string to use in the title for this particular subplot
+        y_axis_label(str): string to use in the y-axis label for this particular \
         subplot
-        - legend (bool): toggle legend for figure
+        legend (bool): toggle legend for figure
 
     Returns:
-        - None
+        None
 
     >>> plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str, \
     y_axis_label='foo', legend=True)
@@ -145,15 +145,15 @@ def show_roc_curves(tpr, fpr, roc_auc, class_labels, title_str='', images_filena
     Compute macro-average ROC curves and plot.
 
     Args:
-        - tpr (dict): true-positive rate for each class
-        - fpr (dict): false-positive rate for each class
-        - roc_auc (dict): ROC AUC for each class
-        - class_labels (numpy array): class labels (0:9 for MNIST)
-        - title_str (str): string to use in the title for this particular subplot
-        - images_filename (str): directory to save figure output
+        tpr (dict): true-positive rate for each class
+        fpr (dict): false-positive rate for each class
+        roc_auc (dict): ROC AUC for each class
+        class_labels (numpy array): class labels (0:9 for MNIST)
+        title_str (str): string to use in the title for this particular subplot
+        images_filename (str): directory to save figure output
 
     Returns:
-        - None
+        None
 
     >>> show_roc_curves(roc_knn['tpr'], roc_knn['fpr'], roc_knn['roc_auc'], \
     class_labels, title_str='KNN', images_filename='dirname/filename')
@@ -182,26 +182,26 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
     Plot accuracy of MothNet for each class.
 
     Args:
-        - pre_SA (numpy array): pre-sniff average,
-        - post_SA (numpy array): post-sniff average,
-        - en_ind (int): index of current EN,
-        - pre_mean_resp (numpy array): mean resp before training [#classes x 1],
-        - pre_median_resp (numpy array): median resp before training [#classes x 1],
-        - pre_std_resp (numpy array): std of resp before training [#classes x 1],
-        - post_offset (numpy array): pre-sniff average plus offset value,
-        - post_mean_resp (numpy array): mean resp after training [#classes x 1],
-        - post_median_resp (numpy array): median resp after training [#classes x 1],
-        - post_std_resp (numpy array): std of resp after training [#classes x 1],
-        - class_labels (numpy array): class labels (0:9 for MNIST),
-        - pre_heb_mean: mean spontaneous activity before training [#classes x 1],
-        - pre_heb_std: std of spontaneous activity before training [#classes x 1],
-        - post_heb_mean: mean spontaneous activity after training [#classes x 1],
-        - post_heb_std: std of spontaneous activity after training [#classes x 1],
-        - percent_change_mean_resp: mean response converted to percent change [#classes x 1],
-        - screen_size (tuple): [optional] screen size (width, height) for images,
+        pre_SA (numpy array): pre-sniff average,
+        post_SA (numpy array): post-sniff average,
+        en_ind (int): index of current EN,
+        pre_mean_resp (numpy array): mean resp before training [#classes x 1],
+        pre_median_resp (numpy array): median resp before training [#classes x 1],
+        pre_std_resp (numpy array): std of resp before training [#classes x 1],
+        post_offset (numpy array): pre-sniff average plus offset value,
+        post_mean_resp (numpy array): mean resp after training [#classes x 1],
+        post_median_resp (numpy array): median resp after training [#classes x 1],
+        post_std_resp (numpy array): std of resp after training [#classes x 1],
+        class_labels (numpy array): class labels (0:9 for MNIST),
+        pre_heb_mean: mean spontaneous activity before training [#classes x 1],
+        pre_heb_std: std of spontaneous activity before training [#classes x 1],
+        post_heb_mean: mean spontaneous activity after training [#classes x 1],
+        post_heb_std: std of spontaneous activity after training [#classes x 1],
+        percent_change_mean_resp: mean response converted to percent change [#classes x 1],
+        screen_size (tuple): [optional] screen size (width, height) for images,
 
     Returns:
-        - fig (object): matplotlib figure handle,
+        fig (object): matplotlib figure handle,
 
     >>> show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_resp, \
         post_offset, post_mean_resp, post_median_resp, post_std_resp, class_labels, \
@@ -335,19 +335,19 @@ def show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
     Plot the timecourse of EN responses of MothNet.
 
     Args:
-        - ax (object): matplotlib axis,
-        - en_ind (int): index of current EN,
-        - sim_results (dict): simulation results (output from :func:`sde_wrap`),
-        - octo_times (numpy array): timing of octopamine,
-        - class_labels (numpy array): labels, eg 0:9 for MNIST,
-        - results (list): list of dicts containing simulation results (output from \
+        ax (object): matplotlib axis,
+        en_ind (int): index of current EN,
+        sim_results (dict): simulation results (output from :func:`sde_wrap`),
+        octo_times (numpy array): timing of octopamine,
+        class_labels (numpy array): labels, eg 0:9 for MNIST,
+        results (list): list of dicts containing simulation results (output from \
         :func:`sde_wrap`),
-        - exp_params (class): timing info about experiment, eg when stimuli are given,
-        - stim_starts (numpy array): time-steps for current stimuli,
-        - which_class (numpy array): classes for current stimuli,
+        exp_params (class): timing info about experiment, eg when stimuli are given,
+        stim_starts (numpy array): time-steps for current stimuli,
+        which_class (numpy array): classes for current stimuli,
 
     Returns:
-        - ax (object): matplotlib axis,
+        ax (object): matplotlib axis,
 
     >>> show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results, \
         exp_params, stim_starts, which_class )
@@ -419,12 +419,12 @@ def show_multi_roc(self, model_names, class_labels, images_filename=''):
     Show ROC plot for each model in a subplot of a single figure.
 
     Args:
-        - odel_names (list): names (strings) of models being plotted,
-        - class_labels (numpy array): label for each class of current stimuli,
-        - images_filename (str): [optional] name to use for image filename,
+        model_names (list): names (strings) of models being plotted,
+        class_labels (numpy array): label for each class of current stimuli,
+        images_filename (str): [optional] name to use for image filename,
 
     Returns:
-        - None
+        None
 
     >>> show_multi_roc(model_names, class_labels, images_filename='foo')
     """

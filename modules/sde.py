@@ -26,12 +26,12 @@ def sde_wrap( model_params, exp_params, feature_array ):
         4. unpack evolution output and export
 
     Args:
-        - model_params (class): object with connection matrices, etc.
-        - exp_params (class): object with timing info about experiment, eg when stimuli are given.
-        - feature_array (numpy array): stimuli (numFeatures x numStimsPerClass x numClasses).
+        model_params (class): object with connection matrices, etc.
+        exp_params (class): object with timing info about experiment, eg when stimuli are given.
+        feature_array (numpy array): stimuli (numFeatures x numStimsPerClass x numClasses).
 
     Returns:
-        - sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
+        sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
 
     """
 
@@ -164,26 +164,26 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     the `stopSpontMean3` timepoint.
 
     Args:
-        - tspan (tuple): start and stop timepoints (seconds)
-        - init_cond (numpy array): [n x 1] starting FRs for all neurons, order-specific
-        - time (numpy array): [start:step:stop] vector of timepoints for stepping \
+        tspan (tuple): start and stop timepoints (seconds)
+        init_cond (numpy array): [n x 1] starting FRs for all neurons, order-specific
+        time (numpy array): [start:step:stop] vector of timepoints for stepping \
         through the evolution. Note we assume that noise and FRs have the same step \
         size (based on Milstein's method).
-        - class_mag_mat (numpy array): [# of different classes X vector of time points] \
+        class_mag_mat (numpy array): [# of different classes X vector of time points] \
         each entry is the strength of a digit presentation.
-        - feature_array (numpy array): [numFeatures x numStimsPerClass x numClasses]
-        - octo_hits (numpy array): [1 x length(t)] octopamine strengths at each timepoint.
-        - mP (class): model_params, including connection matrices, learning rates, etc.
-        - exP (class): experiment parameters with some timing info.
-        - seed_val (int): optional arg for random number generation.
+        feature_array (numpy array): [numFeatures x numStimsPerClass x numClasses]
+        octo_hits (numpy array): [1 x length(t)] octopamine strengths at each timepoint.
+        mP (class): model_params, including connection matrices, learning rates, etc.
+        exP (class): experiment parameters with some timing info.
+        seed_val (int): optional arg for random number generation.
 
     Returns:
-        - this_run (dict):
-            - T: [m x 1] timepoints used in evolution (timepoints used in evolution)
-            - Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each \
+        this_run (dict):
+            T: [m x 1] timepoints used in evolution (timepoints used in evolution)
+            Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each \
             row is the FR at a given timepoint
-            - P2K: connection matrix
-            - K2E: connection matrix
+            P2K: connection matrix
+            K2E: connection matrix
 
     """
 
@@ -644,27 +644,27 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
     Digits are referred to as odors, or as odor puffs.
 
     Args:
-        - sim_results (dict): simulation results (output from :func:`sde_wrap`)
-        - exp_params (class): timing info about experiment, eg when stimuli are given
-        - class_labels (numpy array): labels, eg 0:9 for MNIST
-        - show_time_plots (bool): show EN timecourses
-        - show_acc_plots (bool): show changes in accuracy
-        - images_filename (str): [optional] to generate image filenames when saving
-        - images_folder (str): [optional] directory to save results
-        - screen_size (tuple): [optional] screen size (width, height) for images
+        sim_results (dict): simulation results (output from :func:`sde_wrap`)
+        exp_params (class): timing info about experiment, eg when stimuli are given
+        class_labels (numpy array): labels, eg 0:9 for MNIST
+        show_time_plots (bool): show EN timecourses
+        show_acc_plots (bool): show changes in accuracy
+        images_filename (str): [optional] to generate image filenames when saving
+        images_folder (str): [optional] directory to save results
+        screen_size (tuple): [optional] screen size (width, height) for images
 
     Returns:
-        - results (dict):
-            - pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
-            - pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
-            - post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
-            - post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training
-            - percent_change_mean_resp (numpy array): [1 x numOdors]
-            - trained (list): indices corresponding to the odor(s) that were trained
-            - pre_spont_mean (float): mean of pre_spont
-            - pre_spont_std (float): std of pre_spont
-            - post_spont_mean (float): mean of post_spont
-            - post_spont_std (float): std of post_spont
+        results (dict):
+            pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
+            pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
+            post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
+            post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training
+            percent_change_mean_resp (numpy array): [1 x numOdors]
+            trained (list): indices corresponding to the odor(s) that were trained
+            pre_spont_mean (float): mean of pre_spont
+            pre_spont_std (float): std of pre_spont
+            post_spont_mean (float): mean of post_spont
+            post_spont_std (float): std of post_spont
     """
 
     # concurrent octopamine
