@@ -7,9 +7,6 @@ Welcome to pymoth's documentation!
 
 .. automodule:: pymoth
 
-.. autoclass:: MothNet
-  :members:
-
 .. automodule:: modules.params
   :members:
 
