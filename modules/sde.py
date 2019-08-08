@@ -651,7 +651,7 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
         - show_acc_plots (bool): show changes in accuracy
         - images_filename (str): [optional] to generate image filenames when saving
         - images_folder (str): [optional] directory to save results
-        - creen_size (tuple): [optional] screen size (width, height) for images
+        - screen_size (tuple): [optional] screen size (width, height) for images
 
     Returns:
         - results (dict):
