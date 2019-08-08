@@ -62,7 +62,6 @@ class MothNet:
 		#. During simulation, select a subset of the dataset for this simulation (only a few samples are used)
 		#.  Create a moth (neural net). Either select an existing moth file, or generate \
 		a new moth in 2 steps:
-
 			* First, run :class:`ModelParams` and incorporate user entry edits such as GOAL
 			* Second, create connection matrices via :func:`create_connection_matrix`
 
@@ -255,10 +254,10 @@ class MothNet:
 			feature_array (numpy array): Stimuli (numFeatures x numStimsPerClass x numClasses)
 
 		Returns:
-			train_X (numpy array): Feature matrix training samples
-			test_X (numpy array): Feature matrix testing samples
-			train_y (numpy array): Labels for training samples
-			test_y (numpy array): Labels for testing samples
+			- train_X (numpy array): Feature matrix training samples
+			- test_X (numpy array): Feature matrix testing samples
+			- train_y (numpy array): Labels for training samples
+			- test_y (numpy array): Labels for testing samples
 
 		>>> train_X, test_X, train_y, test_y = mothra.train_test_split(feature_array)
 

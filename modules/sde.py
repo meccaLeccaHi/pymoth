@@ -179,11 +179,11 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
     Returns:
         this_run (dict):
-            T: [m x 1] timepoints used in evolution (timepoints used in evolution)
-            Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each \
+            - T: [m x 1] timepoints used in evolution (timepoints used in evolution)
+            - Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each \
             row is the FR at a given timepoint
-            P2K: connection matrix
-            K2E: connection matrix
+            - P2K: connection matrix
+            - K2E: connection matrix
 
     """
 
@@ -655,16 +655,16 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
 
     Returns:
         results (dict):
-            pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
-            pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
-            post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
-            post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training
-            percent_change_mean_resp (numpy array): [1 x numOdors]
-            trained (list): indices corresponding to the odor(s) that were trained
-            pre_spont_mean (float): mean of pre_spont
-            pre_spont_std (float): std of pre_spont
-            post_spont_mean (float): mean of post_spont
-            post_spont_std (float): std of post_spont
+            - pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
+            - pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
+            - post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
+            - post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training
+            - percent_change_mean_resp (numpy array): [1 x numOdors]
+            - trained (list): indices corresponding to the odor(s) that were trained
+            - pre_spont_mean (float): mean of pre_spont
+            - pre_spont_std (float): std of pre_spont
+            - post_spont_mean (float): mean of post_spont
+            - post_spont_std (float): std of post_spont
     """
 
     # concurrent octopamine
