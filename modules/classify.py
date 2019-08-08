@@ -220,8 +220,7 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 		the log likelihood score for that EN.
 
 	Returns:
-		output (dict)
-
+		output (dict)::
 			- true_classes (numpy array): shortened version of whichOdor (with only \
 			post-training, ie validation, entries)
 			- targets (numpy array): one-hot-encoded target labels
