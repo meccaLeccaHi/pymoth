@@ -61,7 +61,7 @@ class MothNet:
 		#. Load and pre-process dataset
 		#. During simulation, select a subset of the dataset for this simulation (only a few samples are used)
 		#.  Create a moth (neural net). Either select an existing moth file, or generate \
-		a new moth in 2 steps::
+		a new moth in 2 steps:
 
 			* First, run :class:`ModelParams` and incorporate user entry edits such as GOAL
 			* Second, create connection matrices via :func:`create_connection_matrix`
@@ -148,10 +148,10 @@ class MothNet:
 		Each simulation draws a new set of samples from this set.
 
 		Args:
-			None
+			- None
 
 		Returns:
-			feature_array (numpy array): stimuli (numFeatures x numStimsPerClass x numClasses)
+			- feature_array (numpy array): stimuli [numFeatures x numStimsPerClass x numClasses]
 
 		>>> mothra.load_mnist()
 		"""
@@ -252,15 +252,13 @@ class MothNet:
 		matrices and class label vectors.
 
 		Args:
-
-			feature_array (numpy array): Stimuli (numFeatures x numStimsPerClass x numClasses)
+			- feature_array (numpy array): Stimuli (numFeatures x numStimsPerClass x numClasses)
 
 		Returns:
-
-			train_X (numpy array): Feature matrix training samples
-			test_X (numpy array): Feature matrix testing samples
-			train_y (numpy array): Labels for training samples
-			test_y (numpy array): Labels for testing samples
+			- train_X (numpy array): Feature matrix training samples
+			- test_X (numpy array): Feature matrix testing samples
+			- train_y (numpy array): Labels for training samples
+			- test_y (numpy array): Labels for testing samples
 
 		>>> train_X, test_X, train_y, test_y = mothra.train_test_split(feature_array)
 
@@ -293,10 +291,10 @@ class MothNet:
 		matrices and to control behavior.
 
 		Args:
-			None
+			- None
 
 		Returns:
-			model_params (class): Model parameters.
+			- model_params (class): Model parameters.
 
 		>>> mothra.load_moth()
 
@@ -319,10 +317,10 @@ class MothNet:
 		Creates self.experiment_params.
 
 		Args:
-			None
+			- None
 
 		Returns:
-			None
+			- None
 
 		>>> mothra.load_exp()
 
@@ -337,17 +335,17 @@ class MothNet:
 		Run the SDE time-stepped evolution of neural firing rates.
 
 		Steps:
-			Load various params needed for pre-evolution prep.
-			Specify stim and octo courses.
-			Interaction equations and step through simulation.
-			Unpack evolution output and export.
+			#. Load various params needed for pre-evolution prep.
+			#. Specify stim and octo courses.
+			#. Interaction equations and step through simulation.
+			#. Unpack evolution output and export.
 
 		Args:
-			feature_array (numpy array): array of stimuli [num_features X \
+			- feature_array (numpy array): array of stimuli [num_features X \
 			num_stims_per_class X num_classes]
 
 		Returns:
-			sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
+			- sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
 
 		>>> sim_results = mothra.simulate(feature_array)
 
@@ -366,16 +364,16 @@ class MothNet:
 		Calculate the classification accuracy of MothNet on MNIST dataset.
 
 		Sets:
-			self.output_trained_thresholding (dict): Post-training accuracy using \
+			- self.output_trained_thresholding (dict): Post-training accuracy using \
 			single EN thresholding.
-			self.output_trained_log_loss (dict): Post-training accuracy using \
+			- self.output_trained_log_loss (dict): Post-training accuracy using \
 			log-likelihoods over all ENs.
 
 		Args:
-			EN_resp_trained (list): simulation EN responses grouped by class and time.
+			- EN_resp_trained (list): simulation EN responses grouped by class and time.
 
 		Returns:
-			None
+			- None
 
 		>>> mothra.score_moth_on_MNIST(EN_resp_trained)
 
@@ -429,13 +427,13 @@ class MothNet:
 		the accuracy.
 
 		Args:
-			train_X (numpy array): Feature matrix training samples
-			train_y (numpy array): Labels for training samples
-			test_X (numpy array): Feature matrix testing samples
-			test_y (numpy array): Labels for testing samples
+			- train_X (numpy array): Feature matrix training samples
+			- train_y (numpy array): Labels for training samples
+			- test_X (numpy array): Feature matrix testing samples
+			- test_y (numpy array): Labels for testing samples
 
 		Returns:
-			None
+			- None
 
 		>>> mothra.score_knn(train_X, train_y, test_X, test_y)
 
@@ -487,13 +485,13 @@ class MothNet:
 		the accuracy.
 
 		Args:
-			train_X (numpy array): Feature matrix training samples
-			train_y (numpy array): Labels for training samples
-			test_X (numpy array): Feature matrix testing samples
-			test_y (numpy array): Labels for testing samples
+			- train_X (numpy array): Feature matrix training samples
+			- train_y (numpy array): Labels for training samples
+			- test_X (numpy array): Feature matrix testing samples
+			- test_y (numpy array): Labels for testing samples
 
 		Returns:
-			None
+			- None
 
 		>>> mothra.score_svm(train_X, train_y, test_X, test_y)
 

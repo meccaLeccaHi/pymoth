@@ -19,18 +19,19 @@ def sde_wrap( model_params, exp_params, feature_array ):
     """
     Runs the SDE time-stepped evolution of neural firing rates.
 
-    Args:
-        model_params (class): object with connection matrices, etc.
-        exp_params (class): object with timing info about experiment, eg when stimuli are given.
-        feature_array (numpy array): stimuli (numFeatures x numStimsPerClass x numClasses).
-        Returns:
-        sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
-
     4 steps:
         1. load various params needed for pre-evolution prep
         2. specify stim and octo courses
         3. interaction equations and step through simulation
         4. unpack evolution output and export
+
+    Args:
+        - model_params (class): object with connection matrices, etc.
+        - exp_params (class): object with timing info about experiment, eg when stimuli are given.
+        - feature_array (numpy array): stimuli (numFeatures x numStimsPerClass x numClasses).
+
+    Returns:
+        - sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
 
     """
 
@@ -119,13 +120,13 @@ def sde_wrap( model_params, exp_params, feature_array ):
 
     # save some inputs and outputs to a struct for argout:
     sim_results = {
-        'T' : this_run['T'], # timing information
-        'E' : this_run['E'],
-        'octo_hits' : octo_hits,
-        'K2Efinal' : this_run['K2Efinal'],
-        'P2Kfinal' : this_run['P2Kfinal'],
-        'nE' : nE
-        }
+                    'T' : this_run['T'], # timing information
+                    'E' : this_run['E'],
+                    'octo_hits' : octo_hits,
+                    'K2Efinal' : this_run['K2Efinal'],
+                    'P2Kfinal' : this_run['P2Kfinal'],
+                    'nE' : nE
+                }
 
     return sim_results
 
@@ -136,49 +137,53 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     To include neural noise, evolve the differential equations using Euler-Maruyama, \
     Milstein version (see Higham's Algorithmic introduction to Numerical Simulation \
     of SDE).
-    Called by :func:`sde_wrap`. For use with MNIST experiments.
 
-    Args:
-        tspan (tuple): start and stop timepoints (seconds)
-        init_cond (numpy array): [n x 1] starting FRs for all neurons, order-specific
-        time (numpy array): [start:step:stop] vector of timepoints for stepping \
-        through the evolution. Note we assume that noise and FRs have the same step \
-        size (based on Milstein's method).
-        class_mag_mat (numpy array): [# of different classes X vector of time points] \
-        each entry is the strength of a digit presentation.
-        feature_array (numpy array): [numFeatures x numStimsPerClass x numClasses]
-        octo_hits (numpy array): [1 x length(t)] octopamine strengths at each timepoint.
-        mP (class): model_params, including connection matrices, learning rates, etc.
-        exP (class): experiment parameters with some timing info.
-        seed_val (int): optional arg for random number generation.
-    Returns:
-        this_run (dict):
-            T: [m x 1] timepoints used in evolution (timepoints used in evolution)
-            Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each \
-            row is the FR at a given timepoint
-            P2K: connection matrix
-            K2E: connection matrix
+    Called by :func:`sde_wrap`. For use with MNIST experiments.
 
     The function uses the noise params to create a Wiener process, then evolves \
     the FR equations with the added noise. Inside the difference equations we use \
     a piecewise linear pseudo sigmoid, rather than a true sigmoid, for speed.
 
-    Regarding re-calculating added noise:
-        We want noise to be proportional to the mean spontFR of each neuron. So \
-        we need to get an estimate of this mean spont FR first. Noise is not \
-        added while neurons settle to initial SpontFR values. Then noise is added, \
-        proportional to spontFR. After this noise begins, mean_spont_FRs converge \
-        to new values.
-    So, this is a 'stepped' system, that runs as follows:
-        1. no noise, neurons converge to initial mean_spont_FRs = ms1
-        2. noise proportional to ms1. neurons converge to new mean_spont_FRs = ms2
-        3. noise is proportional to ms2. neurons may converge to new `mean_spont_FRs` \
-        = ms3, but noise is not changed. `std_spont_FRs` are calculated from ms3 \
-        time period.
-    This has the following effects on simulation results:
-        1. In the heat maps and time-courses this will give a period of uniform FRs.
-        2. The `mean_spont_FR`s and `std_spont_FR`s are not 'settled' until after \
-        the `stopSpontMean3` timepoint.
+    *Regarding re-calculating added noise:*
+    We want noise to be proportional to the mean spontFR of each neuron. So \
+    we need to get an estimate of this mean spont FR first. Noise is not \
+    added while neurons settle to initial SpontFR values. Then noise is added, \
+    proportional to spontFR. After this noise begins, mean_spont_FRs converge \
+    to new values.
+
+    *So, this is a 'stepped' system, that runs as follows:*
+    1. no noise, neurons converge to initial mean_spont_FRs = ms1
+    2. noise proportional to ms1. neurons converge to new mean_spont_FRs = ms2
+    3. noise is proportional to ms2. neurons may converge to new `mean_spont_FRs` \
+    = ms3, but noise is not changed. `std_spont_FRs` are calculated from ms3 \
+    time period.
+
+    *This has the following effects on simulation results:*
+    1. In the heat maps and time-courses this will give a period of uniform FRs.
+    2. The `mean_spont_FR`s and `std_spont_FR`s are not 'settled' until after \
+    the `stopSpontMean3` timepoint.
+
+    Args:
+        - tspan (tuple): start and stop timepoints (seconds)
+        - init_cond (numpy array): [n x 1] starting FRs for all neurons, order-specific
+        - time (numpy array): [start:step:stop] vector of timepoints for stepping \
+        through the evolution. Note we assume that noise and FRs have the same step \
+        size (based on Milstein's method).
+        - class_mag_mat (numpy array): [# of different classes X vector of time points] \
+        each entry is the strength of a digit presentation.
+        - feature_array (numpy array): [numFeatures x numStimsPerClass x numClasses]
+        - octo_hits (numpy array): [1 x length(t)] octopamine strengths at each timepoint.
+        - mP (class): model_params, including connection matrices, learning rates, etc.
+        - exP (class): experiment parameters with some timing info.
+        - seed_val (int): optional arg for random number generation.
+
+    Returns:
+        - this_run (dict):
+            - T: [m x 1] timepoints used in evolution (timepoints used in evolution)
+            - Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each \
+            row is the FR at a given timepoint
+            - P2K: connection matrix
+            - K2E: connection matrix
 
     """
 
@@ -634,32 +639,32 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
     show_acc_plots, images_folder='', images_filename='', screen_size=(1920,1080)):
     """
-    Collect stats on readout neurons (EN).
-        Collect stats: median, mean, and std of FR for each digit, pre- and post-training. \
-        Digits are referred to as odors, or as odor puffs.
+    *Collect stats on readout neurons (EN).*
+    Collect stats (median, mean, and std of FR) for each digit, pre- and post-training. \
+    Digits are referred to as odors, or as odor puffs.
 
     Args:
-        sim_results (dict): simulation results (output from :func:`sde_wrap`)
-        exp_params (class): timing info about experiment, eg when stimuli are given
-        class_labels (numpy array): labels, eg 0:9 for MNIST
-        show_time_plots (bool): show EN timecourses
-        show_acc_plots (bool): show changes in accuracy
-        images_filename (str): [optional] to generate image filenames when saving
-        images_folder (str): [optional] directory to save results
-        screen_size (tuple): [optional] screen size (width, height) for images
+        - sim_results (dict): simulation results (output from :func:`sde_wrap`)
+        - exp_params (class): timing info about experiment, eg when stimuli are given
+        - class_labels (numpy array): labels, eg 0:9 for MNIST
+        - show_time_plots (bool): show EN timecourses
+        - show_acc_plots (bool): show changes in accuracy
+        - images_filename (str): [optional] to generate image filenames when saving
+        - images_folder (str): [optional] directory to save results
+        - creen_size (tuple): [optional] screen size (width, height) for images
 
     Returns:
-        results (dict):
-            pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
-            pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
-            post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
-            post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training
-            percent_change_mean_resp (numpy array): [1 x numOdors]
-            trained (list): indices corresponding to the odor(s) that were trained
-            pre_spont_mean (float): mean of pre_spont
-            pre_spont_std (float): std of pre_spont
-            post_spont_mean (float): mean of post_spont
-            post_spont_std (float): std of post_spont
+        - results (dict):
+            - pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training
+            - pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training
+            - post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training
+            - post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training
+            - percent_change_mean_resp (numpy array): [1 x numOdors]
+            - trained (list): indices corresponding to the odor(s) that were trained
+            - pre_spont_mean (float): mean of pre_spont
+            - pre_spont_std (float): std of pre_spont
+            - post_spont_mean (float): mean of post_spont
+            - post_spont_std (float): std of post_spont
     """
 
     # concurrent octopamine
