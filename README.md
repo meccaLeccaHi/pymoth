@@ -1,5 +1,6 @@
 # pymoth
 
+[![Build Status](https://travis-ci.org/meccaLeccaHi/pymoth.svg?branch=master)](https://travis-ci.org/meccaLeccaHi/pymoth)
 [![Documentation Status](https://readthedocs.org/projects/pymoth/badge/?version=latest)](https://pymoth.readthedocs.io/?badge=latest)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
