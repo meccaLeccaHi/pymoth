@@ -45,7 +45,7 @@ show_thumbnails ):
 		show_thumbnails (int): number of thumbnails to show for each class (0 means none)
 
 	Returns:
-		- feature_array (numpy array): [#active pixels x #samples x #classes]
+		- feature_array (numpy array): feature array [#active pixels x #samples x #classes]
 		- active_pixel_inds (list): pixel indices to allow thumbnail viewing
 		- len_side (int): allows reconstruction of thumbnails given from the feature vectors
 
