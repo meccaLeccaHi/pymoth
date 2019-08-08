@@ -95,18 +95,18 @@ def classify_digits_log_likelihood(results):
 
 	Returns:
 		output (dict):
-			true_classes (numpy array): shortened version of whichOdor (with only \
+			- true_classes (numpy array): shortened version of whichOdor (with only \
 			post-training, ie validation, entries)
-			targets (numpy array): one-hot-encoded target labels
-			roc_auc (dict): ROC curve and ROC area for each class
-			fpr (dict): false-positive rate for each class
-			tpr (dict): true-positive rate for each class
-			pred_classes (numpy array): predicted classes
-			likelihoods (numpy array): [n x 10] each row a post_training digit \
+			- targets (numpy array): one-hot-encoded target labels
+			- roc_auc (dict): ROC curve and ROC area for each class
+			- fpr (dict): false-positive rate for each class
+			- tpr (dict): true-positive rate for each class
+			- pred_classes (numpy array): predicted classes
+			- likelihoods (numpy array): [n x 10] each row a post_training digit \
 			(entries are summed log likelihoods)
-			acc_perc (numpy array): [n x 10] class accuracies as percentages
-			total_acc (float): overall accuracy as percentage
-			conf_mat (numpy array): i,j'th entry is number of test digits with true \
+			- acc_perc (numpy array): [n x 10] class accuracies as percentages
+			- total_acc (float): overall accuracy as percentage
+			- conf_mat (numpy array): i,j'th entry is number of test digits with true \
 			label i that were predicted to be j
 
 	>>> classify_digits_log_likelihood( dummy_results )
