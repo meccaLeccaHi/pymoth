@@ -359,7 +359,7 @@ def select_active_pixels( feature_array, num_features, screen_size, save_image_f
 
 	if show_thumbnails and save_image_folder:
 
-		from modules.show_figs import show_FA_thumbs
+		from ..modules.show_figs import show_FA_thumbs
 		# plot the normalized classAves pre-ablation
 		normalize = 0
 		title_str = 'class aves, all pixels'

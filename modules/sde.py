@@ -13,7 +13,7 @@ import os
 import numpy as np
 from scipy.special import erfinv
 import matplotlib.pyplot as plt
-from modules.show_figs import show_acc, show_timecourse
+from ..modules.show_figs import show_acc, show_timecourse
 
 def sde_wrap( model_params, exp_params, feature_array ):
     """

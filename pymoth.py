@@ -29,8 +29,8 @@ else:
 class MothNet:
 
 	# Experiment details
-	from modules.sde import collect_stats
-	from modules.show_figs import show_multi_roc
+	from .modules.sde import collect_stats
+	from .modules.show_figs import show_multi_roc
 
 	# Initializer / Instance Attributes
 	def __init__(self, settings):
@@ -156,7 +156,7 @@ class MothNet:
 		>>> mothra.load_mnist()
 		"""
 
-		from modules.generate import generate_ds_mnist
+		from .modules.generate import generate_ds_mnist
 
 		self._class_labels = _np.array(range(10)) # MNIST classes: digits 0-9
 		self._val_per_class = 15  # number of digits used in validation sets and in baseline sets
@@ -234,7 +234,7 @@ class MothNet:
 
 		# show the final versions of thumbnails to be used, if wished
 		if self.N_THUMBNAILS:
-			from modules.show_figs import show_FA_thumbs
+			from .modules.show_figs import show_FA_thumbs
 			_thumb_array = _np.zeros((self._len_side, self._num_per_class, self._class_num))
 			_thumb_array[self._active_pixel_inds,:,:] = digit_queues
 			normalize = 1
@@ -306,7 +306,7 @@ class MothNet:
 		>>> mothra.load_moth()
 
 		"""
-		from modules.params import ModelParams
+		from .modules.params import ModelParams
 
 		# instantiate template params
 		self.model_params = ModelParams( len(self._active_pixel_inds), self.GOAL )
@@ -334,7 +334,7 @@ class MothNet:
 
 		"""
 
-		from modules.params import ExpParams
+		from .modules.params import ExpParams
 		self.experiment_params =  ExpParams( self._tr_classes, self._class_labels, self._val_per_class )
 
 	def simulate(self, feature_array):
@@ -360,7 +360,7 @@ class MothNet:
 		>>> sim_results = mothra.simulate(feature_array)
 
 		"""
-		from modules.sde import sde_wrap
+		from .modules.sde import sde_wrap
 
 		print('\nStarting sim for goal = {}, tr_per_class = {}, numSniffsPerSample = {}'.format(
 			self.GOAL, self.TR_PER_CLASS, self.NUM_SNIFFS))
@@ -389,7 +389,7 @@ class MothNet:
 		>>> mothra.score_moth_on_MNIST(EN_resp_trained)
 
 		"""
-		from modules.classify import classify_digits_log_likelihood, classify_digits_thresholding
+		from .modules.classify import classify_digits_log_likelihood, classify_digits_thresholding
 
 		# for baseline accuracy function argin, substitute pre- for post-values in EN_resp_trained:
 		EN_resp_naive = _copy.deepcopy(EN_resp_trained)
@@ -421,7 +421,7 @@ class MothNet:
 			'by class: {}%'.format(_np.round(output_trained_thresholding['acc_perc'])))
 
 		if self.SHOW_ROC_PLOTS:
-			from modules.show_figs import show_roc_curves
+			from .modules.show_figs import show_roc_curves
 			# compute macro-average ROC curve
 			show_roc_curves(output_trained_log_loss['tpr'], output_trained_log_loss['fpr'],
 				output_trained_log_loss['roc_auc'], self._class_labels,
@@ -465,8 +465,8 @@ class MothNet:
 		probabilities = neigh.predict_proba(test_X)
 
 		if self.SHOW_ROC_PLOTS:
-			from modules.classify import roc_multi
-			from modules.show_figs import show_roc_curves
+			from .modules.classify import roc_multi
+			from .modules.show_figs import show_roc_curves
 
 			# measure ROC AUC for each class
 			self.roc_knn = roc_multi(test_y.flatten(), probabilities)
@@ -524,8 +524,8 @@ class MothNet:
 		probabilities = svm_clf.predict_proba(test_X)
 
 		if self.SHOW_ROC_PLOTS:
-			from modules.classify import roc_multi
-			from modules.show_figs import show_roc_curves
+			from .modules.classify import roc_multi
+			from .modules.show_figs import show_roc_curves
 
 			# measure ROC AUC for each class
 			self.roc_svm = roc_multi(test_y.flatten(), probabilities)
