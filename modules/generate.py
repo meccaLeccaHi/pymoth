@@ -44,10 +44,14 @@ show_thumbnails ):
 		save_results_folder (str): absolute path to where results will be saved
 		show_thumbnails (int): number of thumbnails to show for each class (0 means none)
 
-	Returns:
-		- feature_array (numpy array): feature array [#active pixels x #samples x #classes]
-		- active_pixel_inds (list): pixel indices to allow thumbnail viewing
-		- len_side (int): allows reconstruction of thumbnails given from the feature vectors
+	Returns
+	-------
+		feature_array (numpy array)
+			feature array [#active pixels x #samples x #classes]
+		active_pixel_inds (list)
+			pixel indices to allow thumbnail viewing
+		len_side (int)
+			allows reconstruction of thumbnails given from the feature vectors
 
 	>>>
 
