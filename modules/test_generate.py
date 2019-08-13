@@ -16,9 +16,8 @@ def main():
 
     # test for npy file before loading - run creation script, if data is absent
     if not os.path.isfile(mnist_fname):
-        # download and save data from the web
-        from MNIST_all import MNIST_makeAll
-        MNIST_makeAll.download_save()
+        print('MNIST data missing: download and save data from the web before \
+            running experiment.')
 
     # load mnist
     mnist = np.load(mnist_fname, allow_pickle = True).item()

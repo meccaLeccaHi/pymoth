@@ -3,7 +3,7 @@
 import os
 import numpy as np
 
-def download_save():
+def main():
 	'''
 	Save the following data to .npy file:
 		train_images: np.array[28x28x60000]
