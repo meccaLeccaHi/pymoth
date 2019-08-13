@@ -27,13 +27,13 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3.6+
 
-```
+```console
 # Create virtualenv:
-$ python3 -m venv env
+python3 -m venv env
 # Install dependencies:  
-$ pip install -r pymoth/docs/requirements.txt
+pip install -r pymoth/docs/requirements.txt
 # Run sample experiment:
-$ python pymoth/sample_experiment.py
+python pymoth/sample_experiment.py
 ```
 
 ---
@@ -46,7 +46,7 @@ $ python pymoth/sample_experiment.py
 - *show_figs.py* Figure generation module.
 
 ### Sample experiment:
-```
+```python
 #!/usr/bin/env python3
 
 import pymoth
