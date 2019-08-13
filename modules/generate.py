@@ -30,19 +30,32 @@ show_thumbnails ):
 	a 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices \
 	can be embedded in a 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
 
-	Args:
-		max_ind (int): maximum number of samples to use
-		class_labels (numpy array): numeric classes (for MNIST, digits 0:9)
-		crop (int): image cropping parameter
-		downsample_ratio (int): image downsample ratio (n:1)
-		downsample_method (int): method for downsampling image
-		inds_to_ave (numpy array): pixel indices
-		pixel_sum (int): normalization factor
-		inds_to_calc_RF (numpy array): pixel indices for receptive field
-		num_features (int): number of pixels in the receptive field
-		screen_size (tuple): screen size (width, height) for images
-		save_results_folder (str): absolute path to where results will be saved
-		show_thumbnails (int): number of thumbnails to show for each class (0 means none)
+	Args
+	----
+		max_ind (int)
+			maximum number of samples to use
+		class_labels (numpy array)
+			numeric classes (for MNIST, digits 0:9)
+		crop (int)
+			image cropping parameter
+		downsample_ratio (int)
+			image downsample ratio (n:1)
+		downsample_method (int)
+			method for downsampling image
+		inds_to_ave (numpy array)
+			pixel indices
+		pixel_sum (int)
+			normalization factor
+		inds_to_calc_RF (numpy array)
+			pixel indices for receptive field
+		num_features (int)
+			number of pixels in the receptive field
+		screen_size (tuple)
+			screen size (width, height) for images
+		save_results_folder (str)
+			absolute path to where results will be saved
+		show_thumbnails (int)
+			number of thumbnails to show for each class (0 means none)
 
 	Returns
 	-------
