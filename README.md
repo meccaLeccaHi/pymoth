@@ -14,10 +14,10 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 > - ["Putting a bug in ML: The moth olfactory network learns to read MNIST"](https://doi.org/10.1016/j.neunet.2019.05.012), _Neural Networks_ 2019
 
 ---
-[docs](https://pymoth.readthedocs.io/)
+[Docs (via Sphinx)](https://pymoth.readthedocs.io/)
 ---
 
-### Dependencies:
+### Dependencies (see [`requirements.txt`](./docs/requirements.txt) file):
 - [scipy](https://www.scipy.org/)
 - [matplotlib](https://matplotlib.org/)
 - [scikit-learn](https://scikit-learn.org/)(for kNN and SVM models)
