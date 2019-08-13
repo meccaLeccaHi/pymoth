@@ -8,4 +8,4 @@ The constructor for pymoth package.
 
 """
 
-from .pymoth import MothNet
+from .main import MothNet

@@ -48,11 +48,9 @@ python pymoth/sample_experiment.py
 
 ### Sample experiment:
 ```python
-#!/usr/bin/env python3
 
 import pymoth
-import time
-import os
+import time, os
 
 def main():
 
@@ -120,7 +118,7 @@ if __name__ == "__main__":
 ```
 
 ### Sample results:
-<img src='./results/results_ROC_multi_sample.png'>
+<img src='https://github.com/meccaLeccaHi/pymoth/blob/master/results/results_ROC_multi_sample.png?raw=true'>
 
 ### Dataset:
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
