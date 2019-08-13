@@ -29,7 +29,8 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
         screen_size (tuple): width, height
         images_filename (str): including absolute path
 
-    Returns:
+    Returns
+    -------
         None
 
     >>> show_FA_thumbs(_thumb_array, 1, 1, 'Input thumbnails', (1920,1080), 'foo/thumbnails')
@@ -104,7 +105,8 @@ def plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str,
         subplot
         legend (bool): toggle legend for figure
 
-    Returns:
+    Returns
+    -------
         None
 
     >>> plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str, \
@@ -152,7 +154,8 @@ def show_roc_curves(tpr, fpr, roc_auc, class_labels, title_str='', images_filena
         title_str (str): string to use in the title for this particular subplot
         images_filename (str): directory to save figure output
 
-    Returns:
+    Returns
+    -------
         None
 
     >>> show_roc_curves(roc_knn['tpr'], roc_knn['fpr'], roc_knn['roc_auc'], \
@@ -200,8 +203,10 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
         percent_change_mean_resp: mean response converted to percent change [#classes x 1],
         screen_size (tuple): [optional] screen size (width, height) for images,
 
-    Returns:
-        fig (object): matplotlib figure handle,
+    Returns
+    -------
+        fig (object)
+            matplotlib figure handle
 
     >>> show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_resp, \
         post_offset, post_mean_resp, post_median_resp, post_std_resp, class_labels, \
@@ -346,8 +351,10 @@ def show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
         stim_starts (numpy array): time-steps for current stimuli,
         which_class (numpy array): classes for current stimuli,
 
-    Returns:
-        ax (object): matplotlib axis,
+    Returns
+    -------
+        ax (object)
+            matplotlib axis
 
     >>> show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results, \
         exp_params, stim_starts, which_class )
@@ -423,7 +430,8 @@ def show_multi_roc(self, model_names, class_labels, images_filename=''):
         class_labels (numpy array): label for each class of current stimuli,
         images_filename (str): [optional] name to use for image filename,
 
-    Returns:
+    Returns
+    -------
         None
 
     >>> show_multi_roc(model_names, class_labels, images_filename='foo')

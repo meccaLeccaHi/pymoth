@@ -53,7 +53,18 @@ show_thumbnails ):
 		len_side (int)
 			allows reconstruction of thumbnails given from the feature vectors
 
-	>>>
+	>>> generate_ds_mnist(
+	                  max_ind,
+	                  class_labels,
+	                  crop,
+	                  downsample_ratio,
+	                  downsample_method,
+	                  [i for i in range(550,1000)],
+	                  6,
+	                  [i for i in range(550,1000)],
+	                  85,
+	                  screen_size, '', 0
+	                 )
 
 	"""
 

@@ -149,7 +149,8 @@ class MothNet:
 		Args:
 			None
 
-		Returns:
+		Returns
+		-------
 			feature_array (numpy array): stimuli [numFeatures x numStimsPerClass x numClasses]
 
 		>>> mothra.load_mnist()
@@ -253,11 +254,16 @@ class MothNet:
 		Args:
 			feature_array (numpy array): Stimuli (numFeatures x numStimsPerClass x numClasses)
 
-		Returns:
-			- train_X (numpy array): Feature matrix training samples
-			- test_X (numpy array): Feature matrix testing samples
-			- train_y (numpy array): Labels for training samples
-			- test_y (numpy array): Labels for testing samples
+		Returns
+		-------
+			train_X (numpy array)
+				Feature matrix training samples
+			test_X (numpy array)
+				Feature matrix testing samples
+			train_y (numpy array)
+				Labels for training samples
+			test_y (numpy array)
+				Labels for testing samples
 
 		>>> train_X, test_X, train_y, test_y = mothra.train_test_split(feature_array)
 
@@ -292,8 +298,10 @@ class MothNet:
 		Args:
 			None
 
-		Returns:
-			model_params (class): Model parameters.
+		Returns
+		-------
+			model_params (class)
+				Model parameters.
 
 		>>> mothra.load_moth()
 
@@ -318,7 +326,8 @@ class MothNet:
 		Args:
 			None
 
-		Returns:
+		Returns
+		-------
 			None
 
 		>>> mothra.load_exp()
@@ -343,8 +352,10 @@ class MothNet:
 			feature_array (numpy array): array of stimuli [num_features X \
 			num_stims_per_class X num_classes]
 
-		Returns:
-			sim_results (dict): EN timecourses and final P2K and K2E connection matrices.
+		Returns
+		-------
+			sim_results (dict)
+				EN timecourses and final P2K and K2E connection matrices.
 
 		>>> sim_results = mothra.simulate(feature_array)
 
@@ -371,7 +382,8 @@ class MothNet:
 		Args:
 			EN_resp_trained (list): simulation EN responses grouped by class and time.
 
-		Returns:
+		Returns
+		-------
 			None
 
 		>>> mothra.score_moth_on_MNIST(EN_resp_trained)
@@ -431,7 +443,8 @@ class MothNet:
 			test_X (numpy array): Feature matrix testing samples
 			test_y (numpy array): Labels for testing samples
 
-		Returns:
+		Returns
+		-------
 			None
 
 		>>> mothra.score_knn(train_X, train_y, test_X, test_y)
@@ -489,7 +502,8 @@ class MothNet:
 			test_X (numpy array): Feature matrix testing samples
 			test_y (numpy array): Labels for testing samples
 
-		Returns:
+		Returns
+		-------
 			None
 
 		>>> mothra.score_svm(train_X, train_y, test_X, test_y)
