@@ -7,4 +7,4 @@ install:
   - pip install -r docs/requirements.txt
 # command to run tests
 script:
-  - python modules/test_classify.py
+  - python modules/test.py
