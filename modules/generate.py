@@ -30,32 +30,19 @@ show_thumbnails ):
 	a 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices \
 	can be embedded in a 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.
 
-	Args
-	----
-		max_ind (int)
-			maximum number of samples to use
-		class_labels (numpy array)
-			numeric classes (for MNIST, digits 0:9)
-		crop (int)
-			image cropping parameter
-		downsample_ratio (int)
-			image downsample ratio (n:1)
-		downsample_method (int)
-			method for downsampling image
-		inds_to_ave (numpy array)
-			pixel indices
-		pixel_sum (int)
-			normalization factor
-		inds_to_calc_RF (numpy array)
-			pixel indices for receptive field
-		num_features (int)
-			number of pixels in the receptive field
-		screen_size (tuple)
-			screen size (width, height) for images
-		save_results_folder (str)
-			absolute path to where results will be saved
-		show_thumbnails (int)
-			number of thumbnails to show for each class (0 means none)
+	Args:
+		max_ind (int): maximum number of samples to use
+		class_labels (numpy array): numeric classes (for MNIST, digits 0:9)
+		crop (int): image cropping parameter
+		downsample_ratio (int): image downsample ratio (n:1)
+		downsample_method (int): method for downsampling image
+		inds_to_ave (numpy array): pixel indices
+		pixel_sum (int): normalization factor
+		inds_to_calc_RF (numpy array): pixel indices for receptive field
+		num_features (int): number of pixels in the receptive field
+		screen_size (tuple): screen size (width, height) for images
+		save_results_folder (str): absolute path to where results will be saved
+		show_thumbnails (int): number of thumbnails to show for each class (0 means none)
 
 	Returns
 	-------
@@ -170,9 +157,10 @@ def extract_mnist_feature_array(mnist, labels, image_indices, phase_label):
 		image_indices (range): images you want from each class
 		phase_label (str): Image set to draw from ('train' or 'test')
 
-	Returns:
-		im_array (numpy array): 4-D array [#images x image_height x image_width \
-		x #classes]
+	Returns
+	-------
+		im_array (numpy array)
+			4-D array [#images x image_height x image_width x #classes]
 
 	>>> image_array = extract_mnist_feature_array(mnist, class_labels, \
 	range(max_ind+1), 'train')
@@ -216,9 +204,11 @@ def crop_downsample_vectorize_images(im_stack, crop_val, downsample_ratio, downs
 		downsample_method (int): method for downsampling image (0: sum square patches, \
 		1: bicubic interpolation)
 
-	Returns:
-		im_array (numpy array): [#pixels x #images] array, where #pixels refers to the \
-		number of pixels in the cropped and downsampled images.
+	Returns
+	-------
+		im_array (numpy array)
+			[#pixels x #images] array, where #pixels refers to the number of \
+			pixels in the cropped and downsampled images.
 
 	>>> crop_downsample_vectorize_images(dummy_image_array[...,0],2,2,1)
 
@@ -273,8 +263,10 @@ def average_image_stack( im_stack, indices_to_average ):
 		im_stack (numpy array): 3-d stack (x, y, z) OR 2-d matrix (images-as-col-vecs, z)
 		indices_to_average (list): which images in the stack to average
 
-	Returns:
-		average_image (numpy array): (if input is 3-d) or column vector (if input is 2-d)
+	Returns
+	-------
+		average_image (numpy array)
+			average of image stack.
 
 	>>> average_im = average_image_stack(dummy_feature_array[...,0], list(range(5)))
 
@@ -309,9 +301,10 @@ def select_active_pixels( feature_array, num_features, screen_size, save_image_f
 		screen_size (tuple): screen size (width, height) for images
 		show_thumbnails (int): number of thumbnails to plot
 
-	Returns:
-		active_pixel_inds (numpy array): 1 x nF vector of indices to use as features. \
-		Indices are relative to the vectorized thumbnails (so between 1 and 144).
+	Returns
+		active_pixel_inds (numpy array)
+			1 x nF vector of indices to use as features. Indices are relative to \
+			the vectorized thumbnails (so between 1 and 144).
 
 	>>> active_pixel_inds = select_active_pixels(feature_array, 85, (1920, 1080))
 

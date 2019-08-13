@@ -59,8 +59,10 @@ class ModelParams:
 			to hit max accuracy when trained on N samples per class. ie goal = 1 \
 			gives a fast learner, goal = 20 gives a slower learner).
 
-		Returns:
-			model_params (class): model parameters object
+		Returns
+		-------
+			model_params (class)
+				model parameters object
 
 		>>> model_params = ModelParams( 85, 10 )
 
@@ -387,9 +389,11 @@ class ModelParams:
 		Args:
 			None
 
-		Returns:
-			model_params (object): connection matrices and other model info necessary to FR \
-			evolution and plotting
+		Returns
+		-------
+			model_params (object)
+				connection matrices and other model info necessary to FR \
+				evolution and plotting
 
 		>>> model_params.create_connection_matrix()
 
@@ -600,28 +604,25 @@ class ModelParams:
 		# each KC may be affected a bit differently by LH inhibition
 
 class ExpParams:
-	"""
 
-	Experiment parameters of a time-evolution experiment:
-		* overall timing
-		* stim timing and strength
-		* octo timing and strength
-		* lowpass window parameter
-		* etc.
-
-	Analyze the SDE time-stepped evolution of the neural firing rates.
-
-	Order of time periods:
-		#. no event period: allow system to settle to a steady state spontaneous FR baseline
-		#. baseline period: deliver a group of digits for each class
-		#. no event buffer
-		#. training period:  deliver digits + octopamine + allow hebbian updates
-		#. no event buffer
-		#. post-training period: deliver a group of digits for each class
-
-	"""
 	def __init__( self, train_classes, class_labels, val_per_class ):
 		"""
+		Experiment parameters of a time-evolution experiment:
+			* overall timing
+			* stim timing and strength
+			* octo timing and strength
+			* lowpass window parameter
+			* etc.
+
+		Analyze the SDE time-stepped evolution of the neural firing rates.
+
+		Order of time periods:
+			#. no event period: allow system to settle to a steady state spontaneous FR baseline
+			#. baseline period: deliver a group of digits for each class
+			#. no event buffer
+			#. training period:  deliver digits + octopamine + allow hebbian updates
+			#. no event buffer
+			#. post-training period: deliver a group of digits for each class
 
 		Args:
 			train_classes (numpy array): vector of indices giving the classes of the \
@@ -629,7 +630,8 @@ class ExpParams:
 			class_labels (numpy array): a list of labels, eg 1:10 for mnist
 			val_per_class (int): how many digits of each class to use for baseline and post-train
 
-		Returns:
+		Returns
+		-------
 			None
 
 		>>> experiment_params =  ExpParams( np.array(range(10)), np.array(range(10)), 1 )
