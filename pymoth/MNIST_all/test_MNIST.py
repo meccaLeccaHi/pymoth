@@ -4,7 +4,7 @@ def main():
 
     print('Testing MNIST module:')
 
-    import MNIST_make_all
+    from pymoth.MNIST_all import MNIST_make_all
 
     MNIST_make_all.make_MNIST()
 

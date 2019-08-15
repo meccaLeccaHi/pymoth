@@ -1,17 +1,13 @@
 def main():
 
     import os, sys
+    sys.path.append(os.getcwd() + os.sep + 'pymoth')
 
-
-    start_dir = os.getcwd()
-    print(start_dir)
-
-    sys.path.append(start_dir + os.sep + 'MNIST_all')
-
-    import test_MNIST, test_classify, test_generate, test_params
+    from MNIST_all import test_MNIST
+    import test_classify, test_generate, test_params
 
     test_MNIST.main()
-    
+
     test_classify.main()
 
     test_generate.main()
