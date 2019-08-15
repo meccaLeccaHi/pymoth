@@ -6,8 +6,8 @@ def main():
 
     import MNIST_make_all
 
-    MNIST_make_all.main()
-    
+    MNIST_make_all.make_MNIST()
+
     print('\tMNIST_make_all class test passed')
 
 if __name__ == '__main__':
