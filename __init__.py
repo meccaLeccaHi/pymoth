@@ -9,3 +9,5 @@ The constructor for pymoth package.
 """
 
 from .main import MothNet
+
+# from ..examples import experiment as sample_experiment

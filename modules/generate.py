@@ -54,17 +54,17 @@ show_thumbnails ):
 			allows reconstruction of thumbnails given from the feature vectors
 
 	>>> generate_ds_mnist(
-	                  max_ind,
-	                  class_labels,
-	                  crop,
-	                  downsample_ratio,
-	                  downsample_method,
-	                  [i for i in range(550,1000)],
-	                  6,
-	                  [i for i in range(550,1000)],
-	                  85,
-	                  screen_size, '', 0
-	                 )
+					  max_ind,
+					  class_labels,
+					  crop,
+					  downsample_ratio,
+					  downsample_method,
+					  [i for i in range(550,1000)],
+					  6,
+					  [i for i in range(550,1000)],
+					  85,
+					  screen_size, '', 0
+					 )
 
 	"""
 
@@ -75,8 +75,8 @@ show_thumbnails ):
 	# test for npy file before loading. run creation script, if absent.
 	if not os.path.isfile(mnist_fname):
 		# download and save data from the web
-		from MNIST_all import MNIST_makeAll
-		MNIST_makeAll.download_save()
+		from ..MNIST_all import MNIST_make_all
+		MNIST_make_all.make_MNIST()
 
 	# 1. extract mnist:
 	mnist = np.load(mnist_fname, allow_pickle = True).item()

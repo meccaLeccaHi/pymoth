@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import os
-import numpy as np
+import os as _os
+import numpy as _np
+from keras.datasets import mnist as _mnist # also requires tensorflow
 
-def main():
+def make_MNIST():
 	'''
 	Save the following data to .npy file:
 		train_images: np.array[28x28x60000]
@@ -17,13 +18,11 @@ def main():
 	# # download and save data from Yann Lecun's website
 	# [train_imgs, train_lbls, test_imgs, test_lbls] = MNIST_read.read();
 
-	# download and save data from Keras
-	from keras.datasets import mnist
-
+	## download and save data from Keras
 	# directory to save image data
 	im_dir = 'MNIST_all'
 
-	(train_imgs, train_lbls), (test_imgs, test_lbls) = mnist.load_data()
+	(train_imgs, train_lbls), (test_imgs, test_lbls) = _mnist.load_data()
 
 	mnist = {
 				'train_images':train_imgs,
@@ -32,10 +31,12 @@ def main():
 				'test_labels':test_lbls,
 			}
 
-	np.save(os.path.dirname(__file__) + os.sep + 'MNIST_all.npy', mnist)
+	data_fname = _os.path.dirname(__file__) + _os.sep + 'MNIST_all.npy'
+	_np.save(data_fname, mnist)
+	print('MNIST data saved:', data_fname)
 
 if __name__ == "__main__":
-    main()
+    make_MNIST()
 
 # MIT license:
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
