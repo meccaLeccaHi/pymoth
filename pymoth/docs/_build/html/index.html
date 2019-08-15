@@ -1,0 +1,733 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to pymoth’s documentation! &#8212; pymoth 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-pymoth-s-documentation">
+<h1>Welcome to pymoth’s documentation!<a class="headerlink" href="#welcome-to-pymoth-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-pymoth"></span><span class="target" id="module-pymoth"></span><span class="target" id="module-modules.params"></span><span class="target" id="module-params"></span><dl class="class">
+<dt id="modules.params.ExpParams">
+<em class="property">class </em><code class="sig-prename descclassname">modules.params.</code><code class="sig-name descname">ExpParams</code><span class="sig-paren">(</span><em class="sig-param">train_classes</em>, <em class="sig-param">class_labels</em>, <em class="sig-param">val_per_class</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.params.ExpParams" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Experiment parameters of a time-evolution experiment:</dt><dd><ul class="simple">
+<li><p>overall timing</p></li>
+<li><p>stim timing and strength</p></li>
+<li><p>octo timing and strength</p></li>
+<li><p>lowpass window parameter</p></li>
+<li><p>etc.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Analyze the SDE time-stepped evolution of the neural firing rates.</p>
+<dl class="simple">
+<dt>Order of time periods:</dt><dd><ol class="arabic simple">
+<li><p>no event period: allow system to settle to a steady state spontaneous FR baseline</p></li>
+<li><p>baseline period: deliver a group of digits for each class</p></li>
+<li><p>no event buffer</p></li>
+<li><p>training period:  deliver digits + octopamine + allow hebbian updates</p></li>
+<li><p>no event buffer</p></li>
+<li><p>post-training period: deliver a group of digits for each class</p></li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="modules.params.ModelParams">
+<em class="property">class </em><code class="sig-prename descclassname">modules.params.</code><code class="sig-name descname">ModelParams</code><span class="sig-paren">(</span><em class="sig-param">nF</em>, <em class="sig-param">goal</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.params.ModelParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>This Python module contains the parameters for a sample moth, ie the template   that is used to populate connection matrices and to control behavior.</p>
+<dl class="simple">
+<dt>Abbreviations:</dt><dd><ul class="simple">
+<li><p>n* : number of *</p></li>
+<li><p>G : glomerulus (so eg nG : number of glomeruli)</p></li>
+<li><p>R : response neuron (from antennae): this concept is not used. We use the stim-glomeruli,             connections directly</p></li>
+<li><p>P : excitatory projection neuron. note sometimes P’s stand in for gloms in            indexing, since they are 1 to 1</p></li>
+<li><p>PI : inhibitory projection neuron</p></li>
+<li><p>L : lateral neuron (inhibitory)</p></li>
+<li><p>K : kenyon cell (in MB)</p></li>
+<li><p>F : feature (this is a change from the original moth/odor regime, where each          stim/odor was identified with its own single feature)</p></li>
+<li><p>S (not used in this function) : stimulus class</p></li>
+<li><p>fr : fraction%</p></li>
+<li><p>mu : mean</p></li>
+<li><p>std : standard deviation</p></li>
+<li><p>_2_ : synapse connection to, eg P2K_mu : mean synapse strength from PN to KC</p></li>
+<li><p>octo : octopamine delivery neuron</p></li>
+</ul>
+</dd>
+<dt>Structure of synaptic strength matrices:</dt><dd><ul class="simple">
+<li><p>rows give the ‘from’ a synapse</p></li>
+<li><p>cols give the ‘to’</p></li>
+</ul>
+</dd>
+</dl>
+<p>So, M(i,j) is the strength from obj(i) to obj(j).</p>
+<p>Glomeruli are not explicitly part of the equations, but the matrices for LN     interconnections, PNs, and RNs are indexed according to the G.</p>
+<dl class="method">
+<dt id="modules.params.ModelParams.create_connection_matrix">
+<code class="sig-name descname">create_connection_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#modules.params.ModelParams.create_connection_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the various connection matrices, given a modelParams object,          and appends them to model params object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>connection matrices and other model info necessary to FR                         evolution and plotting</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>model_params (object)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span><span class="o">.</span><span class="n">create_connection_matrix</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-modules.generate"></span><span class="target" id="module-generate"></span><dl class="function">
+<dt id="modules.generate.average_image_stack">
+<code class="sig-prename descclassname">modules.generate.</code><code class="sig-name descname">average_image_stack</code><span class="sig-paren">(</span><em class="sig-param">im_stack</em>, <em class="sig-param">indices_to_average</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.generate.average_image_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Average a stack of images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im_stack</strong> (<em>numpy array</em>) – 3-d stack (x, y, z) OR 2-d matrix (images-as-col-vecs, z)</p></li>
+<li><p><strong>indices_to_average</strong> (<em>list</em>) – which images in the stack to average</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(if input is 3-d) or column vector (if input is 2-d)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>average_image (numpy array)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">average_im</span> <span class="o">=</span> <span class="n">average_image_stack</span><span class="p">(</span><span class="n">dummy_feature_array</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.generate.crop_downsample_vectorize_images">
+<code class="sig-prename descclassname">modules.generate.</code><code class="sig-name descname">crop_downsample_vectorize_images</code><span class="sig-paren">(</span><em class="sig-param">im_stack</em>, <em class="sig-param">crop_val</em>, <em class="sig-param">downsample_ratio</em>, <em class="sig-param">downsample_method</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.generate.crop_downsample_vectorize_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each image in a stack of images; crop, downsample, then make into a vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im_stack</strong> (<em>numpy array</em>) – [numImages x width x height]</p></li>
+<li><p><strong>crop_val</strong> – number of pixels to shave off each side. (int) or (list) [top,                bottom, left, right]</p></li>
+<li><p><strong>downsample_ratio</strong> (<em>int</em>) – image downsample ratio (n:1)</p></li>
+<li><p><strong>downsample_method</strong> (<em>int</em>) – method for downsampling image (0: sum square patches,          1: bicubic interpolation)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[#pixels x #images] array, where #pixels refers to the          number of pixels in the cropped and downsampled images.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>im_array (numpy array)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">crop_downsample_vectorize_images</span><span class="p">(</span><span class="n">dummy_image_array</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.generate.extract_mnist_feature_array">
+<code class="sig-prename descclassname">modules.generate.</code><code class="sig-name descname">extract_mnist_feature_array</code><span class="sig-paren">(</span><em class="sig-param">mnist</em>, <em class="sig-param">labels</em>, <em class="sig-param">image_indices</em>, <em class="sig-param">phase_label</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.generate.extract_mnist_feature_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts a subset of the samples from each class, converts the images to doubles        on [0 1], and returns a 4-D array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mnist</strong> (<em>dict</em>) – loaded from <cite>MNIST_all.npy</cite></p></li>
+<li><p><strong>labels</strong> (<em>numpy array</em>) – numeric classes (for MNIST, digits 0:9)</p></li>
+<li><p><strong>image_indices</strong> (<em>range</em>) – images you want from each class</p></li>
+<li><p><strong>phase_label</strong> (<em>str</em>) – Image set to draw from (‘train’ or ‘test’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>4-D array [#images x image_height x image_width                 x #classes]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>im_array (numpy array)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">image_array</span> <span class="o">=</span> <span class="n">extract_mnist_feature_array</span><span class="p">(</span><span class="n">mnist</span><span class="p">,</span> <span class="n">class_labels</span><span class="p">,</span>      <span class="nb">range</span><span class="p">(</span><span class="n">max_ind</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.generate.generate_ds_mnist">
+<code class="sig-prename descclassname">modules.generate.</code><code class="sig-name descname">generate_ds_mnist</code><span class="sig-paren">(</span><em class="sig-param">max_ind</em>, <em class="sig-param">class_labels</em>, <em class="sig-param">crop</em>, <em class="sig-param">downsample_ratio</em>, <em class="sig-param">downsample_method</em>, <em class="sig-param">inds_to_ave</em>, <em class="sig-param">pixel_sum</em>, <em class="sig-param">inds_to_calc_RF</em>, <em class="sig-param">num_features</em>, <em class="sig-param">screen_size</em>, <em class="sig-param">save_results_folder</em>, <em class="sig-param">show_thumbnails</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.generate.generate_ds_mnist" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Preprocessing:</dt><dd><ol class="arabic simple">
+<li><p>Load MNIST</p></li>
+<li><p>cropping and downsampling</p></li>
+<li><p>mean-subtract, make non-negative, normalize pixel sums</p></li>
+<li><p>select active pixels (receptive field)</p></li>
+</ol>
+</dd>
+</dl>
+<p>Loads the MNIST dataset (from Yann LeCun’s website), then applies various       preprocessing steps to reduce the number of pixels (each pixel will be a feature).</p>
+<p>The ‘receptive field’ step destroys spatial relationships, so to reconstruct    a 12 x 12 thumbnail (eg for viewing, or for CNN use) the active pixel indices   can be embedded in a 144 x 1 col vector of zeros, then reshaped into a 12 x 12 image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_ind</strong> (<em>int</em>) – maximum number of samples to use</p></li>
+<li><p><strong>class_labels</strong> (<em>numpy array</em>) – numeric classes (for MNIST, digits 0:9)</p></li>
+<li><p><strong>crop</strong> (<em>int</em>) – image cropping parameter</p></li>
+<li><p><strong>downsample_ratio</strong> (<em>int</em>) – image downsample ratio (n:1)</p></li>
+<li><p><strong>downsample_method</strong> (<em>int</em>) – method for downsampling image</p></li>
+<li><p><strong>inds_to_ave</strong> (<em>numpy array</em>) – pixel indices</p></li>
+<li><p><strong>pixel_sum</strong> (<em>int</em>) – normalization factor</p></li>
+<li><p><strong>inds_to_calc_RF</strong> (<em>numpy array</em>) – pixel indices for receptive field</p></li>
+<li><p><strong>num_features</strong> (<em>int</em>) – number of pixels in the receptive field</p></li>
+<li><p><strong>screen_size</strong> (<em>tuple</em>) – screen size (width, height) for images</p></li>
+<li><p><strong>save_results_folder</strong> (<em>str</em>) – absolute path to where results will be saved</p></li>
+<li><p><strong>show_thumbnails</strong> (<em>int</em>) – number of thumbnails to show for each class (0 means none)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[#active pixels x #samples x #classes]
+- active_pixel_inds (list): pixel indices to allow thumbnail viewing
+- len_side (int): allows reconstruction of thumbnails given from the feature vectors</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>feature_array (numpy array)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.generate.select_active_pixels">
+<code class="sig-prename descclassname">modules.generate.</code><code class="sig-name descname">select_active_pixels</code><span class="sig-paren">(</span><em class="sig-param">feature_array</em>, <em class="sig-param">num_features</em>, <em class="sig-param">screen_size</em>, <em class="sig-param">save_image_folder=[]</em>, <em class="sig-param">show_thumbnails=0</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.generate.select_active_pixels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select the most active pixels, considering all class average images, to use as features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feature_array</strong> (<em>numpy array</em>) – 3-D array # of features X # samples per class X            # of classes, created by <a class="reference internal" href="#modules.generate.generate_ds_mnist" title="modules.generate.generate_ds_mnist"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_ds_mnist()</span></code></a>.</p></li>
+<li><p><strong>num_features</strong> (<em>int</em>) – number of pixels in the receptive field</p></li>
+<li><p><strong>save_image_folder</strong> (<em>str</em>) – directory to save average thumbnail images (if                 empty, don’t save)</p></li>
+<li><p><strong>screen_size</strong> (<em>tuple</em>) – screen size (width, height) for images</p></li>
+<li><p><strong>show_thumbnails</strong> (<em>int</em>) – number of thumbnails to plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>1 x nF vector of indices to use as features.           Indices are relative to the vectorized thumbnails (so between 1 and 144).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>active_pixel_inds (numpy array)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">active_pixel_inds</span> <span class="o">=</span> <span class="n">select_active_pixels</span><span class="p">(</span><span class="n">feature_array</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="p">(</span><span class="mi">1920</span><span class="p">,</span> <span class="mi">1080</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<span class="target" id="module-modules.classify"></span><span class="target" id="module-classify"></span><dl class="function">
+<dt id="modules.classify.classify_digits_log_likelihood">
+<code class="sig-prename descclassname">modules.classify.</code><code class="sig-name descname">classify_digits_log_likelihood</code><span class="sig-paren">(</span><em class="sig-param">results</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.classify.classify_digits_log_likelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Classify the test digits in a run using log likelihoods from the various EN responses.</p>
+<dl class="simple">
+<dt>Steps:</dt><dd><ol class="arabic simple">
+<li><p>for each test digit (ignore non-postTrain digits), for each EN, calculate            the number of stds the test digit is from each class distribution. This makes           a 10 x 10 matrix where each row corresponds to an EN, and each column corresponds               to a class.</p></li>
+<li><p>Square this matrix by entry. Sum the columns. Select the col with the lowest                 value as the predicted class. Return the vector of sums in ‘likelihoods’.</p></li>
+<li><p>The rest is simple calculation.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results</strong> (<em>dict</em>) – output from <code class="xref py py-func docutils literal notranslate"><span class="pre">simulate()</span></code>. i’th entry gives results for all          classes, in the _i_th EN.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>true_classes (numpy array): shortened version of whichOdor (with only                         post-training, ie validation, entries)</p></li>
+<li><p>targets (numpy array): one-hot-encoded target labels</p></li>
+<li><p>roc_auc (dict): ROC curve and ROC area for each class</p></li>
+<li><p>fpr (dict): false-positive rate for each class</p></li>
+<li><p>tpr (dict): true-positive rate for each class</p></li>
+<li><p>pred_classes (numpy array): predicted classes</p></li>
+<li><p>likelihoods (numpy array): [n x 10] each row a post_training digit                    (entries are summed log likelihoods)</p></li>
+<li><p>acc_perc (numpy array): [n x 10] class accuracies as percentages</p></li>
+<li><p>total_acc (float): overall accuracy as percentage</p></li>
+<li><p>conf_mat (numpy array): i,j’th entry is number of test digits with true                       label i that were predicted to be j</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>output (dict)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">classify_digits_log_likelihood</span><span class="p">(</span> <span class="n">dummy_results</span> <span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.classify.classify_digits_thresholding">
+<code class="sig-prename descclassname">modules.classify.</code><code class="sig-name descname">classify_digits_thresholding</code><span class="sig-paren">(</span><em class="sig-param">results</em>, <em class="sig-param">home_advantage</em>, <em class="sig-param">home_thresh_sigmas</em>, <em class="sig-param">above_home_thresh_reward</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.classify.classify_digits_thresholding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Classify the test digits using log likelihoods from the various EN responses,   with the added option of rewarding high scores relative to an ENs home-class    expected response distribution.
+One use of this function is to apply de-facto thresholding on discrete ENs,     so that the predicted class corresponds to the EN that spiked most strongly     (relative to its usual home-class response).</p>
+<dl class="simple">
+<dt>Steps:</dt><dd><ol class="arabic simple">
+<li><p>For each test digit (ignore non-postTrain digits), for each EN, calculate            the # stds from the test digit is from each class distribution. This makes              a 10 x 10 matrix where each row corresponds to an EN, and each column           corresponds to a class.</p></li>
+<li><p>Square this matrix by entry. Sum the columns. Select the col with the                lowest value as the predicted class. Return the vector of sums in ‘likelihoods’.</p></li>
+<li><p>The rest is simple calculation.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>results</strong> (<em>dict</em>) – [1 x 10] dict produced by <code class="xref py py-func docutils literal notranslate"><span class="pre">collect_stats()</span></code>.</p></li>
+<li><p><strong>home_advantage</strong> (<em>int</em>) – the emphasis given to the home EN. It multiplies the              off-diagonal of dist. 1 -&gt; no advantage (default). Very high means that a               test digit will be classified according to the home EN it does best in,                 ie each EN acts on its own.</p></li>
+<li><p><strong>home_thresh_sigmas</strong> (<em>int</em>) – the number of stds below an EN’s home-class mean              that we set a threshold, such that if a digit scores above this threshold               in an EN, that EN will be rewarded by ‘above_home_thresh_reward’.</p></li>
+<li><p><strong>above_home_thresh_reward</strong> (<em>int</em>) – if a digit’s response scores above the EN’s             mean home-class value, reward it by dividing by this value. This reduces                the log likelihood score for that EN.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>true_classes (numpy array): shortened version of whichOdor (with only                         - post-training, ie validation, entries)</p></li>
+<li><p>targets (numpy array): one-hot-encoded target labels</p></li>
+<li><p>roc_auc (dict): ROC curve and ROC area for each class</p></li>
+<li><p>fpr (dict): false-positive rate for each class</p></li>
+<li><p>tpr (dict): true-positive rate for each class</p></li>
+<li><p>pred_classes (numpy array): predicted classes</p></li>
+<li><p>likelihoods (numpy array): [n x 10] each row a post_training digit                    (entries are summed log likelihoods)</p></li>
+<li><p>acc_perc (numpy array): [n x 10] class accuracies as percentages</p></li>
+<li><p>total_acc (float): overall accuracy as percentage</p></li>
+<li><p>conf_mat (numpy array): i,j’th entry is number of test digits with true                       label i that were predicted to be j</p></li>
+<li><p>home_advantage (int): the emphasis given to the home EN. It multiplies the                    off-diagonal of dist. 1 -&gt; no advantage (default). Very high means that a                       test digit will be classified according to the home EN it does best in,                         ie each EN acts on its own.</p></li>
+<li><p>home_thresh_sigmas (int): the number of stds below an EN’s home-class mean                    that we set a threshold, such that if a digit scores above this threshold                       in an EN, that EN will be rewarded by ‘above_home_thresh_reward’.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>output (dict)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">classify_digits_thresholding</span><span class="p">(</span> <span class="n">dummy_results</span> <span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.classify.roc_multi">
+<code class="sig-prename descclassname">modules.classify.</code><code class="sig-name descname">roc_multi</code><span class="sig-paren">(</span><em class="sig-param">true_classes</em>, <em class="sig-param">likelihoods</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.classify.roc_multi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure ROC AUC for multi-class classifiers.</p>
+<dl class="simple">
+<dt>Params:</dt><dd><p>true_classes (numpy array): class labels [observations,]
+likelihoods (numpy array): predicted likelihoods [observations x classes]</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>targets (numpy array): one-hot-encoded target labels</p></li>
+<li><p>roc_auc (dict): ROC curve and ROC area for each class</p></li>
+<li><p>fpr (dict): false-positive rate for each class</p></li>
+<li><p>tpr (dict): true-positive rate for each class</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>output (dict)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roc_dict</span> <span class="o">=</span> <span class="n">roc_multi</span><span class="p">(</span><span class="n">true_classes</span><span class="p">,</span> <span class="n">likelihoods</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<span class="target" id="module-modules.sde"></span><span class="target" id="module-sde"></span><dl class="function">
+<dt id="modules.sde.collect_stats">
+<code class="sig-prename descclassname">modules.sde.</code><code class="sig-name descname">collect_stats</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">sim_results</em>, <em class="sig-param">exp_params</em>, <em class="sig-param">class_labels</em>, <em class="sig-param">show_time_plots</em>, <em class="sig-param">show_acc_plots</em>, <em class="sig-param">images_folder=''</em>, <em class="sig-param">images_filename=''</em>, <em class="sig-param">screen_size=(1920</em>, <em class="sig-param">1080)</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.sde.collect_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Collect stats on readout neurons (EN).</em>
+Collect stats (median, mean, and std of FR) for each digit, pre- and post-training.     Digits are referred to as odors, or as odor puffs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sim_results</strong> (<em>dict</em>) – simulation results (output from <a class="reference internal" href="#modules.sde.sde_wrap" title="modules.sde.sde_wrap"><code class="xref py py-func docutils literal notranslate"><span class="pre">sde_wrap()</span></code></a>)</p></li>
+<li><p><strong>exp_params</strong> (<em>class</em>) – timing info about experiment, eg when stimuli are given</p></li>
+<li><p><strong>class_labels</strong> (<em>numpy array</em>) – labels, eg 0:9 for MNIST</p></li>
+<li><p><strong>show_time_plots</strong> (<em>bool</em>) – show EN timecourses</p></li>
+<li><p><strong>show_acc_plots</strong> (<em>bool</em>) – show changes in accuracy</p></li>
+<li><p><strong>images_filename</strong> (<em>str</em>) – [optional] to generate image filenames when saving</p></li>
+<li><p><strong>images_folder</strong> (<em>str</em>) – [optional] directory to save results</p></li>
+<li><p><strong>screen_size</strong> (<em>tuple</em>) – [optional] screen size (width, height) for images</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>pre_mean_resp (numpy array): [numENs x numOdors] mean of EN responses pre-training</p></li>
+<li><p>pre_std_resp (numpy array): [numENs x numOdors] std of EN responses pre-training</p></li>
+<li><p>post_mean_resp (numpy array): [numENs x numOdors] mean of EN responses post-training</p></li>
+<li><p>post_std_resp (numpy array): [numENs x numOdors] std of EN responses post-training</p></li>
+<li><p>percent_change_mean_resp (numpy array): [1 x numOdors]</p></li>
+<li><p>trained (list): indices corresponding to the odor(s) that were trained</p></li>
+<li><p>pre_spont_mean (float): mean of pre_spont</p></li>
+<li><p>pre_spont_std (float): std of pre_spont</p></li>
+<li><p>post_spont_mean (float): mean of post_spont</p></li>
+<li><p>post_spont_std (float): std of post_spont</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>results (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.sde.sde_evo_mnist">
+<code class="sig-prename descclassname">modules.sde.</code><code class="sig-name descname">sde_evo_mnist</code><span class="sig-paren">(</span><em class="sig-param">tspan</em>, <em class="sig-param">init_cond</em>, <em class="sig-param">time</em>, <em class="sig-param">class_mag_mat</em>, <em class="sig-param">feature_array</em>, <em class="sig-param">octo_hits</em>, <em class="sig-param">mP</em>, <em class="sig-param">exP</em>, <em class="sig-param">seed_val</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.sde.sde_evo_mnist" title="Permalink to this definition">¶</a></dt>
+<dd><p>To include neural noise, evolve the differential equations using Euler-Maruyama,     Milstein version (see Higham’s Algorithmic introduction to Numerical Simulation     of SDE).</p>
+<p>Called by <a class="reference internal" href="#modules.sde.sde_wrap" title="modules.sde.sde_wrap"><code class="xref py py-func docutils literal notranslate"><span class="pre">sde_wrap()</span></code></a>. For use with MNIST experiments.</p>
+<p>The function uses the noise params to create a Wiener process, then evolves     the FR equations with the added noise. Inside the difference equations we use     a piecewise linear pseudo sigmoid, rather than a true sigmoid, for speed.</p>
+<p><em>Regarding re-calculating added noise:</em>
+We want noise to be proportional to the mean spontFR of each neuron. So     we need to get an estimate of this mean spont FR first. Noise is not     added while neurons settle to initial SpontFR values. Then noise is added,     proportional to spontFR. After this noise begins, mean_spont_FRs converge     to new values.</p>
+<dl class="simple">
+<dt><em>So, this is a ‘stepped’ system, that runs as follows:</em></dt><dd><ol class="arabic simple">
+<li><p>no noise, neurons converge to initial mean_spont_FRs = ms1</p></li>
+<li><p>noise proportional to ms1. neurons converge to new mean_spont_FRs = ms2</p></li>
+<li><p>noise is proportional to ms2. neurons may converge to new <cite>mean_spont_FRs</cite>         = ms3, but noise is not changed. <cite>std_spont_FRs</cite> are calculated from ms3         time period.</p></li>
+</ol>
+</dd>
+<dt><em>This has the following effects on simulation results:</em></dt><dd><ol class="arabic simple">
+<li><p>In the heat maps and time-courses this will give a period of uniform FRs.</p></li>
+<li><p>The <cite>mean_spont_FR`s and `std_spont_FR`s are not ‘settled’ until after         the `stopSpontMean3</cite> timepoint.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tspan</strong> (<em>tuple</em>) – start and stop timepoints (seconds)</p></li>
+<li><p><strong>init_cond</strong> (<em>numpy array</em>) – [n x 1] starting FRs for all neurons, order-specific</p></li>
+<li><p><strong>time</strong> (<em>numpy array</em>) – [start:step:stop] vector of timepoints for stepping         through the evolution. Note we assume that noise and FRs have the same step         size (based on Milstein’s method).</p></li>
+<li><p><strong>class_mag_mat</strong> (<em>numpy array</em>) – [# of different classes X vector of time points]         each entry is the strength of a digit presentation.</p></li>
+<li><p><strong>feature_array</strong> (<em>numpy array</em>) – [numFeatures x numStimsPerClass x numClasses]</p></li>
+<li><p><strong>octo_hits</strong> (<em>numpy array</em>) – [1 x length(t)] octopamine strengths at each timepoint.</p></li>
+<li><p><strong>mP</strong> (<em>class</em>) – model_params, including connection matrices, learning rates, etc.</p></li>
+<li><p><strong>exP</strong> (<em>class</em>) – experiment parameters with some timing info.</p></li>
+<li><p><strong>seed_val</strong> (<em>int</em>) – optional arg for random number generation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>T: [m x 1] timepoints used in evolution (timepoints used in evolution)</p></li>
+<li><p>Y: [m x K] where K contains all FRs for P, L, PI, KC, etc; and each             row is the FR at a given timepoint</p></li>
+<li><p>P2K: connection matrix</p></li>
+<li><p>K2E: connection matrix</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>this_run (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.sde.sde_wrap">
+<code class="sig-prename descclassname">modules.sde.</code><code class="sig-name descname">sde_wrap</code><span class="sig-paren">(</span><em class="sig-param">model_params</em>, <em class="sig-param">exp_params</em>, <em class="sig-param">feature_array</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.sde.sde_wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the SDE time-stepped evolution of neural firing rates.</p>
+<dl class="simple">
+<dt>4 steps:</dt><dd><ol class="arabic simple">
+<li><p>load various params needed for pre-evolution prep</p></li>
+<li><p>specify stim and octo courses</p></li>
+<li><p>interaction equations and step through simulation</p></li>
+<li><p>unpack evolution output and export</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_params</strong> (<em>class</em>) – object with connection matrices, etc.</p></li>
+<li><p><strong>exp_params</strong> (<em>class</em>) – object with timing info about experiment, eg when stimuli are given.</p></li>
+<li><p><strong>feature_array</strong> (<em>numpy array</em>) – stimuli (numFeatures x numStimsPerClass x numClasses).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>EN timecourses and final P2K and K2E connection matrices.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>sim_results (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-modules.show_figs"></span><span class="target" id="module-show_figs"></span><dl class="function">
+<dt id="modules.show_figs.plot_roc_multi">
+<code class="sig-prename descclassname">modules.show_figs.</code><code class="sig-name descname">plot_roc_multi</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">fpr</em>, <em class="sig-param">tpr</em>, <em class="sig-param">roc_auc</em>, <em class="sig-param">class_labels</em>, <em class="sig-param">title_str</em>, <em class="sig-param">y_axis_label=True</em>, <em class="sig-param">legend=True</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.show_figs.plot_roc_multi" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>object</em>) – matplotlib axis (ie subplot)</p></li>
+<li><p><strong>tpr</strong> (<em>dict</em>) – true-positive rate for each class</p></li>
+<li><p><strong>fpr</strong> (<em>dict</em>) – false-positive rate for each class</p></li>
+<li><p><strong>roc_auc</strong> (<em>dict</em>) – ROC AUC for each class</p></li>
+<li><p><strong>class_labels</strong> (<em>numpy array</em>) – class labels (0:9 for MNIST)</p></li>
+<li><p><strong>title_str</strong> (<em>str</em>) – string to use in the title for this particular subplot</p></li>
+<li><p><strong>y_axis_label</strong> (<em>str</em>) – string to use in the y-axis label for this particular         subplot</p></li>
+<li><p><strong>legend</strong> (<em>bool</em>) – toggle legend for figure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plot_roc_multi</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">roc_auc</span><span class="p">,</span> <span class="n">class_labels</span><span class="p">,</span> <span class="n">title_str</span><span class="p">,</span>     <span class="n">y_axis_label</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.show_figs.show_FA_thumbs">
+<code class="sig-prename descclassname">modules.show_figs.</code><code class="sig-name descname">show_FA_thumbs</code><span class="sig-paren">(</span><em class="sig-param">feature_array</em>, <em class="sig-param">show_per_class</em>, <em class="sig-param">normalize</em>, <em class="sig-param">title_string</em>, <em class="sig-param">screen_size</em>, <em class="sig-param">images_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.show_figs.show_FA_thumbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show thumbnails of inputs used in the experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feature_array</strong> (<em>numpy array</em>) – either 3-D (1 = cols of features, 2 = within class samples, 3 = class)                 or 2-D (1 = cols of features, 2 = within class samples, no 3)</p></li>
+<li><p><strong>show_per_class</strong> (<em>int</em>) – how many of the thumbnails from each class to show.</p></li>
+<li><p><strong>normalize</strong> (<em>bool</em>) – 1 to rescale thumbs to [0 1], 0 to not</p></li>
+<li><p><strong>title_string</strong> (<em>str</em>) – string for figure title</p></li>
+<li><p><strong>screen_size</strong> (<em>tuple</em>) – width, height</p></li>
+<li><p><strong>images_filename</strong> (<em>str</em>) – including absolute path</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">show_FA_thumbs</span><span class="p">(</span><span class="n">_thumb_array</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Input thumbnails&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">),</span> <span class="s1">&#39;foo/thumbnails&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.show_figs.show_acc">
+<code class="sig-prename descclassname">modules.show_figs.</code><code class="sig-name descname">show_acc</code><span class="sig-paren">(</span><em class="sig-param">pre_SA</em>, <em class="sig-param">post_SA</em>, <em class="sig-param">en_ind</em>, <em class="sig-param">pre_mean_resp</em>, <em class="sig-param">pre_median_resp</em>, <em class="sig-param">pre_std_resp</em>, <em class="sig-param">post_offset</em>, <em class="sig-param">post_mean_resp</em>, <em class="sig-param">post_median_resp</em>, <em class="sig-param">post_std_resp</em>, <em class="sig-param">class_labels</em>, <em class="sig-param">pre_heb_mean</em>, <em class="sig-param">pre_heb_std</em>, <em class="sig-param">post_heb_mean</em>, <em class="sig-param">post_heb_std</em>, <em class="sig-param">percent_change_mean_resp</em>, <em class="sig-param">screen_size</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.show_figs.show_acc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot accuracy of MothNet for each class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pre_SA</strong> (<em>numpy array</em>) – pre-sniff average,</p></li>
+<li><p><strong>post_SA</strong> (<em>numpy array</em>) – post-sniff average,</p></li>
+<li><p><strong>en_ind</strong> (<em>int</em>) – index of current EN,</p></li>
+<li><p><strong>pre_mean_resp</strong> (<em>numpy array</em>) – mean resp before training [#classes x 1],</p></li>
+<li><p><strong>pre_median_resp</strong> (<em>numpy array</em>) – median resp before training [#classes x 1],</p></li>
+<li><p><strong>pre_std_resp</strong> (<em>numpy array</em>) – std of resp before training [#classes x 1],</p></li>
+<li><p><strong>post_offset</strong> (<em>numpy array</em>) – pre-sniff average plus offset value,</p></li>
+<li><p><strong>post_mean_resp</strong> (<em>numpy array</em>) – mean resp after training [#classes x 1],</p></li>
+<li><p><strong>post_median_resp</strong> (<em>numpy array</em>) – median resp after training [#classes x 1],</p></li>
+<li><p><strong>post_std_resp</strong> (<em>numpy array</em>) – std of resp after training [#classes x 1],</p></li>
+<li><p><strong>class_labels</strong> (<em>numpy array</em>) – class labels (0:9 for MNIST),</p></li>
+<li><p><strong>pre_heb_mean</strong> – mean spontaneous activity before training [#classes x 1],</p></li>
+<li><p><strong>pre_heb_std</strong> – std of spontaneous activity before training [#classes x 1],</p></li>
+<li><p><strong>post_heb_mean</strong> – mean spontaneous activity after training [#classes x 1],</p></li>
+<li><p><strong>post_heb_std</strong> – std of spontaneous activity after training [#classes x 1],</p></li>
+<li><p><strong>percent_change_mean_resp</strong> – mean response converted to percent change [#classes x 1],</p></li>
+<li><p><strong>screen_size</strong> (<em>tuple</em>) – [optional] screen size (width, height) for images,</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matplotlib figure handle,</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>fig (object)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">show_acc</span><span class="p">(</span><span class="n">pre_SA</span><span class="p">,</span> <span class="n">post_SA</span><span class="p">,</span> <span class="n">en_ind</span><span class="p">,</span> <span class="n">pre_mean_resp</span><span class="p">,</span> <span class="n">pre_median_resp</span><span class="p">,</span> <span class="n">pre_std_resp</span><span class="p">,</span>         <span class="n">post_offset</span><span class="p">,</span> <span class="n">post_mean_resp</span><span class="p">,</span> <span class="n">post_median_resp</span><span class="p">,</span> <span class="n">post_std_resp</span><span class="p">,</span> <span class="n">class_labels</span><span class="p">,</span>         <span class="n">pre_heb_mean</span><span class="p">,</span> <span class="n">pre_heb_std</span><span class="p">,</span> <span class="n">post_heb_mean</span><span class="p">,</span> <span class="n">post_heb_std</span><span class="p">,</span> <span class="n">percent_change_mean_resp</span><span class="p">,</span>         <span class="n">screen_size</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.show_figs.show_multi_roc">
+<code class="sig-prename descclassname">modules.show_figs.</code><code class="sig-name descname">show_multi_roc</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">model_names</em>, <em class="sig-param">class_labels</em>, <em class="sig-param">images_filename=''</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.show_figs.show_multi_roc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show ROC plot for each model in a subplot of a single figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_names</strong> (<em>list</em>) – names (strings) of models being plotted,</p></li>
+<li><p><strong>class_labels</strong> (<em>numpy array</em>) – label for each class of current stimuli,</p></li>
+<li><p><strong>images_filename</strong> (<em>str</em>) – [optional] name to use for image filename,</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">show_multi_roc</span><span class="p">(</span><span class="n">model_names</span><span class="p">,</span> <span class="n">class_labels</span><span class="p">,</span> <span class="n">images_filename</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.show_figs.show_roc_curves">
+<code class="sig-prename descclassname">modules.show_figs.</code><code class="sig-name descname">show_roc_curves</code><span class="sig-paren">(</span><em class="sig-param">tpr</em>, <em class="sig-param">fpr</em>, <em class="sig-param">roc_auc</em>, <em class="sig-param">class_labels</em>, <em class="sig-param">title_str=''</em>, <em class="sig-param">images_filename=''</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.show_figs.show_roc_curves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute macro-average ROC curves and plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tpr</strong> (<em>dict</em>) – true-positive rate for each class</p></li>
+<li><p><strong>fpr</strong> (<em>dict</em>) – false-positive rate for each class</p></li>
+<li><p><strong>roc_auc</strong> (<em>dict</em>) – ROC AUC for each class</p></li>
+<li><p><strong>class_labels</strong> (<em>numpy array</em>) – class labels (0:9 for MNIST)</p></li>
+<li><p><strong>title_str</strong> (<em>str</em>) – string to use in the title for this particular subplot</p></li>
+<li><p><strong>images_filename</strong> (<em>str</em>) – directory to save figure output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">show_roc_curves</span><span class="p">(</span><span class="n">roc_knn</span><span class="p">[</span><span class="s1">&#39;tpr&#39;</span><span class="p">],</span> <span class="n">roc_knn</span><span class="p">[</span><span class="s1">&#39;fpr&#39;</span><span class="p">],</span> <span class="n">roc_knn</span><span class="p">[</span><span class="s1">&#39;roc_auc&#39;</span><span class="p">],</span>     <span class="n">class_labels</span><span class="p">,</span> <span class="n">title_str</span><span class="o">=</span><span class="s1">&#39;KNN&#39;</span><span class="p">,</span> <span class="n">images_filename</span><span class="o">=</span><span class="s1">&#39;dirname/filename&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="modules.show_figs.show_timecourse">
+<code class="sig-prename descclassname">modules.show_figs.</code><code class="sig-name descname">show_timecourse</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">en_ind</em>, <em class="sig-param">sim_results</em>, <em class="sig-param">octo_times</em>, <em class="sig-param">class_list</em>, <em class="sig-param">results</em>, <em class="sig-param">exp_params</em>, <em class="sig-param">stim_starts</em>, <em class="sig-param">which_class</em><span class="sig-paren">)</span><a class="headerlink" href="#modules.show_figs.show_timecourse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the timecourse of EN responses of MothNet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>object</em>) – matplotlib axis,</p></li>
+<li><p><strong>en_ind</strong> (<em>int</em>) – index of current EN,</p></li>
+<li><p><strong>sim_results</strong> (<em>dict</em>) – simulation results (output from <code class="xref py py-func docutils literal notranslate"><span class="pre">sde_wrap()</span></code>),</p></li>
+<li><p><strong>octo_times</strong> (<em>numpy array</em>) – timing of octopamine,</p></li>
+<li><p><strong>class_labels</strong> (<em>numpy array</em>) – labels, eg 0:9 for MNIST,</p></li>
+<li><p><strong>results</strong> (<em>list</em>) – list of dicts containing simulation results (output from         <code class="xref py py-func docutils literal notranslate"><span class="pre">sde_wrap()</span></code>),</p></li>
+<li><p><strong>exp_params</strong> (<em>class</em>) – timing info about experiment, eg when stimuli are given,</p></li>
+<li><p><strong>stim_starts</strong> (<em>numpy array</em>) – time-steps for current stimuli,</p></li>
+<li><p><strong>which_class</strong> (<em>numpy array</em>) – classes for current stimuli,</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matplotlib axis,</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ax (object)</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">show_timecourse</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">en_ind</span><span class="p">,</span> <span class="n">sim_results</span><span class="p">,</span> <span class="n">octo_times</span><span class="p">,</span> <span class="n">class_list</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span>         <span class="n">exp_params</span><span class="p">,</span> <span class="n">stim_starts</span><span class="p">,</span> <span class="n">which_class</span> <span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">pymoth</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Adam Jones.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
