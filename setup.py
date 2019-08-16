@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="mothnet",
-    version="0.0.5",
+    version="0.0.6",
     author="Adam Jones",
     author_email="ajones173@gmail.com",
     license='MIT',
