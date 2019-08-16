@@ -119,7 +119,7 @@ def experiment():
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
 
 ### Modules
-- [`*classify.py*`](./pymoth/modules/classify.py)) Classify output from MothNet model.
+- [*classify.py*](./pymoth/modules/classify.py)) Classify output from MothNet model.
 - *generate.py* Download (if absent) and prepare down-sampled MNIST dataset.
 - *params.py* Experiment and model parameters.
 - *sde.py* Run stochastic differential equation simulation.
