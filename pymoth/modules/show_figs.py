@@ -10,9 +10,9 @@
 
 """
 
-import numpy as np
-import os
-import matplotlib.pyplot as plt
+import numpy as _np
+import os as _os
+import matplotlib.pyplot as _plt
 
 def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     screen_size, images_filename ):
@@ -38,27 +38,27 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
     """
 
     if images_filename:
-        images_folder = os.path.dirname(images_filename)
-        if not os.path.isdir(images_folder):
-            os.mkdir(images_folder)
+        images_folder = _os.path.dirname(images_filename)
+        if not _os.path.isdir(images_folder):
+            _os.mkdir(images_folder)
             print('Creating results directory: {}'.format(images_filename))
 
     # bookkeeping: change dim if needed
     if len(feature_array.shape)==2:
-        f = np.zeros((feature_array.shape[0],feature_array.shape[1],1))
+        f = _np.zeros((feature_array.shape[0],feature_array.shape[1],1))
         f[:,:,0] = feature_array
         feature_array = f[:,:,:]  #.squeeze()
 
     _ , _ , num_classes  = feature_array.shape
 
     total = num_classes*show_per_class # total number of subplots
-    num_rows = np.ceil(np.sqrt(total/2)) # n of rows
-    num_cols = np.ceil(np.sqrt(total*2)) # n of cols
+    num_rows = _np.ceil(_np.sqrt(total/2)) # n of rows
+    num_cols = _np.ceil(_np.sqrt(total*2)) # n of cols
     vert = 1/(num_rows + 1) # vertical step size
     horiz = 1/(num_cols + 1) # horizontal step size
 
-    fig_sz = [np.floor((i/100)*0.5) for i in screen_size]
-    thumbs_fig = plt.figure(figsize=fig_sz, dpi=100)
+    fig_sz = [_np.floor((i/100)*0.5) for i in screen_size]
+    thumbs_fig = _plt.figure(figsize=fig_sz, dpi=100)
 
     for cl in range(num_classes): # 'class' is a keyword in Python; renamed to 'cl'
         for i in range(show_per_class):
@@ -70,16 +70,16 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
                 this_input /= this_input.max()
 
             ax_count = i + (cl*num_classes)
-            plt.subplot(np.int(num_rows),np.int(num_cols),ax_i)
+            _plt.subplot(_np.int(num_rows),_np.int(num_cols),ax_i)
 
-            side = np.int(np.sqrt(len(this_input)))
-            plt.imshow(this_input.reshape((side,side)), cmap='gray', vmin=0, vmax=1)
+            side = _np.int(_np.sqrt(len(this_input)))
+            _plt.imshow(this_input.reshape((side,side)), cmap='gray', vmin=0, vmax=1)
 
     # add a title at the bottom
-    plt.xlabel(title_string, fontweight='bold')
+    _plt.xlabel(title_string, fontweight='bold')
 
     # Save plot
-    if os.path.isdir(images_folder):
+    if _os.path.isdir(images_folder):
         thumb_name = images_filename + '.png'
         thumbs_fig.savefig(thumb_name, dpi=100)
         print(f'Image thumbnails saved: {thumb_name}')
@@ -163,17 +163,17 @@ def show_roc_curves(tpr, fpr, roc_auc, class_labels, title_str='', images_filena
     """
 
     if images_filename:
-        images_folder = os.path.dirname(images_filename)
+        images_folder = _os.path.dirname(images_filename)
         # create directory for images (if doesnt exist)
-        if not os.path.isdir(images_folder):
-            os.mkdir(images_folder)
+        if not _os.path.isdir(images_folder):
+            _os.mkdir(images_folder)
             print('Creating results directory: {}'.format(images_folder))
 
-    fig, ax = plt.subplots()
+    fig, ax = _plt.subplots()
     plot_roc_multi(ax, fpr, tpr, roc_auc, class_labels, title_str)
 
     # Save plot
-    if os.path.isdir(images_folder):
+    if _os.path.isdir(images_folder):
         roc_filename = images_filename + '_ROC_' + title_str + '.png'
         fig.savefig(roc_filename, dpi=150)
         print(f'Figure saved: {roc_filename}')
@@ -213,8 +213,8 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
         pre_heb_mean, pre_heb_std, post_heb_mean, post_heb_std, percent_change_mean_resp, \
         screen_size)
     """
-    fig_sz = [np.floor((i/100)*0.8) for i in screen_size]
-    fig = plt.figure(figsize=fig_sz, dpi=100)
+    fig_sz = [_np.floor((i/100)*0.8) for i in screen_size]
+    fig = _plt.figure(figsize=fig_sz, dpi=100)
 
     # medians, pre and post
     ax = fig.add_subplot(2, 3, 1)
@@ -231,7 +231,7 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
     ax.plot(en_ind + 0.25, post_median_resp[en_ind], 'ro') # ,'markerfacecolor','r'
     ax.set_title(f'EN {en_ind}\n median +/- std')
     ax.set_xlim([0, max(pre_SA) + 1])
-    ax.set_ylim([0, 1.1*max(np.concatenate((pre_median_resp, post_median_resp)))])
+    ax.set_ylim([0, 1.1*max(_np.concatenate((pre_median_resp, post_median_resp)))])
     ax.set_xticks(pre_SA, minor=False)
     ax.set_xticklabels(class_labels)
 
@@ -269,7 +269,7 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
     # relative changes in median, ie control/trained
     ax = fig.add_subplot(2, 3, 3)
     ax.grid()
-    pn = np.sign(post_median_resp[en_ind] - pre_median_resp[en_ind])
+    pn = _np.sign(post_median_resp[en_ind] - pre_median_resp[en_ind])
     y_vals = (pn * ( (post_median_resp[pre_SA] - pre_median_resp[pre_SA] )/pre_median_resp[pre_SA] )) \
         / ( (post_median_resp[en_ind] - pre_median_resp[en_ind] ) / pre_median_resp[en_ind] )
     ax.plot(pre_SA, y_vals, 'bo') # , markerfacecolor='b'
@@ -296,8 +296,8 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
         fmt='ro', markerfacecolor='r')
     ax.set_title(f'EN {en_ind}\n median +/- std')
     ax.set_xlim([0, max(pre_SA)+1])
-    ax.set_ylim([0, 1.1*np.concatenate((pre_mean_resp, post_mean_resp)).max() \
-        + np.concatenate((pre_std_resp, post_std_resp)).max()])
+    ax.set_ylim([0, 1.1*_np.concatenate((pre_mean_resp, post_mean_resp)).max() \
+        + _np.concatenate((pre_std_resp, post_std_resp)).max()])
     ax.set_xticks(pre_SA, minor=False)
     ax.set_xticklabels(class_labels)
 
@@ -322,7 +322,7 @@ def show_acc(pre_SA, post_SA, en_ind, pre_mean_resp, pre_median_resp, pre_std_re
     ax = fig.add_subplot(2, 3, 6)
     ax.grid()
 
-    pn = np.sign(post_mean_resp[en_ind] - pre_mean_resp[en_ind])
+    pn = _np.sign(post_mean_resp[en_ind] - pre_mean_resp[en_ind])
     ax.plot(pre_SA, (pn*percent_change_mean_resp)/percent_change_mean_resp[en_ind],
         'bo', markerfacecolor='b')
     # mark the trained odors in red
@@ -365,7 +365,7 @@ def show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
     ax.set_xlim([-30, max(sim_results['T'])])
 
     # plot octo
-    ax.plot(octo_times, np.zeros(octo_times.shape), 'yx')
+    ax.plot(octo_times, _np.zeros(octo_times.shape), 'yx')
 
     # select indices for control
     control_ind = list(range(0, en_ind)) + list(range(en_ind+1, len(class_list)))
@@ -382,14 +382,14 @@ def show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
     # post_std = post_std[en_ind]
     pre_t = sim_results['T'] < exp_params.startTrain
     pre_time = sim_results['T'][pre_t]
-    pre_time_inds = np.nonzero(pre_t)[0]
+    pre_time_inds = _np.nonzero(pre_t)[0]
     post_t = sim_results['T'] > exp_params.endTrain
     post_time = sim_results['T'][post_t]
-    post_time_inds = np.nonzero(post_t)[0]
-    mid_t = np.logical_and(sim_results['T'] > exp_params.startTrain,
+    post_time_inds = _np.nonzero(post_t)[0]
+    mid_t = _np.logical_and(sim_results['T'] > exp_params.startTrain,
         sim_results['T'] < exp_params.endTrain)
     mid_time = sim_results['T'][mid_t]
-    mid_time_inds = np.nonzero(mid_t)[0]
+    mid_time_inds = _np.nonzero(mid_t)[0]
 
     ## plot ENs
     # normalized by the home class pre_mean
@@ -398,20 +398,20 @@ def show_timecourse(ax, en_ind, sim_results, octo_times, class_list, results,
     ax.plot(post_time, sim_results['E'][post_time_inds,en_ind] / post_mean_control, color='b')
     ax.plot(mid_time, sim_results['E'][mid_time_inds,en_ind] / 1, color='b')
 
-    # ax.plot(pre_time, pre_mean*np.ones(pre_time.shape), color=colors[en_ind], '-')
-    # ax.plot(post_time, post_mean*np.ones(post_time.shape), color=colors[en_ind], '-')
-    # ax.plot(pre_time, (pre_mean-pre_std)*np.ones(pre_time.shape), color=colors[en_ind], ':')
-    # ax.plot(post_time, (post_mean-post_std)*np.ones(post_time.shape), color=colors[en_ind], ':')
+    # ax.plot(pre_time, pre_mean*_np.ones(pre_time.shape), color=colors[en_ind], '-')
+    # ax.plot(post_time, post_mean*_np.ones(post_time.shape), color=colors[en_ind], '-')
+    # ax.plot(pre_time, (pre_mean-pre_std)*_np.ones(pre_time.shape), color=colors[en_ind], ':')
+    # ax.plot(post_time, (post_mean-post_std)*_np.ones(post_time.shape), color=colors[en_ind], ':')
 
     # plot stims by color
     for i,cl in enumerate(class_list):
         class_starts = stim_starts[which_class == cl]
-        ax.plot(class_starts, np.zeros(class_starts.shape), '.', \
+        ax.plot(class_starts, _np.zeros(class_starts.shape), '.', \
             color=colors[i], markersize=24) # , markerfacecolor=colors[i]
 
         # reinforce trained color
         if i == en_ind:
-            ax.plot(class_starts, 0.001*np.ones(class_starts.shape), '.', \
+            ax.plot(class_starts, 0.001*_np.ones(class_starts.shape), '.', \
                 color=colors[i], markersize=24) # , markerfacecolor=colors[i]
 
     # format
@@ -438,16 +438,16 @@ def show_multi_roc(self, model_names, class_labels, images_filename=''):
     """
 
     if images_filename:
-        images_folder = os.path.dirname(images_filename)
+        images_folder = _os.path.dirname(images_filename)
 
         # create directory for images (if doesnt exist)
-        if images_folder and not os.path.isdir(images_folder):
-            os.mkdir(images_folder)
+        if images_folder and not _os.path.isdir(images_folder):
+            _os.mkdir(images_folder)
             print('Creating results directory: {}'.format(images_folder))
 
     roc_dict_list = [self.output_trained_log_loss, self.roc_svm, self.roc_knn]
 
-    fig, axes = plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
+    fig, axes = _plt.subplots(1, len(roc_dict_list), figsize=(15,5), sharey=True)
 
     y_ax_list = [True, False, False]
     legend_list = [True, False, False]
@@ -465,7 +465,7 @@ def show_multi_roc(self, model_names, class_labels, images_filename=''):
     fig.tight_layout()
 
     # save plot
-    if os.path.isdir(images_folder):
+    if _os.path.isdir(images_folder):
         roc_filename = images_filename + '.png'
         fig.savefig(roc_filename, dpi=150)
         print(f'Figure saved: {roc_filename}')

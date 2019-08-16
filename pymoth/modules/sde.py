@@ -9,10 +9,10 @@
 .. moduleauthor:: Adam P. Jones <ajones173@gmail.com>
 
 """
-import os
-import numpy as np
+import os as _os
+import numpy as _np
 from scipy.special import erfinv
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as _plt
 from ..modules.show_figs import show_acc, show_timecourse
 
 def sde_wrap( model_params, exp_params, feature_array ):
@@ -54,12 +54,12 @@ def sde_wrap( model_params, exp_params, feature_array ):
     time_step = 2*0.01
 
     total_steps = (sim_stop - sim_start)/time_step
-    time = np.linspace(sim_start, sim_stop-time_step, total_steps)
+    time = _np.linspace(sim_start, sim_stop-time_step, total_steps)
 
     class_labels = exp_params.class_labels
     # classMags = exp_params.classMags
     # create a class_mag_mat, each row giving the stimulus magnitudes of a different class:
-    class_mag_mat = np.zeros((len(class_labels), len(time))) # ie 4 x len(time)
+    class_mag_mat = _np.zeros((len(class_labels), len(time))) # ie 4 x len(time)
     for i,cl in enumerate(class_labels):
         # extract the relevant odor puffs. All vectors should be same size, in same order
         puffs = (exp_params.whichClass == cl)
@@ -74,35 +74,35 @@ def sde_wrap( model_params, exp_params, feature_array ):
     # Apply a lowpass to round off the sharp start-stop edges of stimuli and octopamine:
     # lpParam: default transition zone = 0.12 sec
     L = round(exp_params.lpParam/time_step) # define the slope of low pass transitions here
-    lpWindow = np.hamming(L) # window of width L
+    lpWindow = _np.hamming(L) # window of width L
     lpWindow /= lpWindow.sum()
 
     # window the stimulus time courses:
     for i in range(len(class_labels)):
-        class_mag_mat[i,:] = np.convolve(class_mag_mat[i,:], lpWindow, 'same')
+        class_mag_mat[i,:] = _np.convolve(class_mag_mat[i,:], lpWindow, 'same')
 
     # window the octopamine:
     # octoMag = exp_params.octoMag
-    octo_hits = np.zeros(len(time))
+    octo_hits = _np.zeros(len(time))
     # octoStart = exp_params.octoStart
     # durationOcto = exp_params.durationOcto
     octoStop = [i + exp_params.durationOcto for i in exp_params.octoStart]
     for i in range(len(exp_params.octoStart)):
         hits = (time >= exp_params.octoStart[i]) & (time < octoStop[i])
         octo_hits[ hits ] = exp_params.octoMag
-    octo_hits = np.convolve(octo_hits, lpWindow, 'same') # the low pass filter
+    octo_hits = _np.convolve(octo_hits, lpWindow, 'same') # the low pass filter
 
     ## do SDE time-step evolution:
 
     # Use euler-maruyama SDE method, milstein's version.
     #  Y (the vector of all neural firing rates) is structured as a row vector as follows: [ P, PI, L, K, E ]
-    Po = np.ones(nP) # P are the normalized FRs of the excitatory PNs
-    PIo = np.ones(nPI) # PI are the normed FRs of the inhib PNs
-    Lo = np.ones(nG)
+    Po = _np.ones(nP) # P are the normalized FRs of the excitatory PNs
+    PIo = _np.ones(nPI) # PI are the normed FRs of the inhib PNs
+    Lo = _np.ones(nG)
     Ro = model_params.Rspont
-    Ko = np.ones(model_params.nK) # K are the normalized firing rates of the Kenyon cells
-    Eo = np.zeros(model_params.nE) # start at zeros
-    init_cond = np.concatenate((Po, PIo, Lo, Ro, Ko, Eo) , axis=None) # initial conditions for Y
+    Ko = _np.ones(model_params.nK) # K are the normalized firing rates of the Kenyon cells
+    Eo = _np.zeros(model_params.nE) # start at zeros
+    init_cond = _np.concatenate((Po, PIo, Lo, Ro, Ko, Eo) , axis=None) # initial conditions for Y
 
     tspan = ( sim_start, sim_stop )
     seed_val = 0 # to free up or fix randn
@@ -192,8 +192,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         Piecewise linear 'sigmoid' used for speed when squashing neural inputs in difference eqns.
         """
         y = x*slope
-        y = np.maximum(y, -span/2) # replace values below -span/2
-        y = np.minimum(y, span/2) # replace values above span/2
+        y = _np.maximum(y, -span/2) # replace values below -span/2
+        y = _np.minimum(y, span/2) # replace values above span/2
         return y
 
     def wiener(w_sig, mean_spont_, old_, tau_, inputs_):
@@ -202,13 +202,13 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         """
         d_ = dt*(-old_*tau_ + inputs_)
         # Wiener noise:
-        dW_ = np.sqrt(dt)*w_sig*mean_spont_*np.random.normal(0,1,(d_.shape))
+        dW_ = _np.sqrt(dt)*w_sig*mean_spont_*_np.random.normal(0,1,(d_.shape))
         # combine them:
         return old_ + d_ + dW_
 
     # if argin seed_val is nonzero, fix the rand seed for reproducible results
     if seed_val:
-        np.random.seed(seed_val)  # Reset random state
+        _np.random.seed(seed_val)  # Reset random state
 
     spin = '/-\|' # create spinner for progress bar
 
@@ -242,16 +242,16 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
     dt = round(time[1] - time[0], 2) # this is determined by start, stop and step in calling function
     N = int( (tspan[1] - tspan[0]) / dt ) # number of steps in noise evolution
-    T = np.linspace(tspan[0], tspan[1]-dt, N) # the time vector
+    T = _np.linspace(tspan[0], tspan[1]-dt, N) # the time vector
 
 #-------------------------------------------------------------------------------
 
-    P = np.zeros((nP, N))
-    PI = np.zeros((mP.nPI, N)) # no PIs for mnist
-    L = np.zeros((nL, N))
-    R = np.zeros((nR, N))
-    K = np.zeros((mP.nK, N))
-    E = np.zeros((mP.nE, N))
+    P = _np.zeros((nP, N))
+    PI = _np.zeros((mP.nPI, N)) # no PIs for mnist
+    L = _np.zeros((nL, N))
+    R = _np.zeros((nR, N))
+    K = _np.zeros((mP.nK, N))
+    E = _np.zeros((mP.nE, N))
 
     # initialize the FR matrices with initial conditions
     P[:,0] = init_cond[ : nP ] # col vector
@@ -272,21 +272,21 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     newK2E = mP.K2E.copy()
 
     # initialize the counters for the various classes
-    class_counter = np.zeros(nC)
+    class_counter = _np.zeros(nC)
 
     # make a list of Ts for which heb is active
-    hebRegion = np.zeros(T.shape)
+    hebRegion = _np.zeros(T.shape)
     for i in range(len(exP.hebStarts)):
-        inds = np.bitwise_and(T >= exP.hebStarts[i], T <= (exP.hebStarts[i] + exP.hebDurations[i]))
+        inds = _np.bitwise_and(T >= exP.hebStarts[i], T <= (exP.hebStarts[i] + exP.hebDurations[i]))
         hebRegion[inds] = 1
 
     ## DEBUG STEP:
-    # import matplotlib.pyplot as plt
-    # fig, ax = plt.subplots()
+    # import matplotlib.pyplot as _plt
+    # fig, ax = _plt.subplots()
     # ax.plot(T, hebRegion)
     # ax.set(title='hebRegion vs T')
     # ax.grid() # fig.savefig("test.png")
-    # plt.show()
+    # _plt.show()
 
 #-------------------------------------------------------------------------------
 
@@ -294,14 +294,14 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     meanCalc2Done = False
     meanCalc3Done = False
 
-    mean_spont_P = np.zeros(nP)
-    mean_spont_PI = np.zeros(mP.nPI) # no PIs for mnist
-    mean_spont_L = np.zeros(nL)
-    mean_spont_R = np.zeros(nR)
-    mean_spont_K = np.zeros(mP.nK)
-    # mean_spont_E = np.zeros(mP.nE)
-    # ssMeanSpontP = np.zeros(nP)
-    # ssStdSpontP = np.ones(nP)
+    mean_spont_P = _np.zeros(nP)
+    mean_spont_PI = _np.zeros(mP.nPI) # no PIs for mnist
+    mean_spont_L = _np.zeros(nL)
+    mean_spont_R = _np.zeros(nR)
+    mean_spont_K = _np.zeros(mP.nK)
+    # mean_spont_E = _np.zeros(mP.nE)
+    # ssMeanSpontP = _np.zeros(nP)
+    # ssStdSpontP = _np.ones(nP)
 
     # placeholder until we have an estimate based on spontaneous PN firing rates
     maxSpontP2KtimesPval = 10
@@ -314,7 +314,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         mult = 50 # multiplier (spinner speed control)
         print(f"{spin[int((i%(len(spin)*mult))/mult)]} SDE evolution:[{prog*'*'}{remain*' '}]", end='\r')
 
-        # step = np.round(time[1] - time[0], 4)
+        # step = _np.round(time[1] - time[0], 4)
 
         # if sufficiently early, or we want the entire evo
         if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
@@ -351,7 +351,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
         if adjustNoiseFlag1 and not(meanCalc1Done):
             # ie we have not yet calc'ed the noise weight vectors
-            inds = np.nonzero(np.logical_and(T > exP.startPreNoiseSpontMean1,
+            inds = _np.nonzero(_np.logical_and(T > exP.startPreNoiseSpontMean1,
                 T < exP.stopPreNoiseSpontMean1))[0]
             mean_spont_P = P[:,inds].mean(axis=1)
             mean_spont_PI = PI[:,inds].mean(axis=1)
@@ -363,7 +363,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
         if adjustNoiseFlag2 and not(meanCalc2Done):
             # ie we want to calc new noise weight vectors. This stage is surplus
-            inds = np.nonzero(np.logical_and(T > exP.startSpontMean2,
+            inds = _np.nonzero(_np.logical_and(T > exP.startSpontMean2,
                 T < exP.stopSpontMean2))[0]
             mean_spont_P = P[:,inds].mean(axis=1)
             mean_spont_PI = PI[:,inds].mean(axis=1)
@@ -378,7 +378,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             # we want to calc stdSpontP for use with LH channel and maybe for use in heb
             # maybe we should also use this for noise calcs (eg dWP).
             # But the difference is slight.
-            inds = np.nonzero(np.logical_and(T > exP.startSpontMean3,
+            inds = _np.nonzero(_np.logical_and(T > exP.startSpontMean3,
                 T < exP.stopSpontMean3))[0]
             ssMeanSpontP = P[:,inds].mean(axis=1) # 'ss' means steady state
             ssStdSpontP = P[:,inds].std(axis=1)
@@ -388,7 +388,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
             # set a minimum damping on KCs based on spontaneous PN activity,
             # sufficient to silence the MB silent absent odor:
-            temp = np.sort(mP.P2K.dot(ssMeanSpontP)) # 'ascending' by default
+            temp = _np.sort(mP.P2K.dot(ssMeanSpontP)) # 'ascending' by default
             ignoreTopN = 1 # ie ignore this many of the highest vals
             temp = temp[:-ignoreTopN] # ignore the top few outlier K inputs
             maxSpontP2KtimesPval = temp.max() # The minimum global damping on the MB
@@ -396,12 +396,12 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
         # create class_counter - the counters for the various classes
         if i: # if i is not zero
-            class_counter += np.logical_and(class_mag_mat[:,i-1]==0, class_mag_mat[:,i]>0)
+            class_counter += _np.logical_and(class_mag_mat[:,i-1]==0, class_mag_mat[:,i]>0)
 
         # get values of feature inputs at time index i, as a col vector.
         # This allows for simultaneous inputs by different classes, but current
         #   experiments apply only one class at a time.
-        thisInput = np.zeros(mP.nF)
+        thisInput = _np.zeros(mP.nF)
         thisStimClassInd = []
         for j in range(nC):
             if class_mag_mat[j,i]: # if class_mag_mat[j,i] is not zero
@@ -420,7 +420,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
         # dP:
         Pinputs = (1 - thisOctoHit*mP.octo2P*mP.octoNegDiscount).squeeze()
-        Pinputs = np.maximum(Pinputs, 0) # pos. rectify
+        Pinputs = _np.maximum(Pinputs, 0) # pos. rectify
         Pinputs *= -mP.L2P.dot(oldL)
         Pinputs += (mP.R2P.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2P).squeeze()
         # ie octo increases responsivity to positive inputs and to spont firing, and
@@ -434,7 +434,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
         # dPI: # no PIs for mnist
         PIinputs = (1 - thisOctoHit*mP.octo2PI*mP.octoNegDiscount).squeeze()
-        PIinputs = np.maximum(PIinputs, 0)  # pos. rectify
+        PIinputs = _np.maximum(PIinputs, 0)  # pos. rectify
         PIinputs *= -mP.L2PI.dot(oldL)
         PIinputs += mP.R2PI.dot(oldR)*(1 + thisOctoHit*mP.octo2PI).squeeze()
         # ie octo increases responsivity to positive inputs and to spont firing, and
@@ -448,7 +448,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
 
         # dL:
         Linputs = (1 - thisOctoHit*mP.octo2L*mP.octoNegDiscount).squeeze()
-        Linputs = np.maximum(Linputs, 0) # pos. rectify
+        Linputs = _np.maximum(Linputs, 0) # pos. rectify
         Linputs *= -mP.L2L.dot(oldL)
         Linputs += (mP.R2L.squeeze()*oldR)*(1 + thisOctoHit*mP.octo2L).squeeze()
         Linputs = piecewise_lin_pseudo_sig(Linputs, mP.cL, lSlope)
@@ -462,7 +462,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         # inputs: S = stim,  L = lateral neurons, mP.Rspont = spontaneous FR
         # NOTE: octo does not affect mP.Rspont. It affects R's response to input odors.
         Rinputs = (1 - thisOctoHit*mP.octo2R*mP.octoNegDiscount).squeeze()
-        Rinputs = np.maximum(Rinputs, 0) # pos. rectify Rinputs
+        Rinputs = _np.maximum(Rinputs, 0) # pos. rectify Rinputs
         Rinputs *= -mP.L2R.dot(oldL)
         neur_act = mP.F2R.dot(thisInput)*RspontRatios.squeeze()
         neur_act *= (1 + thisOctoHit*mP.octo2R).squeeze()
@@ -483,8 +483,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         # Delays from AL -> MB and AL -> LH -> MB (~30 mSec) are ignored.
 
         # the # st devs to give the correct sparsity
-        numNoOctoStds = np.sqrt(2)*erfinv(1 - 2*mP.sparsityTarget)
-        numOctoStds = np.sqrt(2)*erfinv(1 - 2*mP.octoSparsityTarget)
+        numNoOctoStds = _np.sqrt(2)*erfinv(1 - 2*mP.sparsityTarget)
+        numOctoStds = _np.sqrt(2)*erfinv(1 - 2*mP.octoSparsityTarget)
         # select for either octo or no-octo
         numStds = (1-thisOctoHit)*numNoOctoStds + thisOctoHit*numOctoStds
         # set a minimum damping based on spontaneous PN activity, so that
@@ -496,7 +496,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         damper = max(damper, minDamperVal)
 
         dampening = (damper*mP.kGlobalDampVec).squeeze() + oldPI2K.dot(oldPI)
-        pos_octo = np.maximum(1 - mP.octo2K*thisOctoHit, 0).squeeze()
+        pos_octo = _np.maximum(1 - mP.octo2K*thisOctoHit, 0).squeeze()
 
         Kinputs = oldP2K.dot(oldP)*(1 + thisOctoHit*mP.octo2K).squeeze() # but note that mP.octo2K == 0
         Kinputs -= dampening*pos_octo # but no PIs for mnist
@@ -534,7 +534,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             # the PN contribution to hebbian is based on raw FR
             #tempP = oldP.copy()
             #tempPI = oldPI.copy() # no PIs for mnist
-            nonNegNewK = np.maximum(newK, 0) # since newK has not yet been made non-neg
+            nonNegNewK = _np.maximum(newK, 0) # since newK has not yet been made non-neg
 
             ## dP2K:
             dp2k = (1/mP.heb_tau_PK) * nonNegNewK.reshape(-1, 1).dot(oldP.reshape(-1, 1).T)
@@ -544,8 +544,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             if mP.die_back_tau_PK > 0:
                 oldP2K *= -(1/mP.die_back_tau_PK)*dt
 
-            newP2K = np.maximum(oldP2K + dp2k, 0)
-            newP2K = np.minimum(newP2K, mP.hebMaxPK)
+            newP2K = _np.maximum(oldP2K + dp2k, 0)
+            newP2K = _np.minimum(newP2K, mP.hebMaxPK)
 
 #-------------------------------------------------------------------------------
 
@@ -561,8 +561,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             dpi2k *= keepMask
             if mP.die_back_tau_PIK > 0:
                 oldPI2K -= oldPI2K*(1/die_back_tau_PIK)*dt
-            newPI2K = np.maximum(oldPI2K + dpi2k, 0)
-            newPI2K = np.minimum(newPI2K, mP.hebMaxPIK)
+            newPI2K = _np.maximum(oldPI2K + dpi2k, 0)
+            newPI2K = _np.minimum(newPI2K, mP.hebMaxPIK)
 
 #-------------------------------------------------------------------------------
 
@@ -573,7 +573,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             dk2e *= K2Emask
 
             # restrict changes to just the i'th row of mP.K2E, where i = ind of training stim
-            restrictK2Emask = np.zeros(mP.K2E.shape)
+            restrictK2Emask = _np.zeros(mP.K2E.shape)
             restrictK2Emask[thisStimClassInd,:] = 1
             dk2e *= restrictK2Emask
 
@@ -582,7 +582,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
             # inactive connections for this EN die back:
             if mP.die_back_tau_KE:
                 # restrict dieBacks to only the trained EN
-                targetMask = np.zeros(dk2e.shape)
+                targetMask = _np.zeros(dk2e.shape)
                 targetMask[ dk2e == 0 ] = 1
                 targetMask *= restrictK2Emask
                 dieBack = (oldK2E + 2)*(1/mP.die_back_tau_KE)*dt
@@ -590,8 +590,8 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
                 oldK2E -= targetMask*dieBack
 
             newK2E = oldK2E + dk2e
-            newK2E = np.maximum(newK2E, 0)
-            newK2E = np.minimum(newK2E, mP.hebMaxKE)
+            newK2E = _np.maximum(newK2E, 0)
+            newK2E = _np.minimum(newK2E, mP.hebMaxKE)
 
         else: # case: no heb or no octo
             newP2K = oldP2K.copy()
@@ -604,17 +604,17 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
         if T[i]<(exP.stopSpontMean3 + 5) or mP.saveAllNeuralTimecourses:
             # case: do not save AL and MB neural timecourses after the noise
             #   calibration is done, to save on memory
-            P[:,i+1] = np.maximum(newP, 0)
-            PI[:,i+1] = np.maximum(newPI, 0) # no PIs for mnist
-            L[:,i+1] = np.maximum(newL, 0)
-            R[:,i+1] = np.maximum(newR, 0)
-            K[:,i+1] = np.maximum(newK, 0)
+            P[:,i+1] = _np.maximum(newP, 0)
+            PI[:,i+1] = _np.maximum(newPI, 0) # no PIs for mnist
+            L[:,i+1] = _np.maximum(newL, 0)
+            R[:,i+1] = _np.maximum(newR, 0)
+            K[:,i+1] = _np.maximum(newK, 0)
         else:
-            P = np.maximum(newP, 0)
-            PI = np.maximum(newPI, 0) # no PIs for mnist
-            L = np.maximum(newL, 0)
-            R = np.maximum(newR, 0)
-            K = np.maximum(newK, 0)
+            P = _np.maximum(newP, 0)
+            PI = _np.maximum(newPI, 0) # no PIs for mnist
+            L = _np.maximum(newL, 0)
+            R = _np.maximum(newR, 0)
+            K = _np.maximum(newK, 0)
 
         E[:,i+1] = newE # always save full EN timecourses
 
@@ -624,7 +624,7 @@ def sde_evo_mnist(tspan, init_cond, time, class_mag_mat, feature_array,
     this_run = dict() # pre-allocate
     # combine so that each row of fn output Y is a col of [P; PI; L; R; K]
     if mP.saveAllNeuralTimecourses:
-        Y = np.vstack((P, PI, L, R, K, E))
+        Y = _np.vstack((P, PI, L, R, K, E))
         this_run['Y'] = Y.T
     else:
         this_run['Y'] = []
@@ -685,9 +685,9 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
         octo_times = []
 
     # calc spont stats
-    pre_spont = sim_results['E'][ np.logical_and(exp_params.preHebSpontStart < sim_results['T'],
+    pre_spont = sim_results['E'][ _np.logical_and(exp_params.preHebSpontStart < sim_results['T'],
                                     sim_results['T'] < exp_params.preHebSpontStop) ]
-    post_spont = sim_results['E'][ np.logical_and(exp_params.postHebSpontStart < sim_results['T'],
+    post_spont = sim_results['E'][ _np.logical_and(exp_params.postHebSpontStart < sim_results['T'],
                                     sim_results['T'] < exp_params.postHebSpontStop) ]
 
     pre_heb_mean = pre_spont.mean()
@@ -700,7 +700,7 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
     # stim_starts = exp_params.stim_starts # get time-steps from very start of sim
     stim_starts = exp_params.stimStarts*(exp_params.classMags > 0) # ie only use non-zero puffs
     which_class = exp_params.whichClass*(exp_params.classMags > 0)
-    class_labels = np.unique(which_class)
+    class_labels = _np.unique(which_class)
 
     # pre-allocate list of empty dicts
     results = [dict() for i in range(sim_results['nE'])]
@@ -714,8 +714,8 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
         # assumes that there is at least 1 sec on either side of an odor without octo
 
         # pre-allocate for loop
-        pre_train_resp = np.full(len(stim_starts), np.nan)
-        post_train_resp = np.full(len(stim_starts), np.nan)
+        pre_train_resp = _np.full(len(stim_starts), _np.nan)
+        post_train_resp = _np.full(len(stim_starts), _np.nan)
 
         for i, t in enumerate(stim_starts):
             # Note: to find no-octo stim_starts, there is a certain amount of machinery
@@ -727,26 +727,26 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
             # assign no-octo, PRE-train response val (or -1)
             pre_train_resp[i] = -1 # as flag
             if (len(octo_times)==0) or ((abs(octo_times - t).min() > small) and (t < exp_params.startTrain)):
-                resp_ind = np.logical_and(t-1 < sim_results['T'], sim_results['T'] < t+1)
+                resp_ind = _np.logical_and(t-1 < sim_results['T'], sim_results['T'] < t+1)
                 pre_train_resp[i] = en_resp[resp_ind].max()
 
             # assign no-octo, POST-train response val (or -1)
             post_train_resp[i] = -1
             if len(octo_times)!=0:
                 if (abs(octo_times - t).min() > small) and (t > exp_params.endTrain):
-                    resp_ind = np.logical_and(t-1 < sim_results['T'], sim_results['T'] < t+1)
+                    resp_ind = _np.logical_and(t-1 < sim_results['T'], sim_results['T'] < t+1)
                     post_train_resp[i] = en_resp[resp_ind].max()
 
         # pre-allocate for loop
         pre_mean_resp, pre_median_resp, pre_std_resp, pre_num_puffs, post_mean_resp, \
             post_median_resp, post_std_resp, post_num_puffs = \
-            [np.full(len(class_labels), np.nan) for _ in range(8)]
+            [_np.full(len(class_labels), _np.nan) for _ in range(8)]
 
         # calc no-octo stats for each odor, pre and post train:
         for k, cl in enumerate(class_labels):
             current_class = which_class==cl
-            pre_SA = pre_train_resp[np.logical_and(pre_train_resp>=0, current_class)]
-            post_SA = post_train_resp[np.logical_and(post_train_resp>=0, current_class)]
+            pre_SA = pre_train_resp[_np.logical_and(pre_train_resp>=0, current_class)]
+            post_SA = post_train_resp[_np.logical_and(post_train_resp>=0, current_class)]
 
             ## calculate the averaged sniffs of each sample: SA means 'sniffsAveraged'
             # this will contain the average responses over all sniffs for each sample
@@ -757,7 +757,7 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
                 pre_num_puffs[k] = 0
             else:
                 pre_mean_resp[k] = pre_SA.mean()
-                pre_median_resp[k] = np.median(pre_SA)
+                pre_median_resp[k] = _np.median(pre_SA)
                 pre_std_resp[k] = pre_SA.std()
                 pre_num_puffs[k] = len(pre_SA)
 
@@ -768,17 +768,17 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
                 post_num_puffs[k] = 0
             else:
                 post_mean_resp[k] = post_SA.mean()
-                post_median_resp[k] = np.median(post_SA)
+                post_median_resp[k] = _np.median(post_SA)
                 post_std_resp[k] = post_SA.std()
                 post_num_puffs[k] = len(post_SA)
 
         # # to plot +/- 1 std of % change in mean_resp, we want the std of our
         # # estimate of the mean = std_resp/sqrt(numPuffs). Make this calc:
-        # pre_std_mean_est = pre_std_resp/np.sqrt(pre_num_puffs)
-        # post_std_mean_est = post_std_resp/np.sqrt(post_num_puffs)
+        # pre_std_mean_est = pre_std_resp/_np.sqrt(pre_num_puffs)
+        # post_std_mean_est = post_std_resp/_np.sqrt(post_num_puffs)
 
-        pre_SA = np.nonzero(pre_num_puffs > 0)[0]
-        post_SA = np.nonzero(post_num_puffs > 0)[0]
+        pre_SA = _np.nonzero(pre_num_puffs > 0)[0]
+        post_SA = _np.nonzero(post_num_puffs > 0)[0]
         post_offset = post_SA + 0.25
 
         percent_change_mean_resp = (100*(post_mean_resp[pre_SA] - pre_mean_resp[pre_SA]))\
@@ -801,11 +801,11 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
                 percent_change_mean_resp, screen_size)
 
             # create directory for images (if doesnt exist)
-            if images_filename and not os.path.isdir(images_folder):
-                os.mkdir(images_folder)
+            if images_filename and not _os.path.isdir(images_folder):
+                _os.mkdir(images_folder)
                 print('Creating results directory: {}'.format(images_folder))
             # save fig
-            fig_name = images_folder + os.sep + images_filename + '_en{}.png'.format(en_ind)
+            fig_name = images_folder + _os.sep + images_filename + '_en{}.png'.format(en_ind)
             fig.savefig(fig_name, dpi=100)
             print(f'Figure saved: {fig_name}')
 
@@ -847,17 +847,17 @@ def collect_stats(self, sim_results, exp_params, class_labels, show_time_plots,
 
             if en_ind%3 == 0:
                 # make a new figure at ENs 4, 7, 10
-                fig_sz = [np.floor(i/100) for i in screen_size]
-                fig = plt.figure(figsize=fig_sz, dpi=100)
+                fig_sz = [_np.floor(i/100) for i in screen_size]
+                fig = _plt.figure(figsize=fig_sz, dpi=100)
 
             ax = fig.add_subplot(3, 1, (en_ind%3)+1)
             show_timecourse(ax, en_ind, sim_results, octo_times, class_labels, results,
                 exp_params, stim_starts, which_class )
 
             # Save EN timecourse:
-            if os.path.isdir(images_folder) and \
+            if _os.path.isdir(images_folder) and \
             (en_ind%3 == 2 or en_ind == (sim_results['nE']-1)):
-                fig_name = images_folder + os.sep + images_filename + '_en_timecourses{}.png'.format(en_ind)
+                fig_name = images_folder + _os.sep + images_filename + '_en_timecourses{}.png'.format(en_ind)
                 fig.savefig(fig_name, dpi=100)
                 print(f'Figure saved: {fig_name}')
 

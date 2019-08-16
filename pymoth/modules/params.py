@@ -11,7 +11,7 @@
 """
 
 # import packages
-import numpy as np
+import numpy as _np
 import numpy.random as r
 
 class ModelParams:
@@ -409,22 +409,22 @@ class ModelParams:
 				for i in range(self.nR):
 					row = b[i,:]
 					if row.sum() > 1:
-						c = np.nonzero(row==1)[0]
-						t = np.ceil(r.rand(1, c)) # pick one index to be non-zero
+						c = _np.nonzero(row==1)[0]
+						t = _np.ceil(r.rand(1, c)) # pick one index to be non-zero
 						b[i,:] = 0
 						b[i,c[t]] = 1
 				self.F2Rbinary = b
 
 		else: # case: we are assigning a fixed # gloms to each S
-			self.F2Rbinary = np.zeros((self.nR, self.nF))
-			counts = np.zeros((self.nR,1)) # to track how many S are hitting each R
+			self.F2Rbinary = _np.zeros((self.nR, self.nF))
+			counts = _np.zeros((self.nR,1)) # to track how many S are hitting each R
 			# calc max n of S per any given glom
-			maxFperR = np.ceil(self.nF*self.RperFFr_raw/self.nR)
+			maxFperR = _np.ceil(self.nF*self.RperFFr_raw/self.nR)
 			# connect one R to each S, then go through again to connect a 2nd R to each S, etc
 			for i in range(self.RperFFr_raw):
 				for j in range(self.nF):
-					inds = np.nonzero(counts < maxFperR)[0]
-					a = np.random.randint(len(inds))
+					inds = _np.nonzero(counts < maxFperR)[0]
+					a = _np.random.randint(len(inds))
 					counts[inds[a]] += 1
 					self.F2Rbinary[inds[a],j] = 1
 
@@ -432,21 +432,21 @@ class ModelParams:
 		rand_mat = r.normal(0,1,self.F2Rbinary.shape)
 		# Note: S (stimuli) for odor case is replaced by F (features) for MNIST version
 		self.F2R = ( self.F2R_mu*self.F2Rbinary + self.F2R_std*rand_mat )*self.F2Rbinary # the last term ensures 0s stay 0s
-		self.F2R = np.maximum(0, self.F2R) # to prevent any negative weights
+		self.F2R = _np.maximum(0, self.F2R) # to prevent any negative weights
 
 		# spontaneous FRs for Rs
 		if self.spontRdistFlag==1: # case: gaussian distribution
 			#  steady-state RN FR, base + noise:
-			self.Rspont = self.spontR_mu*np.ones((self.nG, 1)) + self.spontR_std*r.normal(0,1,(self.nG,1))
-			self.Rspont = np.maximum(0, self.Rspont)
+			self.Rspont = self.spontR_mu*_np.ones((self.nG, 1)) + self.spontR_std*r.normal(0,1,(self.nG,1))
+			self.Rspont = _np.maximum(0, self.Rspont)
 		else: # case: 2 gamma distribution
 			a = self.spontR_mu/self.spontR_std
 			b = self.spontR_mu/a # spontR_std
-			g = np.random.gamma(a, scale=b, size=(self.nG,1))
+			g = _np.random.gamma(a, scale=b, size=(self.nG,1))
 			self.Rspont = self.spontRbase + g
 
 		# R2G connection vector: nG x 1 col vector
-		self.R2G = self.R2G_mu*np.ones((self.nG, 1)) + self.R2G_std*r.normal(0,1,(self.nG,1)) # col vector,
+		self.R2G = self.R2G_mu*_np.ones((self.nG, 1)) + self.R2G_std*r.normal(0,1,(self.nG,1)) # col vector,
 		# each entry is strength of an R in its G. the last term prevents negative R2G effects
 
 		# now make R2P, etc, all are cols nG x 1
@@ -459,12 +459,12 @@ class ModelParams:
 
 		# Construct L2G = nG x nG matrix of lateral neurons. This is a precursor to L2P etc
 		self.L2G = self.L2G_mu + self.L2G_std*r.normal(0,1,(self.nG, self.nG))
-		self.L2G = np.maximum(0, self.L2G) # kill any vals < 0
-		self.L2G -= np.diag(np.diag(self.L2G)) # set diagonal = 0
+		self.L2G = _np.maximum(0, self.L2G) # kill any vals < 0
+		self.L2G -= _np.diag(_np.diag(self.L2G)) # set diagonal = 0
 
 		# are enough of these values 0?
 		numZero = (self.L2G.flatten()==0).sum() - self.nG # ignore the diagonal zeroes
-		numToKill = np.floor( (1-self.L2Gfr)*(self.nG**2 - self.nG) - numZero )
+		numToKill = _np.floor( (1-self.L2Gfr)*(self.nG**2 - self.nG) - numZero )
 		if numToKill > 0: # case: we need to set more vals to 0 to satisfy frLN constraint
 			self.L2G = self.L2G.flatten()
 			randList = r.rand(*self.L2G.shape) < numToKill/(self.nG**2 - self.nG - numZero)
@@ -478,24 +478,24 @@ class ModelParams:
 		# gloms vary widely in their sensitivity to gaba (Hong, Wilson 2014).
 		# multiply the L2* vectors by Gsens + Gsens_std:
 		gabaSens = self.Gsens_mu + self.Gsens_std*r.normal(0,1,(self.nG,1))
-		L2GgabaSens = self.L2G * np.tile( gabaSens, (1, self.nG) ) # ie each row is multiplied by a different value,
+		L2GgabaSens = self.L2G * _np.tile( gabaSens, (1, self.nG) ) # ie each row is multiplied by a different value,
 			# since each row represents a destination glom
 		# this version of L2G does not encode variable sens to gaba, but is scaled by Gsens_mu:
 		self.L2G *= self.Gsens_mu
 
 		# now generate all the L2etc matrices:
-		self.L2R = np.maximum(0,  self.L2R_mult + self.L2R_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+		self.L2R = _np.maximum(0,  self.L2R_mult + self.L2R_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
 		 # the last term will keep 0 entries = 0
-		self.L2P = np.maximum(0,  self.L2P_mult + self.L2P_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
-		self.L2L = np.maximum(0,  self.L2L_mult + self.L2L_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
-		self.L2PI = np.maximum(0,  self.L2L_mult + self.L2PI_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+		self.L2P = _np.maximum(0,  self.L2P_mult + self.L2P_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+		self.L2L = _np.maximum(0,  self.L2L_mult + self.L2L_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
+		self.L2PI = _np.maximum(0,  self.L2L_mult + self.L2PI_std*r.normal(0,1,(self.nG,self.nG)) ) * L2GgabaSens
 		 # Masked by G2PI later (no PIs for mnist)
 
 		# Ps (excitatory):
 		P2KconnMatrix = r.rand(self.nK, self.nP) < self.KperPfr_mu # each col is a P, and a fraction of the entries will = 1
 		 # different cols (PNs) will have different numbers of 1's (~binomial dist)
 
-		self.P2K = np.maximum(0,  self.P2K_mu + self.P2K_std*r.normal(0,1,(self.nK, self.nP)) ) # all >= 0
+		self.P2K = _np.maximum(0,  self.P2K_mu + self.P2K_std*r.normal(0,1,(self.nK, self.nP)) ) # all >= 0
 		self.P2K *= P2KconnMatrix
 		# cap P2K values at hebMaxP2K, so that hebbian training never decreases wts:
 		self.P2K[self.P2K > self.hebMaxPK] = self.hebMaxPK
@@ -514,13 +514,13 @@ class ModelParams:
 
 		# In the moth, each PI is fed by many gloms
 		self.G2PIconn = r.rand(self.nPI, self.nG) < self.GperPI_fr_mu # step 1a
-		self.G2PI = np.maximum(0, self.G2PI_std*r.normal(0,1,(self.nPI,self.nG)) + self.G2PI_mu) # step 1b
+		self.G2PI = _np.maximum(0, self.G2PI_std*r.normal(0,1,(self.nPI,self.nG)) + self.G2PI_mu) # step 1b
 		self.G2PI *= self.G2PIconn # mask with double values, step 1b (cont)
-		self.G2PI /= np.tile(self.G2PI.sum(axis=1).reshape(-1, 1),(1, self.G2PI.shape[1]))
+		self.G2PI /= _np.tile(self.G2PI.sum(axis=1).reshape(-1, 1),(1, self.G2PI.shape[1]))
 		# no PIs for mnist
 
 		# mask PI matrices
-		self.L2PI = np.matmul(self.G2PI,self.L2G) # nPI x nG
+		self.L2PI = _np.matmul(self.G2PI,self.L2G) # nPI x nG
 
 		self.R2PI = self.G2PI*self.R2PIcol.T # no PIs for MNIST
 		# nG x nPI matrices, (i,j)th entry = effect from j'th object to i'th object.
@@ -529,7 +529,7 @@ class ModelParams:
 
 		if self.nPI>0:
 			self.PI2Kconn = r.rand(self.nK, self.nPI) < self.KperPI_fr_mu # step 2a
-			self.PI2K = np.maximum(0, self.PI2K_mu + self.PI2K_std*r.normal(0,1,(self.nK,self.nPI))) # step 2b
+			self.PI2K = _np.maximum(0, self.PI2K_mu + self.PI2K_std*r.normal(0,1,(self.nK,self.nPI))) # step 2b
 			self.PI2K *= self.PI2Kconn # mask
 			self.PI2K[self.PI2K > self.hebMaxPIK] = self.hebMaxPIK
 
@@ -545,60 +545,60 @@ class ModelParams:
 		self.K2EconnMatrix = r.rand(self.nE, self.nK) < self.KperEfr_mu # each col is a K, and a fraction of the entries will = 1.
 		#    different cols (KCs) will have different numbers of 1's (~binomial dist).
 
-		self.K2E = np.maximum(0,  self.K2E_mu + self.K2E_std*r.normal(0,1,(self.nE,self.nK)) ) # all >= 0
-		self.K2E = np.multiply(self.K2E, self.K2EconnMatrix)
+		self.K2E = _np.maximum(0,  self.K2E_mu + self.K2E_std*r.normal(0,1,(self.nE,self.nK)) ) # all >= 0
+		self.K2E = _np.multiply(self.K2E, self.K2EconnMatrix)
 		self.K2E[self.K2E > self.hebMaxKE] = self.hebMaxKE
 		# K2E maps from the KCs to the ENs. Given firing rates KC, K2E gives the effect on the various ENs.
 		# It is nE x nK with entries >= 0.
 
 		# octopamine to Gs and to Ks
-		self.octo2G = np.maximum(0,  self.octo2G_mu + self.octo2G_std*r.normal(0,1,(self.nG,1)) ) # intermediate step
+		self.octo2G = _np.maximum(0,  self.octo2G_mu + self.octo2G_std*r.normal(0,1,(self.nG,1)) ) # intermediate step
 		# uniform distribution (experiment)
-		# self.octo2G = np.maximum(0,  self.octo2G_mu + 4*self.octo2G_std*r.rand(self.nG, 1) - 2*self.octo2G_std ) # 2*(linspace(0,1,nG) )' )
-		self.octo2K = np.maximum(0,  self.octo2K_mu + self.octo2K_std*r.normal(0,1,(self.nK, 1)) )
+		# self.octo2G = _np.maximum(0,  self.octo2G_mu + 4*self.octo2G_std*r.rand(self.nG, 1) - 2*self.octo2G_std ) # 2*(linspace(0,1,nG) )' )
+		self.octo2K = _np.maximum(0,  self.octo2K_mu + self.octo2K_std*r.normal(0,1,(self.nK, 1)) )
 		# each of these is a col vector with entries >= 0
 
-		self.octo2P = np.maximum(0,  self.octo2P_mult*self.octo2G + self.octo2P_std*r.normal(0,1,(self.nG,1)) ) # effect of octo on P, includes gaussian variation from P to P
-		self.octo2L = np.maximum(0,  self.octo2L_mult*self.octo2G + self.octo2L_std*r.normal(0,1,(self.nG,1)) )
-		self.octo2R = np.maximum(0,  self.octo2R_mult*self.octo2G + self.octo2R_std*r.normal(0,1,(self.nG,1)) )
+		self.octo2P = _np.maximum(0,  self.octo2P_mult*self.octo2G + self.octo2P_std*r.normal(0,1,(self.nG,1)) ) # effect of octo on P, includes gaussian variation from P to P
+		self.octo2L = _np.maximum(0,  self.octo2L_mult*self.octo2G + self.octo2L_std*r.normal(0,1,(self.nG,1)) )
+		self.octo2R = _np.maximum(0,  self.octo2R_mult*self.octo2G + self.octo2R_std*r.normal(0,1,(self.nG,1)) )
 		# #  uniform distributions (experiments)
-		# self.octo2P = np.maximum(0,  self.octo2P_mult*self.octo2G + 4*self.octo2P_std*r.rand(self.nG,1) - 2*self.octo2P_std )
-		# self.octo2L = np.maximum(0,  self.octo2L_mult*self.octo2G + 4*self.octo2L_std*r.rand(self.nG,1) - 2*self.octo2L_std )
-		# self.octo2R = np.maximum(0,  self.octo2R_mult*self.octo2G + 4*self.octo2R_std*r.rand(self.nG,1) - 2*self.octo2R_std )
+		# self.octo2P = _np.maximum(0,  self.octo2P_mult*self.octo2G + 4*self.octo2P_std*r.rand(self.nG,1) - 2*self.octo2P_std )
+		# self.octo2L = _np.maximum(0,  self.octo2L_mult*self.octo2G + 4*self.octo2L_std*r.rand(self.nG,1) - 2*self.octo2L_std )
+		# self.octo2R = _np.maximum(0,  self.octo2R_mult*self.octo2G + 4*self.octo2R_std*r.rand(self.nG,1) - 2*self.octo2R_std )
 		# mask and weight octo2PI
 		self.octo2PIwts = self.G2PI*( self.octo2PI_mult*self.octo2G.T ) # does not include a PI-varying std term
 		# normalize this by taking average
 		self.octo2PI = self.octo2PIwts.sum(axis=1)/self.G2PIconn.sum(axis=1) # net, averaged effect of octo on PI. Includes varying effects of octo on Gs & varying contributions of Gs to PIs.
 		# no PIs for mnist
 
-		self.octo2E = np.maximum(0,  self.octo2E_mu + self.octo2E_std*r.normal(0,1,(self.nE,1)) )
+		self.octo2E = _np.maximum(0,  self.octo2E_mu + self.octo2E_std*r.normal(0,1,(self.nE,1)) )
 
 
 		# each neuron has slightly different noise levels for sde use. Define noise vectors for each type:
 		# Gaussian versions:
-		# self.noiseRvec = np.maximum(0,  self.self.epsR_std + self.RnoiseSig*r.normal(0,1,(self.nR,1)) ) # remove negative noise entries
-		# self.noisePvec = np.maximum(0,  self.epsP_std + self.PnoiseSig*r.normal(0,1,(self.nP,1)) )
-		# self.noiseLvec = np.maximum(0,  self.epsL_std + self.LnoiseSig*r.normal(0,1,(self.nG,1)) )
-		self.noisePIvec = np.maximum(0,  self.noisePI + self.PInoise_std*r.normal(0,1,(self.nPI,1)) ) # no PIs for mnist
-		self.noiseKvec = np.maximum(0,  self.noiseK + self.Knoise_std*r.normal(0,1,(self.nK,1)) )
-		self.noiseEvec = np.maximum(0,  self.noiseE + self.Enoise_std*r.normal(0,1,(self.nE,1)) )
+		# self.noiseRvec = _np.maximum(0,  self.self.epsR_std + self.RnoiseSig*r.normal(0,1,(self.nR,1)) ) # remove negative noise entries
+		# self.noisePvec = _np.maximum(0,  self.epsP_std + self.PnoiseSig*r.normal(0,1,(self.nP,1)) )
+		# self.noiseLvec = _np.maximum(0,  self.epsL_std + self.LnoiseSig*r.normal(0,1,(self.nG,1)) )
+		self.noisePIvec = _np.maximum(0,  self.noisePI + self.PInoise_std*r.normal(0,1,(self.nPI,1)) ) # no PIs for mnist
+		self.noiseKvec = _np.maximum(0,  self.noiseK + self.Knoise_std*r.normal(0,1,(self.nK,1)) )
+		self.noiseEvec = _np.maximum(0,  self.noiseE + self.Enoise_std*r.normal(0,1,(self.nE,1)) )
 
 		# gamma versions:
 		a = self.noiseR/self.Rnoise_std
 		b = self.noiseR/a
-		self.noiseRvec = np.random.gamma(a, scale=b, size=(self.nR,1))
+		self.noiseRvec = _np.random.gamma(a, scale=b, size=(self.nR,1))
 		# DEV NOTE: Run below by CBD - Still necessary?
 		self.noiseRvec[self.noiseRvec > 15] = 0 # experiment to see if just outlier noise vals boost KC noise
 
 		a = self.noiseP/self.Pnoise_std
 		b = self.noiseP/a
-		self.noisePvec = np.random.gamma(a, scale=b, size=(self.nR,1))
+		self.noisePvec = _np.random.gamma(a, scale=b, size=(self.nR,1))
 		# DEV NOTE: Run below by CBD - Still necessary?
 		self.noisePvec[self.noisePvec > 15] = 0 # experiment to see if outlier noise vals boost KC noise
 
 		a = self.noiseL/self.Lnoise_std
 		b = self.noiseL/a
-		self.noiseLvec = np.random.gamma(a, scale=b, size=(self.nG,1))
+		self.noiseLvec = _np.random.gamma(a, scale=b, size=(self.nG,1))
 
 		self.kGlobalDampVec = self.kGlobalDampFactor + self.kGlobalDamp_std*r.normal(0,1,(self.nK,1))
 		# each KC may be affected a bit differently by LH inhibition
@@ -651,43 +651,43 @@ class ExpParams:
 
 		## Baseline period:
 		# do a loop, to allow gaps between class groups:
-		self.baselineTimes = np.empty(0)
+		self.baselineTimes = _np.empty(0)
 		self.startTime = 30
 		self.gap = 10
 		for i in range(self.nC):
 			# vector of timepoints
-			self.baselineTimes = np.append(self.baselineTimes,
+			self.baselineTimes = _np.append(self.baselineTimes,
 				range(self.startTime, self.startTime + val_per_class*self.step, self.step) )
-			self.startTime = int(np.max(self.baselineTimes) + self.gap)
+			self.startTime = int(_np.max(self.baselineTimes) + self.gap)
 		# include extra buffer before training
-		self.endOfBaseline = int(np.max(self.baselineTimes) + 25)
+		self.endOfBaseline = int(_np.max(self.baselineTimes) + 25)
 
 		## Training period:
 		# vector of timepoints, one digit every 'trStep' seconds
-		self.trainTimes = np.array(range(self.endOfBaseline,
+		self.trainTimes = _np.array(range(self.endOfBaseline,
 			self.endOfBaseline + len(train_classes)*self.trStep, self.trStep))
 		# includes buffer before Validation
-		self.endOfTrain = int(np.max(self.trainTimes) + 25)
+		self.endOfTrain = int(_np.max(self.trainTimes) + 25)
 
 		# Val period:
 		# do a loop, to allow gaps between class groups
-		self.valTimes = np.empty(0)
+		self.valTimes = _np.empty(0)
 		self.startTime = self.endOfTrain
 		for i in range(self.nC):
 			# vector of timepoints
-			self.valTimes = np.append(self.valTimes,
+			self.valTimes = _np.append(self.valTimes,
 				range(self.startTime, self.startTime + val_per_class*self.step, self.step) )
-			self.startTime = int(np.max(self.valTimes) + self.gap)
-		self.endOfVal = np.max(self.valTimes) + 4
+			self.startTime = int(_np.max(self.valTimes) + self.gap)
+		self.endOfVal = _np.max(self.valTimes) + 4
 
 		## assemble vectors of stimulus data for export:
 
 		# Assign the classes of each stim. Assign the baseline and val in blocks,
 		# and the training stims in the order passed in:
 
-		self.stimStarts = np.hstack(( self.baselineTimes, self.trainTimes, self.valTimes ))
+		self.stimStarts = _np.hstack(( self.baselineTimes, self.trainTimes, self.valTimes ))
 
-		self.whichClass = np.empty(self.stimStarts.shape) * np.nan
+		self.whichClass = _np.empty(self.stimStarts.shape) * _np.nan
 		self.numBaseline = val_per_class*self.nC
 		self.numTrain = len(train_classes)
 		for c in range(self.nC):
@@ -702,8 +702,8 @@ class ExpParams:
 
 		# self.whichClass = whichClass
 		# self.stimStarts = stimStarts # starting times
-		self.durations = self.stimLength*np.ones( len(self.stimStarts) ) # durations
-		self.classMags = self.stimMag*np.ones( len(self.stimStarts) ) # magnitudes
+		self.durations = self.stimLength*_np.ones( len(self.stimStarts) ) # durations
+		self.classMags = self.stimMag*_np.ones( len(self.stimStarts) ) # magnitudes
 
 		# octopamine input timing:
 		self.octoMag = 1
@@ -713,7 +713,7 @@ class ExpParams:
 		# Hebbian timing: Hebbian updates are enabled 25# of the way into the stimulus, and
 		# last until 75% of the way through (ie active during the peak response period)
 		self.hebStarts = [i + 0.25*self.stimLength for i in self.trainTimes]
-		self.hebDurations = 0.5*self.stimLength*np.ones( len(self.trainTimes) )
+		self.hebDurations = 0.5*self.stimLength*_np.ones( len(self.trainTimes) )
 		self.startTrain = min(self.hebStarts)
 		self.endTrain = max(self.hebStarts) + max(self.hebDurations)
 

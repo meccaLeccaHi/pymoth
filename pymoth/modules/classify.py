@@ -11,8 +11,8 @@
 """
 
 from sklearn.metrics import confusion_matrix, roc_curve, auc
-import numpy as np
-from scipy import interp
+import numpy as _np
+from scipy import interp as _interp
 
 def roc_multi(true_classes, likelihoods):
 	"""
@@ -37,7 +37,7 @@ def roc_multi(true_classes, likelihoods):
 	n_classes = len(set(true_classes))
 
 	# one-hot-encode target labels
-	targets = np.eye(n_classes)[true_classes.astype(int)]
+	targets = _np.eye(n_classes)[true_classes.astype(int)]
 
 	# compute ROC curve and ROC area for each class
 	fpr = dict()
@@ -53,12 +53,12 @@ def roc_multi(true_classes, likelihoods):
 
 	## compute macro-average ROC curve and ROC area
 	# first aggregate all false positive rates
-	all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+	all_fpr = _np.unique(_np.concatenate([fpr[i] for i in range(n_classes)]))
 
 	# then interpolate all ROC curves at this points
-	mean_tpr = np.zeros_like(all_fpr)
+	mean_tpr = _np.zeros_like(all_fpr)
 	for i in range(n_classes):
-		mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+		mean_tpr += _interp(all_fpr, fpr[i], tpr[i])
 
 	# finally, average it and compute AUC
 	mean_tpr /= n_classes
@@ -111,7 +111,7 @@ def classify_digits_log_likelihood(results):
 	"""
 
 	n_en = len(results) # number of ENs, same as number of classes
-	pre_train_inds = np.nonzero(results[1]['post_train_resp'] >= 0)[0] # indices of post-train (ie validation) digits
+	pre_train_inds = _np.nonzero(results[1]['post_train_resp'] >= 0)[0] # indices of post-train (ie validation) digits
 	# TO DO: Why use 2 (1, here) as index above? Ask CBD
 	n_post = len(pre_train_inds) # number of post-train digits
 
@@ -120,39 +120,39 @@ def classify_digits_log_likelihood(results):
 	# TO DO: Why use 1 (0, here) as index above? Ask CBD
 
 	# extract the relevant odor puffs: Each row is an EN, each col is an odor puff
-	post_train_resp = np.full((n_en,n_post), np.nan)
+	post_train_resp = _np.full((n_en,n_post), _np.nan)
 	for i,resp in enumerate(results):
 		post_train_resp[i,:] = resp['post_train_resp'][pre_train_inds]
 
 	# make a matrix of mean Class Resps and stds. Each row is an EN, each col is a class:
-	mu = np.full((n_en,n_en), np.nan)
-	sig = np.full((n_en,n_en), np.nan)
+	mu = _np.full((n_en,n_en), _np.nan)
+	sig = _np.full((n_en,n_en), _np.nan)
 	for i,resp in enumerate(results):
 		mu[i,:] = resp['post_mean_resp']
 		sig[i,:] = resp['post_std_resp']
 
 	# for each EN:
 	# get the likelihood of each puff (ie each col of post_train_resp)
-	likelihoods = np.zeros((n_post,n_en))
+	likelihoods = _np.zeros((n_post,n_en))
 	for i in range(n_post):
 		# Caution: post_train_resp[:,i] becomes a row vector, but we need it to stay as a
-		# col vector so we can make 10 identical columns. So transpose it back with [np.newaxis]
-		a = post_train_resp[:,i][np.newaxis]
-		dist = ( np.tile( a.T, ( 1, 10 )) - mu) / sig # 10 x 10 matrix
+		# col vector so we can make 10 identical columns. So transpose it back with [_np.newaxis]
+		a = post_train_resp[:,i][_np.newaxis]
+		dist = ( _np.tile( a.T, ( 1, 10 )) - mu) / sig # 10 x 10 matrix
 		# The ith row, jth col entry is the mahalanobis distance of this test
 		# digit's response from the i'th ENs response to the j'th class.
 		# For example, the diagonal contains the mahalanobis distance of this
 		# digit's response to each EN's home-class response.
 
-		likelihoods[i,:] = np.sum(dist**4, axis=0) # the ^4 (instead of ^2) is a sharpener
+		likelihoods[i,:] = _np.sum(dist**4, axis=0) # the ^4 (instead of ^2) is a sharpener
 
 	# make predictions:
-	pred_classes = np.argmin(likelihoods, axis=1)
+	pred_classes = _np.argmin(likelihoods, axis=1)
 
 	# calc accuracy percentages:
-	class_acc = np.zeros(n_en)
+	class_acc = _np.zeros(n_en)
 	for i in range(n_en):
-		class_acc[i] = (100*np.logical_and(pred_classes == i, true_classes == i).sum())/(true_classes == i).sum()
+		class_acc[i] = (100*_np.logical_and(pred_classes == i, true_classes == i).sum())/(true_classes == i).sum()
 
 	total_acc = (100*(pred_classes == true_classes).sum())/len(true_classes)
 
@@ -236,7 +236,7 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 	"""
 
 	n_en = len(results) # number of ENs, same as number of classes
-	pre_train_inds = np.nonzero(results[1]['post_train_resp'] >= 0)[0] # indices of post-train (ie validation) digits
+	pre_train_inds = _np.nonzero(results[1]['post_train_resp'] >= 0)[0] # indices of post-train (ie validation) digits
 	# DEV NOTE: Why use 2 (1, in Python) as index above? Ask CBD
 	n_post = len(pre_train_inds) # number of post-train digits
 
@@ -245,7 +245,7 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 	# DEV NOTE: Why use 1 (0, in Python) as index above? Ask CBD
 
 	# extract the relevant odor puffs: Each row is an EN, each col is an odor puff
-	post_train_resp = np.full((n_en,n_post), np.nan)
+	post_train_resp = _np.full((n_en,n_post), _np.nan)
 	for i,resp in enumerate(results):
 		post_train_resp[i,:] = resp['post_train_resp'][pre_train_inds]
 
@@ -253,49 +253,49 @@ def classify_digits_thresholding(results, home_advantage, home_thresh_sigmas, ab
 	# For example, the i'th row, j'th col entry of 'mu' is the mean of the i'th
 	# EN in response to digits from the j'th class; the diagonal contains the
 	# responses to the home-class.
-	mu = np.full((n_en,n_en), np.nan)
-	sig = np.full((n_en,n_en), np.nan)
+	mu = _np.full((n_en,n_en), _np.nan)
+	sig = _np.full((n_en,n_en), _np.nan)
 	for i,resp in enumerate(results):
 		mu[i,:] = resp['post_mean_resp']
 		sig[i,:] = resp['post_std_resp']
 
 	# for each EN:
 	# get the likelihood of each puff (ie each col of post_train_resp)
-	likelihoods = np.zeros((n_post,n_en))
+	likelihoods = _np.zeros((n_post,n_en))
 	for i in range(n_post):
 
-		dist = (np.tile(post_train_resp[:,i],(10,1)) - mu) / sig # 10 x 10 matrix
+		dist = (_np.tile(post_train_resp[:,i],(10,1)) - mu) / sig # 10 x 10 matrix
 		# The ith row, jth col entry is the mahalanobis distance of this test
 		# digit's response from the i'th ENs response to the j'th class.
 		# For example, the diagonal contains the mahalanobis distance of this
 		# digit's response to each EN's home-class response.
 
 		# 1. Apply rewards for above-threshold responses:
-		off_diag = dist - np.diag(np.diag(dist))
-		on_diag = np.diag(dist).copy()
+		off_diag = dist - _np.diag(_np.diag(dist))
+		on_diag = _np.diag(dist).copy()
 		# Reward any onDiags that are above some threshold (mu - n*sigma) of an EN.
 		# CAUTION: This reward-by-shrinking only works when off-diagonals are
 		# demolished by very high value of 'home_advantage'.
-		home_threshs = home_thresh_sigmas * np.diag(sig)
-		# aboveThreshInds = np.nonzero(on_diag > home_threshs)[0]
+		home_threshs = home_thresh_sigmas * _np.diag(sig)
+		# aboveThreshInds = _np.nonzero(on_diag > home_threshs)[0]
 		on_diag[on_diag > home_threshs] /= above_home_thresh_reward
-		on_diag = np.diag(on_diag) # turn back into a matrix
+		on_diag = _np.diag(on_diag) # turn back into a matrix
 		# 2. Emphasize the home-class results by shrinking off-diagonal values.
 		# This makes the off-diagonals less important in the final likelihood sum.
 		# This is shrinkage for a different purpose than in the lines above.
 		dist = (off_diag / home_advantage) + on_diag
-		likelihoods[i,:] = np.sum(dist**4, axis=0) # the ^4 (instead of ^2) is a sharpener
+		likelihoods[i,:] = _np.sum(dist**4, axis=0) # the ^4 (instead of ^2) is a sharpener
 		# In pure thresholding case (ie off-diagonals ~ 0), this does not matter.
 
 	# make predictions:
-	pred_classes = np.argmin(likelihoods, axis=1)
+	pred_classes = _np.argmin(likelihoods, axis=1)
 	# for i in range(n_post):
 		# pred_classes[i] = find(likelihoods(i,:) == min(likelihoods(i,:) ) )
 
 	# calc accuracy percentages:
-	class_acc = np.zeros(n_en)
+	class_acc = _np.zeros(n_en)
 	for i in range(n_en):
-		class_acc[i] = (100*np.logical_and(pred_classes == i, true_classes == i).sum())/(true_classes == i).sum()
+		class_acc[i] = (100*_np.logical_and(pred_classes == i, true_classes == i).sum())/(true_classes == i).sum()
 
 	total_acc = (100*(pred_classes == true_classes).sum())/len(true_classes)
 
