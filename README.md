@@ -39,7 +39,7 @@ pip install -r pymoth/docs/requirements.txt
 python pymoth/examples.py
 ```
 
-#### Dependencies (also see [`requirements.txt`](./docs/requirements.txt)):
+#### Dependencies (also see [`requirements.txt`](./docs/requirements.txt))
 - [scipy](https://www.scipy.org/)
 - [matplotlib](https://matplotlib.org/)
 - [scikit-learn](https://scikit-learn.org/)(for kNN and SVM models)
@@ -49,14 +49,7 @@ python pymoth/examples.py
 
 ---
 
-### Modules:
-- *classify.py* Classify output from MothNet model.
-- *generate.py* Download (if absent) and prepare down-sampled MNIST dataset.
-- *params.py* Experiment and model parameters.
-- *sde.py* Run stochastic differential equation simulation.
-- *show_figs.py* Figure generation module.
-
-### Sample experiment:
+### Example experiment
 ```python
 
 import os
@@ -124,6 +117,13 @@ def experiment():
 
 ### Dataset:
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
+
+### Modules
+- [`*classify.py*`](./pymoth/modules/classify.py)) Classify output from MothNet model.
+- *generate.py* Download (if absent) and prepare down-sampled MNIST dataset.
+- *params.py* Experiment and model parameters.
+- *sde.py* Run stochastic differential equation simulation.
+- *show_figs.py* Figure generation module.
 
 ---
 
