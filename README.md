@@ -21,15 +21,13 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3.6+
 
-### Dependencies (also see [`requirements.txt`](./docs/requirements.txt)):
-- [scipy](https://www.scipy.org/)
-- [matplotlib](https://matplotlib.org/)
-- [scikit-learn](https://scikit-learn.org/)(for kNN and SVM models)
-- [pillow](https://pillow.readthedocs.io/en/stable/)
-- [keras](https://keras.io/) (for loading MNIST)
-- [tensorflow](https://www.tensorflow.org/) (_also_ for loading MNIST)
+### Via `pip`
+```console
+pip install mothnet
+```
 
-First, clone this repo and `cd` into it. Then run the following commands:
+### From source
+First, clone this repo and `cd` into it. Then run:
 ```console
 # Create virtualenv:
 python3 -m venv env
@@ -40,6 +38,14 @@ pip install -r pymoth/docs/requirements.txt
 # Run sample experiment:
 python pymoth/examples.py
 ```
+
+#### Dependencies (also see [`requirements.txt`](./docs/requirements.txt)):
+- [scipy](https://www.scipy.org/)
+- [matplotlib](https://matplotlib.org/)
+- [scikit-learn](https://scikit-learn.org/)(for kNN and SVM models)
+- [pillow](https://pillow.readthedocs.io/en/stable/)
+- [keras](https://keras.io/) (for loading MNIST)
+- [tensorflow](https://www.tensorflow.org/) (_also_ for loading MNIST)
 
 ---
 
