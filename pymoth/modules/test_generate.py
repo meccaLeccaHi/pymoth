@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
+import os
+import numpy as np
+
+# import packages and modules
+from .generate import generate_ds_mnist, extract_mnist_feature_array, \
+    crop_downsample_vectorize_images, average_image_stack, select_active_pixels
 
 def main():
 
     print('Testing generate module:')
-
-    # import packages and modules
-    import os
-    import numpy as np
-    from generate import generate_ds_mnist, extract_mnist_feature_array, \
-        crop_downsample_vectorize_images, average_image_stack, select_active_pixels
 
     # generate dummy data
     mnist_fname = os.path.dirname(os.path.dirname(__file__)) + os.sep + \
@@ -43,7 +43,8 @@ def main():
                       6,
                       [i for i in range(550,1000)],
                       85,
-                      screen_size, '', 0
+                      screen_size, '',
+                      0,
                      )
     print('\tgenerate_ds_mnist function test passed')
 

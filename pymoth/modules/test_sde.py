@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
+# import packages and modules
+import numpy as np
+from .sde import sde_wrap
+from .params import ModelParams, ExpParams
+
 def main():
 
     print('Testing params module:')
-
-    # import packages and modules
-    import numpy as np
-    from sde import sde_wrap
-    from params import ModelParams, ExpParams
 
     # create dummy data
     dummy_model_params = ModelParams( 10, 10 )

@@ -194,7 +194,8 @@ class MothNet:
 			self._max_ind, self._class_labels, self._crop, self._downsample_rate,
 			self._downsample_method, self._inds_to_ave, self._pixel_sum,
 			self._inds_to_calc_RF, self._num_features, self.SCREEN_SIZE,
-			self.RESULTS_FOLDER, self._show_thumbnails
+			self.RESULTS_FOLDER, self._show_thumbnails,
+            data_dir = _os.path.expanduser("~")+_os.sep+'MNIST_all'
 			)
 
 		_, self._num_per_class, self._class_num = self._feat_array.shape

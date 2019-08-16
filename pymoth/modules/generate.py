@@ -10,12 +10,13 @@
 
 """
 
-import numpy as np
-import os
+import numpy as _np
+import os as _os
+from skimage.transform import downscale_local_mean
 
 def generate_ds_mnist( max_ind, class_labels, crop, downsample_ratio, downsample_method,
 inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
-show_thumbnails ):
+show_thumbnails, data_dir='/tmp/' ):
 	"""
 	Preprocessing:
 		#. Load MNIST
@@ -43,6 +44,7 @@ show_thumbnails ):
 		screen_size (tuple): screen size (width, height) for images
 		save_results_folder (str): absolute path to where results will be saved
 		show_thumbnails (int): number of thumbnails to show for each class (0 means none)
+		data_dir (str): optional keyword arg specifying where to save data
 
 	Returns
 	-------
@@ -63,23 +65,29 @@ show_thumbnails ):
 					  6,
 					  [i for i in range(550,1000)],
 					  85,
-					  screen_size, '', 0
+					  screen_size,
+					  '',
+					  0,
 					 )
 
 	"""
 
-	im_dir = 'MNIST_all'
+	# import pdb; pdb.set_trace()
+	##TEST for existence of data folder, else create it
+	if not _os.path.isdir(data_dir):
+		_os.mkdir(data_dir)
+		print('Creating data directory: {}'.format(data_dir))
 
-	mnist_fname = os.path.dirname(os.path.dirname(__file__)) + os.sep + im_dir + os.sep + 'MNIST_all.npy'
+	mnist_fpath = data_dir + _os.sep + 'MNIST_all.npy'
 
 	# test for npy file before loading. run creation script, if absent.
-	if not os.path.isfile(mnist_fname):
+	if not _os.path.isfile(mnist_fpath):
 		# download and save data from the web
 		from ..MNIST_all import MNIST_make_all
-		MNIST_make_all.make_MNIST()
+		MNIST_make_all.make_MNIST(mnist_fpath)
 
 	# 1. extract mnist:
-	mnist = np.load(mnist_fname, allow_pickle = True).item()
+	mnist = _np.load(mnist_fpath, allow_pickle = True).item()
 	# loads dictionary 'mnist' with keys:value pairs =
 	# .train_images, .test_images, .train_labels, .test_labels (ie the original data from PMTK3)
 	# AND parsed by class. These fields are used to assemble the image_array:
@@ -95,12 +103,12 @@ show_thumbnails ):
 
 	# calc new dimensions
 	im_z, im_height, im_width, label_len = image_array.shape
-	crop_val = crop*np.ones(4,dtype = int)
-	new_width = (im_width-np.sum(crop_val[2:]))/downsample_ratio
-	new_height = (im_height-np.sum(crop_val[0:2]))/downsample_ratio
+	crop_val = crop*_np.ones(4,dtype = int)
+	new_width = (im_width-_np.sum(crop_val[2:]))/downsample_ratio
+	new_height = (im_height-_np.sum(crop_val[0:2]))/downsample_ratio
 	new_length = int(new_width*new_height)
 
-	feature_array = np.zeros((new_length, im_z, label_len)) # pre-allocate
+	feature_array = _np.zeros((new_length, im_z, label_len)) # pre-allocate
 
 	# crop, downsample, and vectorize the average images and the image stacks
 	for c in range(label_len):
@@ -114,8 +122,8 @@ show_thumbnails ):
 	# subtract a mean image from all feature vectors, then make values non-negative
 
 	# a. Make an overall average feature vector, using the samples specified in 'indsToAverage'
-	overall_ave = np.zeros((new_length, )) # pre-allocate col vector
-	class_ave_raw = np.zeros((new_length, label_len))
+	overall_ave = _np.zeros((new_length, )) # pre-allocate col vector
+	class_ave_raw = _np.zeros((new_length, label_len))
 	for c in range(label_len):
 		class_ave_raw[:,c] = average_image_stack(feature_array[:, inds_to_ave, c],
 			list(range(len(inds_to_ave))) )
@@ -123,16 +131,16 @@ show_thumbnails ):
 	overall_ave /= label_len
 
 	# b. Subtract this overall_ave image from all images
-	ave_2D = np.tile(overall_ave,(im_z,1)).T
-	ave_3D = np.repeat(ave_2D[:,:,np.newaxis],label_len,2)
+	ave_2D = _np.tile(overall_ave,(im_z,1)).T
+	ave_3D = _np.repeat(ave_2D[:,:,_np.newaxis],label_len,2)
 	feature_array -= ave_3D
 	del ave_2D, ave_3D
 
-	feature_array = np.maximum(feature_array, 0) # remove any negative pixel values
+	feature_array = _np.maximum(feature_array, 0) # remove any negative pixel values
 
 	# c. Normalize each image so the pixels sum to the same amount
-	f_sums = np.sum(feature_array, axis=0)
-	norm_array = np.repeat(f_sums[np.newaxis,:,:],new_length,0)
+	f_sums = _np.sum(feature_array, axis=0)
+	norm_array = _np.repeat(f_sums[_np.newaxis,:,:],new_length,0)
 	feature_array *= pixel_sum
 	feature_array /= norm_array
 	# feature_array now consists of mean-subtracted, non-negative,
@@ -183,7 +191,7 @@ def extract_mnist_feature_array(mnist, labels, image_indices, phase_label):
 	max_ind = max(image_indices)
 
 	# initialize outputs:
-	im_array = np.zeros((max_ind+1, h, w, len(labels)))
+	im_array = _np.zeros((max_ind+1, h, w, len(labels)))
 
 	# process each class in turn:
 	for c in labels:
@@ -225,10 +233,8 @@ def crop_downsample_vectorize_images(im_stack, crop_val, downsample_ratio, downs
 
 	"""
 
-	from skimage.transform import downscale_local_mean
-
 	if type(crop_val) is int:
-		crop_val = crop_val*np.ones(4,dtype = int)
+		crop_val = crop_val*_np.ones(4,dtype = int)
 
 	if len(im_stack.shape)==3:
 		im_z,im_height,im_width = im_stack.shape
@@ -239,22 +245,22 @@ def crop_downsample_vectorize_images(im_stack, crop_val, downsample_ratio, downs
 	width = range(crop_val[2], im_width-crop_val[3])
 	height = range(crop_val[0], im_height-crop_val[1])
 
-	new_width = (im_width-np.sum(crop_val[2:]))/downsample_ratio
-	new_height = (im_height-np.sum(crop_val[0:2]))/downsample_ratio
+	new_width = (im_width-_np.sum(crop_val[2:]))/downsample_ratio
+	new_height = (im_height-_np.sum(crop_val[0:2]))/downsample_ratio
 
-	im_col_array = np.zeros((int(new_width*new_height),im_z))
+	im_col_array = _np.zeros((int(new_width*new_height),im_z))
 	# crop, downsample, vectorize the thumbnails one-by-one
 	for s in range(im_z):
 		t = im_stack[s,...]
 		# crop image
-		ixgrid = np.ix_(width, height)
+		ixgrid = _np.ix_(width, height)
 		t = t[ixgrid]
 
 		if downsample_method: # bicubic
 			t2 = downscale_local_mean(t, (downsample_ratio, downsample_ratio))
 
 		else: # sum 2 x 2 blocks
-			t2 = np.zeros((int(len(height)/downsample_ratio),int(len(width)/downsample_ratio)))
+			t2 = _np.zeros((int(len(height)/downsample_ratio),int(len(width)/downsample_ratio)))
 			for i in range(int(len(height)/downsample_ratio)):
 				for j in range(int(len(width)/downsample_ratio)):
 					b = t[(i-1)*downsample_ratio+1:i*downsample_ratio+1,
@@ -287,9 +293,9 @@ def average_image_stack( im_stack, indices_to_average ):
 
 	# case: images are col vectors
 	if len(im_stack_shape) == 2:
-		ave_im = np.zeros((im_stack_shape[0],))
+		ave_im = _np.zeros((im_stack_shape[0],))
 	else:
-		ave_im = np.zeros(im_stack_shape)
+		ave_im = _np.zeros(im_stack_shape)
 
 	for i in indices_to_average:
 		ave_im += im_stack[:, i]
@@ -324,25 +330,25 @@ def select_active_pixels( feature_array, num_features, screen_size, save_image_f
 	## make classAves matrix (cA)
 	# each col a class ave 1 to 10 (ie 0), and add a col for the overall_ave
 	num_pix, num_per_class, num_classes  = feature_array.shape
-	cA = np.zeros((num_pix, num_classes+1))
+	cA = _np.zeros((num_pix, num_classes+1))
 
 	for i in range(num_classes):
 		cA[:,i] = average_image_stack(feature_array[:,:,i], list(range(num_per_class)))
 
 	# last col = average image over all digits
-	cA[:,-1] = np.sum(cA[:,:-1], axis=1) / num_classes
+	cA[:,-1] = _np.sum(cA[:,:-1], axis=1) / num_classes
 
 	# normed version (does not rescale the overall average)
-	z = np.max(cA, axis=0)
+	z = _np.max(cA, axis=0)
 	z[-1] = 1
-	cA_norm = cA/np.tile(z, (num_pix,1))
+	cA_norm = cA/_np.tile(z, (num_pix,1))
 
 	# select most active 'num_features' pixels
 	peak_pix = cA[:, :-1]
-	peak_pix_logical = np.zeros(peak_pix.shape)
+	peak_pix_logical = _np.zeros(peak_pix.shape)
 
 	# all the pixel values from all the class averages, in descending order
-	vals = np.sort(peak_pix.flatten())[::-1]
+	vals = _np.sort(peak_pix.flatten())[::-1]
 
 	# start selecting the highest-valued pixels
 	stop = 0
@@ -355,7 +361,7 @@ def select_active_pixels( feature_array, num_features, screen_size, save_image_f
 
 		vals = vals[vals < thresh]  # peel off the value(s) just used
 
-	active_pixel_inds = np.nonzero(active_pix > 0)[0]
+	active_pixel_inds = _np.nonzero(active_pix > 0)[0]
 
 	if show_thumbnails and save_image_folder:
 
@@ -365,15 +371,15 @@ def select_active_pixels( feature_array, num_features, screen_size, save_image_f
 		title_str = 'class aves, all pixels'
 		show_FA_thumbs(cA_norm, num_classes+1, normalize, title_str,
 			screen_size,
-			save_image_folder + os.sep + 'thumbnails_all')
+			save_image_folder + _os.sep + 'thumbnails_all')
 
 		# look at active pixels of the classAves, ie post-ablation
 		normalize = 0
-		cA_active_only = np.zeros(cA_norm.shape)
+		cA_active_only = _np.zeros(cA_norm.shape)
 		cA_active_only[active_pixel_inds, : ] = cA_norm[active_pixel_inds, :]
 		title_str = 'class aves, active pixels only'
 		show_FA_thumbs(cA_active_only, num_classes+1, normalize, title_str,
-			screen_size, save_image_folder + os.sep + 'thumbnails_active')
+			screen_size, save_image_folder + _os.sep + 'thumbnails_active')
 
 	return active_pixel_inds
 

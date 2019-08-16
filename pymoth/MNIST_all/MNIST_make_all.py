@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
-import os as _os
 import numpy as _np
 from keras.datasets import mnist as _mnist # also requires tensorflow
 
-def make_MNIST():
+def make_MNIST(mnist_fpath):
 	'''
 	Save the following data to .npy file:
 		train_images: np.array[28x28x60000]
 		test_images: np.array[28x28x10000]
 		train_labels: np.array[60000x1]
 		test_labels: np.array[10000x1]
+
+	Args:
+		mnist_fpath (str): Path and filename for data to be saved under in the \
+		user's Home (~) directory.
 	'''
 
 	# from MNIST_all import MNIST_read
@@ -20,7 +23,7 @@ def make_MNIST():
 
 	## download and save data from Keras
 	# directory to save image data
-	im_dir = 'MNIST_all'
+	# im_dir = 'MNIST_all'
 
 	(train_imgs, train_lbls), (test_imgs, test_lbls) = _mnist.load_data()
 
@@ -31,9 +34,8 @@ def make_MNIST():
 				'test_labels':test_lbls,
 			}
 
-	data_fname = _os.path.dirname(__file__) + _os.sep + 'MNIST_all.npy'
-	_np.save(data_fname, mnist)
-	print('MNIST data saved:', data_fname)
+	_np.save(mnist_fpath, mnist)
+	print('MNIST data saved:', mnist_fpath)
 
 if __name__ == "__main__":
     make_MNIST()

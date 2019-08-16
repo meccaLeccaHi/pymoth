@@ -5,7 +5,7 @@ def main():
     print('Testing classify module:')
 
     import numpy as np
-    from classify import roc_multi, classify_digits_log_likelihood, classify_digits_thresholding
+    from .classify import roc_multi, classify_digits_log_likelihood, classify_digits_thresholding
 
     # create dummy data
     dummy_results = []
