@@ -7,19 +7,19 @@ Welcome to pymoth's documentation!
 
 .. automodule:: pymoth
 
-.. automodule:: modules.params
+.. automodule:: pymoth.modules.params
   :members:
 
-.. automodule:: modules.generate
+.. automodule:: pymoth.modules.generate
   :members:
 
-.. automodule:: modules.classify
+.. automodule:: pymoth.modules.classify
   :members:
 
-.. automodule:: modules.sde
+.. automodule:: pymoth.modules.sde
   :members:
 
-.. automodule:: modules.show_figs
+.. automodule:: pymoth.modules.show_figs
   :members:
 
 Indices and tables
