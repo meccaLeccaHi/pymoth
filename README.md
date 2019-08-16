@@ -34,7 +34,7 @@ python3 -m venv env
 # Install dependencies:  
 pip install -r pymoth/docs/requirements.txt
 # Run sample experiment:
-python pymoth/sample_experiment.py
+python pymoth/examples.py
 ```
 
 ---
@@ -49,12 +49,10 @@ python pymoth/sample_experiment.py
 ### Sample experiment:
 ```python
 
+import os
 import pymoth
-import time, os
 
-def main():
-
-    run_start = time.time() # time execution duration
+def experiment():
 
     # instantiate the MothNet object
     mothra = pymoth.MothNet({
@@ -71,6 +69,8 @@ def main():
         'show_roc_plots': True, # True to plot, False to ignore
         'results_folder': 'results', # string
         'results_filename': 'results', # will get the run number appended to it
+        'data_folder': 'MNIST_all', # string
+        'data_filename': 'MNIST_all', # string
                             })
 
     # loop through the number of simulations specified:
@@ -106,15 +106,7 @@ def main():
         # plot each model in a subplot of a single figure
         if mothra.SHOW_ROC_PLOTS:
             mothra.show_multi_roc(['MothNet', 'SVM', 'KNN'], mothra._class_labels,
-            images_filename=mothra.RESULTS_FOLDER + os.sep + mothra.RESULTS_FILENAME + '_ROC_multi')
-
-    run_duration = time.time() - run_start
-    print('{} executed in {:.3f} minutes'.format(__file__, run_duration/60))
-    print()
-    print('         -------------All done-------------         ')
-
-if __name__ == "__main__":
-    main()
+            images_filename=mothra.RESULTS_FOLDER+os.sep+mothra.RESULTS_FILENAME+'_ROC_multi')
 ```
 
 ### Sample results:

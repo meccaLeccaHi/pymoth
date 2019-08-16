@@ -88,9 +88,11 @@ class MothNet:
 				SHOW_TIME_PLOTS (bool): True to plot, False to ignore. Three scaled \
 				ENs timecourses on each of 4 images (only one EN on the 4th image).
 				SHOW_ROC_PLOTS (bool): True to plot, False to ignore. One for each model.
-				RESULTS_FOLDER (str): relative path, starting inside the package directory. \
+				RESULTS_FOLDER (str): relative path, starting from user's home directory. \
 				If non-empty, results will be saved here.
 				RESULTS_FILENAME (str): will get the run number appended to it.
+				DATA_FOLDER (str): relative path, starting from user's home directory.
+				DATA_FILENAME (str): filename for MNIST data.
 
 		>>> mothra = pymoth.MothNet()
 
