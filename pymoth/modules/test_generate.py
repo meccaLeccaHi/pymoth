@@ -11,16 +11,7 @@ def main():
     print('Testing generate module:')
 
     # generate dummy data
-    mnist_fname = os.path.dirname(os.path.dirname(__file__)) + os.sep + \
-        'MNIST_all' + os.sep + 'MNIST_all.npy'
-
-    # test for npy file before loading - run creation script, if data is absent
-    if not os.path.isfile(mnist_fname):
-        print('MNIST data missing: download and save data from the web before \
-            running experiment.')
-
-    # load mnist
-    mnist = np.load(mnist_fname, allow_pickle = True).item()
+    mnist_fname = '/tmp/foo.npy'
 
     class_labels = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     max_ind = 999
@@ -47,6 +38,12 @@ def main():
                       0,
                      )
     print('\tgenerate_ds_mnist function test passed')
+
+    # load mnist
+    mnist = np.load(mnist_fname, allow_pickle = True).item()
+
+    # remove temporary data files
+    os.remove(mnist_fname)
 
     ## test extract_mnist_feature_array
     # extract_mnist_feature_array( mnist, labels, image_indices, phase_label )
