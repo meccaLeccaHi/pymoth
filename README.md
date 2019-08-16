@@ -115,17 +115,18 @@ def experiment():
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
 
 ### Modules
-- [*classify.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/classify.py) \
-Classify output from MothNet model.
-- [*generate.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/generate.py) \
-Download (if absent) and prepare down-sampled MNIST dataset.
-- [*params.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/params.py) \
-Experiment and model parameters.
-- [*sde.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/sde.py) \
-Run stochastic differential equation simulation.
-- [*show_figs.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/show_figs.py) \
-Figure generation module.
-- [*MNIST_make_all.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/MNIST_all/MNIST_make_all.py) \ Downloads and saves MNIST data to .npy file.
+- [*classify.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/classify.py
+  ) Classify output from MothNet model.
+- [*generate.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/generate.py
+  ) Download (if absent) and prepare down-sampled MNIST dataset.
+- [*params.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/params.py
+  ) Experiment and model parameters.
+- [*sde.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/sde.py
+  ) Run stochastic differential equation simulation.
+- [*show_figs.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/show_figs.py
+  ) Figure generation module.
+- [*MNIST_make_all.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/MNIST_all/MNIST_make_all.py
+  ) Downloads and saves MNIST data to .npy file.
 
 ---
 
