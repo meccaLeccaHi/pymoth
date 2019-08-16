@@ -23,6 +23,8 @@ def experiment():
         'show_roc_plots': True, # True to plot, False to ignore
         'results_folder': 'results', # string
         'results_filename': 'results', # will get the run number appended to it
+        'data_folder': 'MNIST_all', # string
+        'data_filename': 'MNIST_all', # string 
                             })
 
     # loop through the number of simulations specified:

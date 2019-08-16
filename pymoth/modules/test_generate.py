@@ -11,7 +11,7 @@ def main():
     print('Testing generate module:')
 
     # generate dummy data
-    mnist_fname = '/tmp/foo.npy'
+    mnist_fname = '/tmp/MNIST_all.npy'
 
     class_labels = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     max_ind = 999
@@ -21,9 +21,6 @@ def main():
     screen_size = (1920, 1080)
 
     ## test generate_ds_mnist
-    # generate_ds_mnist( max_ind, class_labels, crop, downsample_ratio, downsample_method,
-    # inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
-    # show_thumbnails )
     generate_ds_mnist(
                       max_ind,
                       class_labels,

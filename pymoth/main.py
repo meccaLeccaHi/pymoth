@@ -108,22 +108,21 @@ class MothNet:
 		self.SHOW_ACC_PLOTS = settings.get('show_acc_plots', True) # True to plot, False to ignore
 		self.SHOW_TIME_PLOTS = settings.get('show_time_plots', True) # True to plot, False to ignore
 		self.SHOW_ROC_PLOTS = settings.get('show_roc_plots', True) # True to plot, False to ignore
-		self.RESULTS_FOLDER = _os.path.dirname(__file__) + _os.sep + \
-			settings.get('results_folder', 'results') # string
+		self.RESULTS_FOLDER = settings.get('results_folder', '/tmp') # string
 		self.RESULTS_FILENAME = settings.get('results_filename', 'results') # string
+		self.DATA_FOLDER = settings.get('data_folder', '/tmp') # string
+		self.DATA_FILENAME = settings.get('data_filename', 'MNIST_all') # string
 
 		# Test parameters for compatibility
 		if self.SHOW_ACC_PLOTS or self.SHOW_TIME_PLOTS:
 			##TEST that directory string is not empty
-			if not self.RESULTS_FOLDER:
-				folder_error = "RESULTS_FOLDER parameter is empty.\n" + \
-					"Please add directory or set SHOW_ACC_PLOTS and SHOW_TIME_PLOTS to 'False'."
-				raise Exception(folder_error)
+			if self.RESULTS_FOLDER!='/tmp':
+				self.RESULTS_FOLDER = _os.path.expanduser("~")+_os.sep+self.RESULTS_FOLDER
 
 			##TEST for existence of image results folder, else create it
 			if not _os.path.isdir(self.RESULTS_FOLDER):
 				_os.mkdir(self.RESULTS_FOLDER)
-				print('Creating results directory: {}'.format(self.RESULTS_FOLDER))
+				print('\nCreating results directory: {}\n'.format(self.RESULTS_FOLDER))
 
 	### 2. Load and preprocess MNIST dataset ###
 
@@ -195,7 +194,7 @@ class MothNet:
 			self._downsample_method, self._inds_to_ave, self._pixel_sum,
 			self._inds_to_calc_RF, self._num_features, self.SCREEN_SIZE,
 			self.RESULTS_FOLDER, self._show_thumbnails,
-            data_dir = _os.path.expanduser("~")+_os.sep+'MNIST_all'
+			data_dir = self.DATA_FOLDER, data_fname = self.DATA_FILENAME
 			)
 
 		_, self._num_per_class, self._class_num = self._feat_array.shape

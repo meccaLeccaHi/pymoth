@@ -16,7 +16,7 @@ from skimage.transform import downscale_local_mean
 
 def generate_ds_mnist( max_ind, class_labels, crop, downsample_ratio, downsample_method,
 inds_to_ave, pixel_sum, inds_to_calc_RF, num_features, screen_size, save_results_folder,
-show_thumbnails, data_dir='/tmp/' ):
+show_thumbnails, data_dir='/tmp', data_fname='MNIST_all'):
 	"""
 	Preprocessing:
 		#. Load MNIST
@@ -45,6 +45,7 @@ show_thumbnails, data_dir='/tmp/' ):
 		save_results_folder (str): absolute path to where results will be saved
 		show_thumbnails (int): number of thumbnails to show for each class (0 means none)
 		data_dir (str): optional keyword arg specifying where to save data
+		data_fname (str): optional keyword arg specifying filename of saved data
 
 	Returns
 	-------
@@ -72,13 +73,16 @@ show_thumbnails, data_dir='/tmp/' ):
 
 	"""
 
-	# import pdb; pdb.set_trace()
+	# if data_dir specified (not the default value), prepend home dir path
+	if data_dir!='/tmp':
+		data_dir = _os.path.expanduser("~")+_os.sep+data_dir
+
 	##TEST for existence of data folder, else create it
 	if not _os.path.isdir(data_dir):
 		_os.mkdir(data_dir)
-		print('Creating data directory: {}'.format(data_dir))
+		print('\nCreating data directory: {}\n'.format(data_dir))
 
-	mnist_fpath = data_dir + _os.sep + 'MNIST_all.npy'
+	mnist_fpath = data_dir + _os.sep + data_fname + '.npy'
 
 	# test for npy file before loading. run creation script, if absent.
 	if not _os.path.isfile(mnist_fpath):
