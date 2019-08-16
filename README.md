@@ -112,10 +112,10 @@ def experiment():
             images_filename=mothra.RESULTS_FOLDER+os.sep+mothra.RESULTS_FILENAME+'_ROC_multi')
 ```
 
-### Sample results:
+### Sample results
 <img src='https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/results/results_ROC_multi_sample.png?raw=true'>
 
-### Dataset:
+### Dataset
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
 
 ### Modules
