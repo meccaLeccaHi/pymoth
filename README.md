@@ -17,6 +17,10 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 [Docs (via Sphinx)](https://pymoth.readthedocs.io/)
 ---
 
+## Installation
+Built for use with Mac/Linux systems - not tested in Windows.
+- Requires Python 3.6+
+
 ### Dependencies (also see [`requirements.txt`](./docs/requirements.txt)):
 - [scipy](https://www.scipy.org/)
 - [matplotlib](https://matplotlib.org/)
@@ -24,9 +28,6 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 - [pillow](https://pillow.readthedocs.io/en/stable/)
 - [keras](https://keras.io/) (for loading MNIST)
 - [tensorflow](https://www.tensorflow.org/) (_also_ for loading MNIST)
-
-Built for use with Mac/Linux systems - not tested in Windows.
-- Requires Python 3.6+
 
 First, clone this repo and `cd` into it. Then run the following commands:
 ```console
