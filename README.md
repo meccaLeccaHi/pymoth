@@ -45,7 +45,7 @@ python pymoth/examples.py
 
 ---
 
-### Example experiment (also see [`examples.py`](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/examples.py))
+### Example experiment (also see [`examples.py`](https://github.com/meccaLeccaHi/pymoth/blob/master/examples.py))
 
 ```python
 
