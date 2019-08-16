@@ -35,7 +35,7 @@ pip install -r pymoth/docs/requirements.txt
 python pymoth/examples.py
 ```
 
-#### Dependencies (also see [`requirements.txt`](./docs/requirements.txt))
+#### Dependencies (also see [`requirements.txt`](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/docs/requirements.txt))
 - [scipy](https://www.scipy.org/)
 - [matplotlib](https://matplotlib.org/)
 - [scikit-learn](https://scikit-learn.org/)(for kNN and SVM models)
@@ -45,7 +45,9 @@ python pymoth/examples.py
 
 ---
 
-### Example experiment (also see [`examples.py`](examples.py))
+### Example experiment (also see [`examples.py`](
+  https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/examples.py))
+
 ```python
 
 import os
