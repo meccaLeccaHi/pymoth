@@ -29,10 +29,6 @@ pip install mothnet
 ### From source
 First, clone this repo and `cd` into it. Then run:
 ```console
-# Create virtualenv:
-python3 -m venv env
-# Activate virtualenv:
-source ./env/bin/activate
 # Install dependencies:  
 pip install -r pymoth/docs/requirements.txt
 # Run sample experiment:
@@ -49,7 +45,7 @@ python pymoth/examples.py
 
 ---
 
-### Example experiment
+### Example experiment (also see [`examples.py`](examples.py))
 ```python
 
 import os
@@ -119,12 +115,17 @@ def experiment():
 [MNIST Data](http://yann.lecun.com/exdb/mnist/)
 
 ### Modules
-- [*classify.py*](./pymoth/modules/classify.py) Classify output from MothNet model.
-- [*generate.py*](./pymoth/modules/generate.py) Download (if absent) and prepare down-sampled MNIST dataset.
-- [*params.py*](./pymoth/modules/params.py) Experiment and model parameters.
-- [*sde.py*](./pymoth/modules/sde.py) Run stochastic differential equation simulation.
-- [*show_figs.py*](./pymoth/modules/show_figs.py) Figure generation module.
-- [*MNIST_make_all.py*](./pymoth/MNIST_all/MNIST_make_all.py) Downloads and saves MNIST data to .npy file.
+- [*classify.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/classify.py) \
+Classify output from MothNet model.
+- [*generate.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/generate.py) \
+Download (if absent) and prepare down-sampled MNIST dataset.
+- [*params.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/params.py) \
+Experiment and model parameters.
+- [*sde.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/sde.py) \
+Run stochastic differential equation simulation.
+- [*show_figs.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/modules/show_figs.py) \
+Figure generation module.
+- [*MNIST_make_all.py*](https://github.com/meccaLeccaHi/pymoth/blob/master/pymoth/MNIST_all/MNIST_make_all.py) \ Downloads and saves MNIST data to .npy file.
 
 ---
 
