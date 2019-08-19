@@ -21,7 +21,7 @@ Neural network modeled after the olfactory system of the hawkmoth, _Manduca sext
 Built for use with Mac/Linux systems - not tested in Windows.
 - Requires Python 3.6+
 
-### Via `pip`
+### Via [`pip`](https://pypi.org/project/mothnet/)
 ```console
 pip install mothnet
 ```
