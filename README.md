@@ -27,11 +27,11 @@ pip install mothnet
 ```
 
 ### From source
-First, clone this repo and `cd` into it. Then run:
+First, clone this repo and `cd` into it. Then:
 ```console
-# Install dependencies:  
+# Install dependencies-  
 pip install -r pymoth/docs/requirements.txt
-# Run sample experiment:
+# Run sample experiment-
 python pymoth/examples.py
 ```
 
@@ -45,7 +45,7 @@ python pymoth/examples.py
 
 ---
 
-### Example experiment (also see [`examples.py`](https://github.com/meccaLeccaHi/pymoth/blob/master/examples.py))
+### Sample experiment (also see [`examples.py`](https://github.com/meccaLeccaHi/pymoth/blob/master/examples.py))
 
 ```python
 
@@ -67,9 +67,9 @@ def experiment():
         'show_acc_plots': True, # True to plot, False to ignore
         'show_time_plots': True, # True to plot, False to ignore
         'show_roc_plots': True, # True to plot, False to ignore
-        'results_folder': 'results', # string
+        'results_folder': 'results', # string (gets created, if doesn't exist)
         'results_filename': 'results', # will get the run number appended to it
-        'data_folder': 'MNIST_all', # string
+        'data_folder': 'MNIST_all', # string (gets created, if doesn't exist)
         'data_filename': 'MNIST_all', # string
                             })
 

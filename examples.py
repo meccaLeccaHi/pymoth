@@ -21,9 +21,9 @@ def experiment():
         'show_acc_plots': True, # True to plot, False to ignore
         'show_time_plots': True, # True to plot, False to ignore
         'show_roc_plots': True, # True to plot, False to ignore
-        'results_folder': 'results', # string
+        'results_folder': 'results', # string (gets created, if doesn't exist)
         'results_filename': 'results', # will get the run number appended to it
-        'data_folder': 'MNIST_all', # string
+        'data_folder': 'MNIST_all', # string (gets created, if doesn't exist)
         'data_filename': 'MNIST_all', # string 
                             })
 
