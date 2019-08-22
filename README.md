@@ -4,6 +4,8 @@
 [![Documentation Status](https://readthedocs.org/projects/pymoth/badge/?version=latest)](https://pymoth.readthedocs.io/?badge=latest)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![PyPI version](https://badge.fury.io/py/mothnet.svg)](https://badge.fury.io/py/mothnet)
+[![Conda version](https://anaconda.org/meccaleccahi/mothnet/badges/version.svg)](https://anaconda.org/meccaleccahi/mothnet/badges/version.svg)
 
 This package contains a Python version of [MothNet](https://github.com/charlesDelahunt/PuttingABugInML)
 
