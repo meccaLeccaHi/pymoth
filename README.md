@@ -26,6 +26,11 @@ Built for use with Mac/Linux systems - not tested in Windows.
 pip install mothnet
 ```
 
+### Via [`conda`](https://anaconda.org/meccaLeccaHi/mothnet)
+```console
+conda install -c meccaleccahi mothnet
+```
+
 ### From source
 First, clone this repo and `cd` into it. Then:
 ```console
