@@ -29,8 +29,8 @@ else:
 class MothNet:
 
 	# Experiment details
-	from .modules.sde import collect_stats
-	from .modules.show_figs import show_multi_roc
+	from modules.sde import collect_stats
+	from modules.show_figs import show_multi_roc
 
 	# Initializer / Instance Attributes
 	def __init__(self, settings):

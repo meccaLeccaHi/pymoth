@@ -8,6 +8,6 @@ The constructor for pymoth package.
 
 """
 
-from .MothNet import MothNet
+from MothNet import MothNet
 
 # from ..examples import experiment as sample_experiment

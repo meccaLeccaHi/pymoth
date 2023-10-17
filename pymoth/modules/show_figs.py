@@ -70,9 +70,9 @@ def show_FA_thumbs( feature_array, show_per_class, normalize, title_string,
                 this_input /= this_input.max()
 
             ax_count = i + (cl*num_classes)
-            _plt.subplot(_np.int(num_rows),_np.int(num_cols),ax_i)
+            _plt.subplot(int(num_rows),int(num_cols),ax_i)
 
-            side = _np.int(_np.sqrt(len(this_input)))
+            side = int(_np.sqrt(len(this_input)))
             _plt.imshow(this_input.reshape((side,side)), cmap='gray', vmin=0, vmax=1)
 
     # add a title at the bottom
