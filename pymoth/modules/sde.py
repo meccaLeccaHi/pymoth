@@ -13,7 +13,7 @@ import os as _os
 import numpy as _np
 from scipy.special import erfinv
 import matplotlib.pyplot as _plt
-from ..modules.show_figs import show_acc, show_timecourse
+from show_figs import show_acc, show_timecourse
 
 def sde_wrap( model_params, exp_params, feature_array ):
     """
@@ -54,7 +54,7 @@ def sde_wrap( model_params, exp_params, feature_array ):
     time_step = 2*0.01
 
     total_steps = (sim_stop - sim_start)/time_step
-    time = _np.linspace(sim_start, sim_stop-time_step, total_steps)
+    time = _np.linspace(sim_start, int(sim_stop-time_step), int(total_steps))
 
     class_labels = exp_params.class_labels
     # classMags = exp_params.classMags
